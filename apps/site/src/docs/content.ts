@@ -27,6 +27,7 @@ export const GLASS_PROPS: PropRow[] = [
   { name: 'interactive', type: 'boolean', default: 'false', body: 'Lift on hover, swell on press with light blooming from the touch point, stretch toward the pointer, glow where it touches. Keyboard presses animate too.' },
   { name: 'appear', type: 'boolean', default: 'false', body: 'Materialize on mount: fade in, swell into place on a spring, and let the lens gather its bend. A plain fade under reduced motion.' },
   { name: 'shadow', type: 'string | false', default: 'a soft two-layer shadow', body: 'The box shadow under the glass, or false for none.' },
+  { name: 'backdrop', type: 'HTMLElement | RefObject', default: '—', body: 'What lies behind the glass, for browsers that can’t refract the live page: media is refracted in WebGL, any other element as a live copy in Firefox. Must not contain the glass.' },
 ];
 
 export const STAGE_PROPS: PropRow[] = [
@@ -52,6 +53,7 @@ export const GROUP_PROPS: PropRow[] = [
   { name: 'mode', type: "'auto' | 'refract' | 'frost' | 'none'", default: "'auto'", body: 'Rendering path for the merged surface, as on Glass.' },
   { name: 'shadow', type: 'boolean', default: 'true', body: 'A soft shadow outside the merged outline.' },
   { name: 'as', type: 'ElementType', default: "'div'", body: 'The element the group renders. It is the positioned box its members are measured in.' },
+  { name: 'backdrop', type: 'HTMLElement | RefObject', default: '—', body: 'What lies behind the group, as on Glass. Over an image or video, Safari and Firefox draw the merged glass in WebGL.' },
   { name: '…glass', type: 'GlassOptions', default: 'provider', body: 'Refraction, tint, blur, light and the rest apply to the whole surface. Members contribute only their outline and radius.' },
 ];
 
@@ -107,6 +109,19 @@ function Notice() {
     </GlassStage>
   );
 }`,
+  backdrop: `const photo = useRef<HTMLImageElement>(null);
+
+<div className="hero">
+  <img ref={photo} src="/harbor.jpg" alt="" />
+  {/* Chromium refracts the page; Safari and Firefox refract the photo in WebGL. */}
+  <GlassGroup spacing={32} backdrop={photo}>
+    <Glass radius="capsule" className="toolbar">…</Glass>
+    <Glass radius="capsule" className="drop">…</Glass>
+  </GlassGroup>
+</div>
+
+// Firefox (experimental): a live copy of any element behind the glass.
+<Glass as="header" radius="capsule" backdrop={mainRef}>…</Glass>`,
   appear: `const [open, setOpen] = useState(false);
 
 {open && (

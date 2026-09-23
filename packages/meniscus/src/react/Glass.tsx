@@ -23,6 +23,10 @@ import { useGlassDefaults } from './context';
 import { useElementSize, useGlassMode, useIsomorphicLayoutEffect, useMediaQuery, usePixelRatio } from './hooks';
 import { useLiquidInteraction, type InteractionHandlers } from './interaction';
 import { useAppear } from './appear';
+import { useElementCopy, useFallback, type Backdrop } from './backdrop';
+import { MediaLayer, type MediaFrame } from './MediaLayer';
+import { optionsKey } from './context';
+import type { Media } from '../webgl/media';
 import { useGlassGroup } from './group';
 import { useMergedRef } from './refs';
 import { DEV } from './dev';
@@ -38,6 +42,13 @@ export interface GlassOwnProps extends GlassOptions {
   interactive?: boolean;
   /** Materialize on mount: fade in, swell into place on a spring, and let the lens gather its bend. */
   appear?: boolean;
+  /**
+   * What lies behind the glass, for browsers that can't refract the live
+   * page: an image, video or canvas is refracted in WebGL (Safari, Firefox);
+   * any other element is refracted as a live copy in Firefox. It must not
+   * contain the glass. Ignored where live refraction works.
+   */
+  backdrop?: Backdrop;
   /** Drop shadow under the glass, or `false` for none. */
   shadow?: string | false;
   children?: ReactNode;
@@ -48,6 +59,9 @@ export type GlassProps<T extends ElementType = 'div'> = GlassOwnProps & { as?: T
 /** Elements that can't hold the glass's layers. They render with the frosted surface only. */
 const CHILDLESS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr', 'textarea', 'select']);
 let warnedChildless = false;
+
+/** Page around a copied backdrop, so its blur has something to draw from at the rim, px. */
+const COPY_MARGIN = 16;
 
 /** Clips the pointer glow and press blooms to the glass shape. */
 const LIGHT: CSSProperties = {
@@ -102,7 +116,7 @@ function chain(ours: AnyHandler, theirs: AnyHandler): AnyHandler {
 
 function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HTMLElement>) {
   const defaults = useGlassDefaults();
-  const { as, mode: modePreference, interactive = false, appear = false, shadow, style, children, ...rest } = props as GlassProps<ElementType> & {
+  const { as, mode: modePreference, interactive = false, appear = false, backdrop, shadow, style, children, ...rest } = props as GlassProps<ElementType> & {
     style?: CSSProperties;
   } & Record<string, unknown>;
 
@@ -149,8 +163,25 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     return group.register(node, () => radiusRef.current);
   }, [group, node]);
   const hidden = useAppear(node, appear, reducedMotion, g !== null);
-  const tiles = g && mode === 'refract' && !reducedTransparency && !childless ? glassTiles(g) : null;
-  const highlight = g && !bare && !childless ? glassHighlight(g, pixelRatio) : null;
+  const fallback = useFallback(childless ? undefined : backdrop, node, modePreference, mode);
+  const copying = fallback.path === 'element';
+  const webgl = fallback.path === 'webgl';
+  const tiles = g && (mode === 'refract' || copying) && !reducedTransparency && !childless ? glassTiles(g) : null;
+  const highlight = g && !bare && !childless && !webgl ? glassHighlight(g, pixelRatio) : null;
+  // Refraction off (or unmeasured yet) leaves nothing to copy: plain frost.
+  const copyActive = copying && !!tiles;
+  const copy = useRef<HTMLSpanElement>(null);
+  useElementCopy(copy, fallback.element, copyActive);
+  const gRef = useRef(g);
+  gRef.current = g;
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const mediaFrame = useCallback((): MediaFrame | null => {
+    const glass = gRef.current;
+    if (!node || !glass) return null;
+    const box = { x: -node.clientLeft, y: -node.clientTop, width: node.offsetWidth, height: node.offsetHeight };
+    return { panes: [{ x: box.x, y: box.y, glass, el: node }], box, merge: 0, shadow: false, key: `${box.width}x${box.height}|${optionsKey(optionsRef.current)}` };
+  }, [node]);
 
   const variant = VARIANTS[options.variant ?? 'regular'] ?? VARIANTS.regular;
   const blur = g?.blur ?? options.blur ?? variant.blur;
@@ -176,15 +207,21 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     }
   }, [node, className, style?.position, size?.width, size?.height, childless]);
 
+  const liveTiles = tiles && !copying;
   const rootStyle: CSSProperties = {
     borderRadius: g ? `${g.radius}px` : cssRadius(options.radius ?? DEFAULTS.radius),
     ...(bare
       ? null
-      : {
-          backgroundColor: reducedTransparency ? `color-mix(in srgb, Canvas 86%, ${tint})` : tint,
-          backdropFilter: tiles ? `url(#${filterId}) ${frost}` : frost,
-          ...(tiles ? null : { WebkitBackdropFilter: frost }),
-        }),
+      : webgl
+        ? // WebGL draws the whole glass, tint and light included.
+          { isolation: 'isolate' }
+        : {
+            // A copied backdrop carries the tint above itself.
+            backgroundColor: copyActive ? 'transparent' : reducedTransparency ? `color-mix(in srgb, Canvas 86%, ${tint})` : tint,
+            backdropFilter: liveTiles ? `url(#${filterId}) ${frost}` : frost,
+            ...(liveTiles ? null : { WebkitBackdropFilter: frost }),
+            ...(copyActive ? { isolation: 'isolate' as const } : null),
+          }),
     boxShadow: shadow === false || (group && shadow === undefined) ? undefined : (shadow ?? DEFAULT_SHADOW),
     // Glass with a backdrop filter is already a stacking context; bare glass
     // needs one so the pointer glow (z-index -1) stays above what's behind.
@@ -200,13 +237,24 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     }
   }
 
-  const elementProps = { ...rest, ...events, ref: setRef, style: rootStyle, 'data-meniscus': bare ? 'none' : tiles ? 'refract' : 'frost' };
+  const path = bare ? 'none' : webgl ? 'webgl' : copyActive ? 'element' : tiles ? 'refract' : 'frost';
+  const elementProps = { ...rest, ...events, ref: setRef, style: rootStyle, 'data-meniscus': path };
   if (childless) return createElement(tag, elementProps);
 
   return createElement(
     tag,
     elementProps,
-    tiles && g ? <GlassFilter id={filterId} width={g.width} height={g.height} tiles={tiles} aberration={g.aberration} /> : null,
+    tiles && g ? <GlassFilter id={filterId} width={g.width} height={g.height} tiles={tiles} aberration={g.aberration} offset={copyActive ? COPY_MARGIN : 0} /> : null,
+    copyActive ? (
+      <span aria-hidden="true" data-meniscus-layer="copy" style={LIGHT}>
+        <span
+          ref={copy}
+          style={{ position: 'absolute', left: -COPY_MARGIN, top: -COPY_MARGIN, width: `calc(100% + ${2 * COPY_MARGIN}px)`, height: `calc(100% + ${2 * COPY_MARGIN}px)`, filter: `url(#${filterId}) ${frost}` }}
+        />
+        <span style={{ position: 'absolute', inset: 0, backgroundColor: reducedTransparency ? `color-mix(in srgb, Canvas 86%, ${tint})` : tint }} />
+      </span>
+    ) : null,
+    webgl && node && fallback.element ? <MediaLayer host={node} media={fallback.element as Media} frame={mediaFrame} onFail={fallback.fail} style={{ zIndex: -1 }} /> : null,
     highlight && g ? <span aria-hidden="true" data-meniscus-layer="highlight" style={highlightStyle(highlight, g.radius)} /> : null,
     interactive ? (
       <span aria-hidden="true" data-meniscus-layer="light" style={LIGHT}>

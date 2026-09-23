@@ -23,7 +23,9 @@ import { Glass, type GlassProps } from '../react/Glass';
 import { useMergedRef } from '../react/refs';
 import { optionsKey, useGlassDefaults } from '../react/context';
 import { useIsomorphicLayoutEffect } from '../react/hooks';
-import { GlassRenderer, parseColor, type Fit, type PaneFrame } from './renderer';
+import { GlassRenderer, type Fit, type PaneFrame } from './renderer';
+import { resolveTint } from './color';
+import { isVideo, sourceReady, sourceSize } from './media';
 import { MAX_PANES } from './shaders';
 
 export type StageStatus = 'pending' | 'ready' | 'fallback';
@@ -65,49 +67,6 @@ function resolveSource(source: Source, img: HTMLImageElement | null): TexImageSo
   if (typeof source === 'string') return img;
   if (source && typeof source === 'object' && 'current' in source) return source.current;
   return source as TexImageSource;
-}
-
-function sourceSize(s: TexImageSource): [number, number] {
-  if (typeof HTMLVideoElement !== 'undefined' && s instanceof HTMLVideoElement) return [s.videoWidth, s.videoHeight];
-  if (typeof HTMLImageElement !== 'undefined' && s instanceof HTMLImageElement) return [s.naturalWidth, s.naturalHeight];
-  if (typeof VideoFrame !== 'undefined' && s instanceof VideoFrame) return [s.displayWidth, s.displayHeight];
-  const sized = s as { width: number; height: number };
-  return [sized.width, sized.height];
-}
-
-function sourceReady(s: TexImageSource): boolean {
-  if (typeof HTMLVideoElement !== 'undefined' && s instanceof HTMLVideoElement) return s.readyState >= 2 && s.videoWidth > 0;
-  if (typeof HTMLImageElement !== 'undefined' && s instanceof HTMLImageElement) return s.complete && s.naturalWidth > 0;
-  const [w, h] = sourceSize(s);
-  return w > 0 && h > 0;
-}
-
-function isVideo(s: TexImageSource | null): s is HTMLVideoElement {
-  return typeof HTMLVideoElement !== 'undefined' && s instanceof HTMLVideoElement;
-}
-
-const WHITE_MIST: [number, number, number, number] = [1, 1, 1, 0.1];
-const tintCache = new WeakMap<HTMLElement, Map<string, [number, number, number, number]>>();
-
-/**
- * A pane's tint as rgba. Plain colors parse directly; custom properties and
- * currentColor are resolved against the pane itself, where they're defined.
- */
-function resolveTint(el: HTMLElement, css: string): [number, number, number, number] {
-  const parsed = parseColor(css);
-  if (parsed) return parsed;
-  let cache = tintCache.get(el);
-  const hit = cache?.get(css);
-  if (hit) return hit;
-  const probe = document.createElement('span');
-  probe.style.cssText = `position:absolute;display:none;color:${css}`;
-  el.appendChild(probe);
-  const computed = getComputedStyle(probe).color;
-  probe.remove();
-  const rgba = parseColor(computed) ?? WHITE_MIST;
-  if (!cache) tintCache.set(el, (cache = new Map()));
-  cache.set(css, rgba);
-  return rgba;
 }
 
 /**

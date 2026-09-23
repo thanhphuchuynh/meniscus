@@ -214,6 +214,20 @@ export function Docs() {
                 <dd>Blur, saturation, tint and the same rim light, with no refraction. Safari, Firefox, and every browser on iOS.</dd>
               </div>
               <div>
+                <dt>webgl</dt>
+                <dd>
+                  Where live refraction is missing, a glass or group whose <code>backdrop</code> is an image, video or canvas draws itself in WebGL over
+                  it. Safari and Firefox.
+                </dd>
+              </div>
+              <div>
+                <dt>element</dt>
+                <dd>
+                  Experimental. In Firefox, a glass whose <code>backdrop</code> is any other element refracts a live copy of it, painted with{' '}
+                  <code>-moz-element()</code>, through a plain CSS filter.
+                </dd>
+              </div>
+              <div>
                 <dt>none</dt>
                 <dd>Shape, shadow and interaction only, for glass another renderer draws. The WebGL stage uses it.</dd>
               </div>
@@ -223,6 +237,11 @@ export function Docs() {
               reading this in {engine.browser}, which {engine.refracts ? 'refracts' : 'frosts'}.
             </p>
             <CodeBlock code={CODE.mode} label="Reading and forcing the path" />
+            <p>
+              Name what lies behind a glass with <code>backdrop</code> and browsers that can’t refract the live page still bend it. Chromium ignores the
+              prop. The backdrop must not contain the glass; point it at a sibling behind it.
+            </p>
+            <CodeBlock code={CODE.backdrop} label="Refraction without SVG backdrop filters" />
             <aside className="manual__note">
               <p>
                 <b>Backdrop roots.</b> A backdrop filter sees only what is painted inside its nearest ancestor with a <code>filter</code>,{' '}
@@ -321,8 +340,9 @@ export function Docs() {
             </p>
             <PropsTable rows={GROUP_PROPS} caption="GlassGroup props" />
             <p>
-              Browsers that frost still draw the merged outline, rim light and shadow; the neck refracts wherever SVG backdrop filters do. For media,{' '}
-              <code>GlassStage</code> merges panes in every browser with WebGL2, blending each pane’s glass across the neck:
+              Browsers that frost still draw the merged outline, rim light and shadow. Give the group a <code>backdrop</code> and they refract too: over
+              an image or video in WebGL, over anything else in Firefox. For media you render yourself, <code>GlassStage</code> merges panes in every
+              browser with WebGL2, blending each pane’s glass across the neck:
             </p>
             <CodeBlock code={CODE.merge} label="Panes that merge on the WebGL stage" />
           </Section>
@@ -360,8 +380,14 @@ export function Docs() {
               <li>Backdrop filters redraw when anything behind them changes. A dozen glasses over scrolling content is fine; hundreds are not.</li>
               <li>The WebGL stage redraws only when a pane moves, the canvas resizes, or a video frame arrives.</li>
               <li>
-                A <code>GlassGroup</code> rebuilds its maps on the CPU while members move: about 4 ms a frame for a toolbar-sized group, drawn at up to
-                40,000 map pixels in motion and 110,000 at rest. It pauses offscreen and costs nothing while still.
+                A <code>GlassGroup</code> rebuilds its maps while members move, in a worker where the browser allows one: the main thread only swaps
+                images. A content security policy without <code>blob:</code> in <code>worker-src</code> keeps the work on the main thread (about 4 ms a
+                frame for a toolbar). Maps are drawn at up to 40,000 pixels in motion and 110,000 at rest; the group pauses offscreen and costs nothing
+                while still.
+              </li>
+              <li>
+                The <code>webgl</code> path draws one small canvas per glass or group, only while something moves. The <code>element</code> path makes
+                Firefox repaint the copied element into the glass every frame it changes; keep backdrops to the region behind the glass where you can.
               </li>
             </ul>
           </Section>
@@ -394,17 +420,17 @@ export function Docs() {
                   </tr>
                   <tr>
                     <th scope="row">Safari (macOS)</th>
-                    <td>Frosted</td>
+                    <td>Frosted; refracts a media backdrop in WebGL</td>
                     <td>Refracts media</td>
                   </tr>
                   <tr>
                     <th scope="row">Firefox</th>
-                    <td>Frosted</td>
+                    <td>Frosted; refracts a media backdrop in WebGL, or a live copy of any other backdrop (experimental)</td>
                     <td>Refracts media</td>
                   </tr>
                   <tr>
                     <th scope="row">Any browser on iOS</th>
-                    <td>Frosted</td>
+                    <td>Frosted; refracts a media backdrop in WebGL</td>
                     <td>Refracts media</td>
                   </tr>
                 </tbody>

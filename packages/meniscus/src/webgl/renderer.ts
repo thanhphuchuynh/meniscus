@@ -6,6 +6,23 @@ import { FRAGMENT, LUT_SAMPLES, MAX_PANES, VERTEX } from './shaders';
 
 export type Fit = 'cover' | 'contain' | 'fill';
 
+/** Where the whole source lands on the canvas, CSS px. Anything outside it draws nothing. */
+export interface SourceRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface RenderOptions {
+  /** Smooth-union distance: panes whose outlines are closer than this many px flow together. */
+  merge?: number;
+  /** Draw only the glass (and its shadow), leaving the rest of the canvas clear. */
+  panesOnly?: boolean;
+  /** A soft shadow outside the glass: strength 0 to 1, drop and blur in CSS px. */
+  shadow?: { strength: number; drop: number; blur: number } | null;
+}
+
 export interface PaneFrame {
   /** Pane box relative to the canvas, CSS px. */
   x: number;
@@ -71,7 +88,7 @@ export class GlassRenderer {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(`meniscus: program failed to link: ${gl.getProgramInfoLog(program)}`);
     this.program = program;
 
-    for (const name of ['u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc']) {
+    for (const name of ['u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_panesOnly', 'u_shadow', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc']) {
       this.uniforms[name] = gl.getUniformLocation(program, name);
     }
 
@@ -168,8 +185,12 @@ export class GlassRenderer {
     this.lutKeys[row] = key;
   }
 
-  /** Draws one frame. Canvas size must already be set in device px. */
-  render(panes: PaneFrame[], fit: Fit, pixelRatio: number, merge = 0): void {
+  /**
+   * Draws one frame. Canvas size must already be set in device px. `fit`
+   * scales the source to the canvas like object-fit, or a rect places it.
+   */
+  render(panes: PaneFrame[], fit: Fit | SourceRect, pixelRatio: number, options: RenderOptions | number = {}): void {
+    const { merge = 0, panesOnly = false, shadow = null } = typeof options === 'number' ? { merge: options } : options;
     const gl = this.gl;
     const cw = this.canvas.width;
     const ch = this.canvas.height;
@@ -181,13 +202,23 @@ export class GlassRenderer {
     const [sw, sh] = this.sourceSize;
     let dw = cw;
     let dh = ch;
-    if (fit !== 'fill') {
-      const scale = fit === 'cover' ? Math.max(cw / sw, ch / sh) : Math.min(cw / sw, ch / sh);
-      dw = sw * scale;
-      dh = sh * scale;
+    let ox: number;
+    let oy: number;
+    if (typeof fit === 'object') {
+      dw = fit.width * pixelRatio;
+      dh = fit.height * pixelRatio;
+      ox = fit.x * pixelRatio;
+      oy = fit.y * pixelRatio;
+    } else {
+      if (fit !== 'fill') {
+        const scale = fit === 'cover' ? Math.max(cw / sw, ch / sh) : Math.min(cw / sw, ch / sh);
+        dw = sw * scale;
+        dh = sh * scale;
+      }
+      ox = (cw - dw) / 2;
+      oy = (ch - dh) / 2;
     }
-    const ox = (cw - dw) / 2;
-    const oy = (ch - dh) / 2;
+    if (dw <= 0 || dh <= 0) return;
 
     const count = Math.min(MAX_PANES, panes.length);
     const a = this.arrays;
@@ -216,7 +247,9 @@ export class GlassRenderer {
     gl.uniform2f(u.u_uvScale!, 1 / dw, 1 / dh);
     gl.uniform2f(u.u_uvOffset!, -ox / dw, -oy / dh);
     gl.uniform1f(u.u_srcTexel!, sw / dw);
-    gl.uniform1i(u.u_letterbox!, fit === 'contain' ? 1 : 0);
+    gl.uniform1i(u.u_letterbox!, fit === 'contain' || typeof fit === 'object' ? 1 : 0);
+    gl.uniform1i(u.u_panesOnly!, panesOnly ? 1 : 0);
+    gl.uniform3f(u.u_shadow!, shadow ? shadow.strength : 0, shadow ? shadow.drop * pixelRatio : 0, shadow ? shadow.blur * pixelRatio : 1);
     gl.uniform1i(u.u_count!, count);
     // A smooth minimum of radius k bridges gaps narrower than k / 2.
     gl.uniform1f(u.u_merge!, 2 * merge * pixelRatio);
@@ -240,35 +273,4 @@ export class GlassRenderer {
   }
 }
 
-const colorCache = new Map<string, [number, number, number, number] | null>();
-let colorCtx: CanvasRenderingContext2D | null | undefined;
-
-/**
- * Parses a CSS color into 0..1 rgba, or returns null when the canvas can't
- * read it (custom properties, currentColor, color-mix in older engines).
- */
-export function parseColor(css: string): [number, number, number, number] | null {
-  if (colorCache.has(css)) return colorCache.get(css)!;
-  if (colorCtx === undefined) colorCtx = typeof document !== 'undefined' ? document.createElement('canvas').getContext('2d') : null;
-  if (!colorCtx) return null;
-  // An unparseable value leaves fillStyle unchanged, so try it over two different sentinels.
-  colorCtx.fillStyle = '#000';
-  colorCtx.fillStyle = css;
-  const a = String(colorCtx.fillStyle);
-  colorCtx.fillStyle = '#fff';
-  colorCtx.fillStyle = css;
-  const b = String(colorCtx.fillStyle);
-  if (a !== b) return null;
-  let rgba: [number, number, number, number] | null = null;
-  const hex = /^#([0-9a-f]{6})$/i.exec(a);
-  const fn = /^rgba?\(([^)]+)\)$/i.exec(a);
-  if (hex) {
-    const n = parseInt(hex[1]!, 16);
-    rgba = [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255, 1];
-  } else if (fn) {
-    const parts = fn[1]!.split(/[\s,/]+/).filter(Boolean).map(Number);
-    rgba = [(parts[0] ?? 255) / 255, (parts[1] ?? 255) / 255, (parts[2] ?? 255) / 255, parts[3] ?? 1];
-  }
-  colorCache.set(css, rgba);
-  return rgba;
-}
+export { parseColor } from './color';

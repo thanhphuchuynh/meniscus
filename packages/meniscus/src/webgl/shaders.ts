@@ -38,6 +38,8 @@ uniform float u_srcTexel;
 uniform bool u_letterbox;
 uniform int u_count;
 uniform float u_merge;             // smooth-union radius (canvas px); 0 keeps panes apart
+uniform bool u_panesOnly;          // leave the canvas clear outside the glass
+uniform vec3 u_shadow;             // outer shadow: strength, drop, blur (canvas px)
 uniform vec4 u_rect[MAX_PANES];   // x, y, width, height (canvas px)
 uniform vec4 u_shape[MAX_PANES];  // radius, bezel, blur, aberration spread (px or ratio)
 uniform vec4 u_tint[MAX_PANES];   // rgb, alpha
@@ -87,11 +89,34 @@ float lobe(float d, float shininess, float flatBase) {
   return max(pow(max(d, 0.0), shininess) - flatBase, 0.0) / (1.0 - flatBase);
 }
 
-// Signed distance to pane i and its outward normal.
-float paneSdf(int i, out vec2 n) {
+// Signed distance from p to pane i, and its outward normal.
+float paneSdfAt(int i, vec2 p, out vec2 n) {
   vec4 rect = u_rect[i];
   vec2 halfSize = rect.zw * 0.5;
-  return roundedRect(v_px - (rect.xy + halfSize), halfSize, u_shape[i].x, n);
+  return roundedRect(p - (rect.xy + halfSize), halfSize, u_shape[i].x, n);
+}
+
+float paneSdf(int i, out vec2 n) {
+  return paneSdfAt(i, v_px, n);
+}
+
+// Distance from p to the glass as a whole: merged, or the nearest pane.
+float glassField(vec2 p) {
+  float d = 1e9;
+  for (int i = 0; i < MAX_PANES; i++) {
+    if (i >= u_count) break;
+    vec2 n;
+    float di = paneSdfAt(i, p, n);
+    if (i == 0) {
+      d = di;
+    } else if (u_merge > 0.0) {
+      float h = clamp(0.5 + 0.5 * (di - d) / u_merge, 0.0, 1.0);
+      d = mix(di, d, h) - u_merge * h * (1.0 - h);
+    } else {
+      d = min(d, di);
+    }
+  }
+  return d;
 }
 
 // Everything that shades one point of glass, so merged panes can blend it.
@@ -152,7 +177,15 @@ vec4 glassColor(Material m, vec2 n) {
 }
 
 void main() {
-  vec4 color = source(v_px, 0.0);
+  vec4 color = u_panesOnly ? vec4(0.0) : source(v_px, 0.0);
+
+  // A soft shadow under the glass, dropped and blurred: a blurred step is
+  // close to 1 - tanh. The glass covers it, so it only shows outside.
+  if (u_shadow.x > 0.0 && u_count > 0) {
+    float ds = glassField(v_px - vec2(0.0, u_shadow.y));
+    float a = u_shadow.x * 0.5 * (1.0 - tanh(ds / max(u_shadow.z, 1e-3)));
+    color = vec4(0.0, 0.0, 0.0, a) + color * (1.0 - a);
+  }
 
   if (u_merge > 0.0) {
     // Liquid panes: one surface from a polynomial smooth minimum of every

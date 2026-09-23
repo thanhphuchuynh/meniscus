@@ -78,6 +78,7 @@ export function PlateTension() {
   const lantern = theme === 'lantern';
 
   const group = useRef<HTMLDivElement>(null);
+  const engraving = useRef<HTMLImageElement>(null);
   const capsule = useRef<HTMLDivElement>(null);
   const drop = useRef<HTMLDivElement>(null);
   const [spacing, setSpacing] = useState(36);
@@ -269,9 +270,10 @@ export function PlateTension() {
       </div>
 
       <div className="tension__stage">
-        <img className="tension__engraving" src={plateSrc('opticks-plate-2', theme)} alt="" width="1200" height="2191" />
+        <img ref={engraving} className="tension__engraving" src={plateSrc('opticks-plate-2', theme)} alt="" width="1200" height="2191" />
         <GlassGroup
           ref={group}
+          backdrop={engraving}
           className="tension__group"
           spacing={spacing}
           ior={ior}
@@ -313,7 +315,7 @@ export function PlateTension() {
       <p className="caption tension__caption">
         <b>Fig. 5.</b> A capsule and a drop in one group, over Fig. 12 of <i>Opticks</i>, Plate II. Drag the drop into the capsule, or tap it to absorb and
         release it.
-        {engine.refracts ? null : ` In ${engine.browser} the outline still flows as one body; the neck refracts in Chromium, and on the WebGL stage of Plate III.`}
+        {engine.refracts ? null : ` ${engine.browser} can’t refract the live page, so this group draws itself in WebGL over the engraving it names as its backdrop.`}
       </p>
 
       <div className="tension__legend">

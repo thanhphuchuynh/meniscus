@@ -14,6 +14,12 @@ export interface FilterInput {
   tiles: TileURLs;
   /** 0 to 1; splits the color channels along the displacement. */
   aberration?: number;
+  /**
+   * Margin around the glass inside the filter's space, px. The filtered
+   * element is that much larger than the glass on every side (so a blur has
+   * page to draw from at the rim); the map sits `offset` in.
+   */
+  offset?: number;
 }
 
 /** Channel spread at aberration 1: red travels 25% further than green, blue 25% less. */
@@ -31,13 +37,13 @@ const ONLY = {
  * are merged over it to assemble the displacement map, which then shifts the
  * backdrop. Strips extend 1 px under the corners so no seam shows neutral.
  */
-export function describeFilter({ width: w, height: h, tiles, aberration = 0 }: FilterInput): FilterNode[] {
+export function describeFilter({ width: w, height: h, tiles, aberration = 0, offset: m = 0 }: FilterInput): FilterNode[] {
   const r = tiles.radius;
   const nodes: FilterNode[] = [{ tag: 'feFlood', attrs: { floodColor: 'rgb(128, 128, 128)', result: 'neutral' } }];
   const merge: string[] = ['neutral'];
   const img = (result: string, href: string, x: number, y: number, width: number, height: number) => {
     if (width <= 0 || height <= 0) return;
-    nodes.push({ tag: 'feImage', attrs: { href, x, y, width, height, preserveAspectRatio: 'none', result } });
+    nodes.push({ tag: 'feImage', attrs: { href, x: x + m, y: y + m, width, height, preserveAspectRatio: 'none', result } });
     merge.push(result);
   };
   const span = w - 2 * r;
@@ -100,5 +106,6 @@ function nodeString(n: FilterNode): string {
 /** A complete `<filter>` element as markup, for use without React. */
 export function filterMarkup(id: string, input: FilterInput): string {
   const body = describeFilter(input).map(nodeString).join('');
-  return `<filter id="${id}" x="0" y="0" width="${input.width}" height="${input.height}" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">${body}</filter>`;
+  const m = input.offset ?? 0;
+  return `<filter id="${id}" x="0" y="0" width="${input.width + 2 * m}" height="${input.height + 2 * m}" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">${body}</filter>`;
 }

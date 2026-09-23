@@ -44,7 +44,18 @@ Every glass picks the best path its browser can draw and reports it as `data-men
 | --- | --- | --- |
 | `refract` | Chrome, Edge, Opera, Brave, Arc (Chromium on desktop and Android) | Live page content |
 | `frost` | Safari, Firefox, every browser on iOS | Nothing: blur, saturation, tint and rim light |
+| `webgl` | Safari, Firefox, iOS, with a media `backdrop` | The image, video or canvas named as the backdrop |
+| `element` | Firefox, with any other `backdrop` (experimental) | A live copy of the backdrop element |
 | `none` | Wherever you ask for it | Shape, shadow and interaction only, for glass another renderer draws |
+
+Name what lies behind a glass with `backdrop` (an element or a ref) and browsers that can't refract the live page still bend it: over an image, video or canvas the glass draws itself in WebGL; in Firefox, any other element is refracted as a live `-moz-element()` copy. Chromium ignores the prop. The backdrop must not contain the glass.
+
+```tsx
+const photo = useRef<HTMLImageElement>(null);
+
+<img ref={photo} src="/harbor.jpg" alt="" />
+<Glass radius="capsule" backdrop={photo}>…</Glass>
+```
 
 The server and the first client render are frosted, so markup hydrates cleanly. Refraction switches on right after hydration where supported. Read the path in code with `useGlassMode()`, or force one for a subtree with `<GlassProvider mode="frost">`.
 
@@ -74,6 +85,7 @@ Where the `regular` and `clear` variants differ, defaults read regular / clear.
 | `mode` | `'auto' \| 'refract' \| 'frost' \| 'none'` | `'auto'` | Rendering path |
 | `interactive` | `boolean` | `false` | Lift on hover; swell on press with light blooming from the touch point; stretch toward the pointer |
 | `appear` | `boolean` | `false` | Materialize on mount: fade in, swell into place, and let the lens gather its bend |
+| `backdrop` | `HTMLElement \| RefObject` | none | What lies behind the glass, for browsers without live refraction (see Rendering paths) |
 | `shadow` | `string \| false` | soft two-layer shadow | Box shadow under the glass |
 
 ## One light source
@@ -128,7 +140,7 @@ import { Glass, GlassGroup } from 'meniscus';
 </GlassGroup>
 ```
 
-The group's own glass props (`refraction`, `tint`, `blur`, light…) apply to the whole surface; members contribute their outline and radius, and keep their content, events and springs. Browsers that frost still draw the merged outline. On the WebGL stage, `merge` does the same for panes in every browser.
+The group's own glass props (`refraction`, `tint`, `blur`, light…) apply to the whole surface; members contribute their outline and radius, and keep their content, events and springs. The maps are rebuilt in a worker where the browser allows one. Browsers that frost still draw the merged outline; give the group a `backdrop` and they refract it too. On the WebGL stage, `merge` does the same for panes in every browser.
 
 Under `prefers-reduced-motion` the springs turn off: presses only glow, indicators move straight to their target with a short fade, and `appear` fades.
 
@@ -189,7 +201,8 @@ traceRay({ bezel: 32, thickness: 32, ior: 1.5 }, 6); // one ray, 6 px in from th
 - Sharp corners don't refract: the bezel is capped at the corner radius.
 - Maps are cached per profile function. Define a custom `profile` once, outside your components, or every render builds new maps.
 - `as` must be an element that can hold children. Void elements (`input`, `img`) render frosted, without refraction or highlights; wrap them in a `Glass` instead.
-- A `GlassGroup` shares one glass across its members and rebuilds its maps on the CPU while they move (about 4 ms a frame for a toolbar). Keep groups to a handful of controls.
+- A `GlassGroup` shares one glass across its members and rebuilds its maps while they move, in a worker where possible. Under a content security policy without `blob:` in `worker-src`, that work runs on the main thread (about 4 ms a frame for a toolbar). Keep groups to a handful of controls.
+- The `element` path is experimental and Firefox-only; it repaints the copied element into the glass whenever it changes, so point `backdrop` at the region behind the glass rather than the whole page where you can.
 
 ## License
 

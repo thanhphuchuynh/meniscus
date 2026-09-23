@@ -8,6 +8,13 @@ export type Page = 'home' | 'playground' | 'docs';
 
 const HREF: Record<Page, string> = { home: '/', playground: '/playground/', docs: '/docs/' };
 
+/** The page body behind the masthead. Firefox refracts a live copy of it; Chromium ignores it and refracts the page itself. */
+const PAGE_BODY = {
+  get current() {
+    return typeof document === 'undefined' ? null : document.getElementById('main');
+  },
+};
+
 export function Install({ compact = false }: { compact?: boolean }) {
   const [copied, setCopied] = useState(false);
   useEffect(() => {
@@ -53,7 +60,15 @@ export function Masthead({ page }: { page: Page }) {
   };
   return (
     <header className="masthead">
-      <Glass className="masthead__bar" radius="capsule" variant="regular" blur={8} refraction={0.9} tint="color-mix(in srgb, var(--stock) 62%, transparent)">
+      <Glass
+        className="masthead__bar"
+        radius="capsule"
+        variant="regular"
+        blur={8}
+        refraction={0.9}
+        tint="color-mix(in srgb, var(--stock) 62%, transparent)"
+        backdrop={PAGE_BODY}
+      >
         <a className="wordmark" href={HREF.home} aria-label="meniscus home">
           <MeniscusMark />
           meniscus

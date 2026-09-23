@@ -50,6 +50,11 @@ export {
   resolveRenderMode,
   overrideRefractionSupport,
   supportsWebGL2,
+  overrideWebGL2,
+  supportsElementCopy,
+  overrideElementCopy,
+  overrideElementImage,
+  elementImage,
   matchesMedia,
   REDUCED_MOTION,
   REDUCED_TRANSPARENCY,
@@ -57,4 +62,16 @@ export {
   type RenderModePreference,
 } from './support';
 export { GLASS_OPTION_KEYS, DEFAULT_SHADOW } from './constants';
-export { createUnionMaps, unionPixelScale, unionReach, type UnionShape, type UnionInput, type UnionMaps } from './union';
+export {
+  createUnionMaps,
+  unionKernel,
+  unionJob,
+  unionPixelScale,
+  unionReach,
+  type UnionShape,
+  type UnionInput,
+  type UnionMaps,
+  type UnionJob,
+  type UnionPixels,
+} from './union';
+export { buildUnionInWorker, overrideUnionWorker, type UnionURLs } from './unionWorker';

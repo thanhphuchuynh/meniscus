@@ -59,6 +59,36 @@ export function matchesMedia(query: string): boolean {
 export const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 export const REDUCED_TRANSPARENCY = '(prefers-reduced-transparency: reduce)';
 
+let elementCopy: boolean | undefined;
+
+/**
+ * Whether the browser can paint a live copy of an element as an image
+ * (Firefox's `-moz-element()`), which lets glass refract a named backdrop
+ * through a plain CSS filter where backdrop filters can't take SVG.
+ */
+export function supportsElementCopy(): boolean {
+  if (elementCopy !== undefined) return elementCopy;
+  elementCopy = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('background-image', '-moz-element(#a)');
+  return elementCopy;
+}
+
+/** For tests: force element copies on or off, or undefined to detect again. */
+export function overrideElementCopy(value: boolean | undefined): void {
+  elementCopy = value;
+}
+
+/** The CSS image that paints a live copy of the element with this id. */
+export function elementImage(id: string): string {
+  return copyImage ? copyImage(id) : `-moz-element(#${CSS.escape(id)})`;
+}
+
+let copyImage: ((id: string) => string) | undefined;
+
+/** For tests: substitute the copy image, e.g. a plain url() where `-moz-element()` doesn't exist. */
+export function overrideElementImage(fn: ((id: string) => string) | undefined): void {
+  copyImage = fn;
+}
+
 let webgl2Support: boolean | undefined;
 
 /** Whether WebGL2 is available. Probed once; the probe context is released right away. */
@@ -74,4 +104,9 @@ export function supportsWebGL2(): boolean {
     webgl2Support = false;
   }
   return webgl2Support;
+}
+
+/** For tests: force WebGL2 support on or off, or undefined to probe again. */
+export function overrideWebGL2(value: boolean | undefined): void {
+  webgl2Support = value;
 }
