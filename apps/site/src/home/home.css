@@ -1,0 +1,1022 @@
+.home {
+  display: grid;
+  gap: clamp(72px, 10vw, 150px);
+  padding-top: clamp(28px, 4vw, 52px);
+}
+
+/* ——— Plate I: the specimen ——— */
+
+.plate-one {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  grid-template-areas: 'field figure';
+  column-gap: clamp(24px, 3.4vw, 56px);
+  padding: var(--plate-pad);
+}
+
+.plate-one__field {
+  grid-area: field;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-areas:
+    'head head'
+    'lede plate'
+    'actions plate'
+    'quote plate';
+  grid-template-rows: auto auto auto 1fr;
+  gap: clamp(20px, 2.4vw, 32px) clamp(20px, 2.6vw, 40px);
+}
+
+.plate-one h1 {
+  grid-area: head;
+  max-width: 12ch;
+  font-size: clamp(3.1rem, 7.4vw, 6rem);
+  font-weight: 850;
+  line-height: 0.93;
+  letter-spacing: -0.03em;
+}
+
+.plate-one__lede {
+  grid-area: lede;
+  max-width: 34ch;
+  font-size: var(--fs-lede);
+  line-height: 1.42;
+}
+
+.plate-one__quote {
+  grid-area: quote;
+  align-self: start;
+  max-width: 36ch;
+  margin: 0;
+  padding-top: 18px;
+  border-top: var(--hair) solid var(--rule-faint);
+}
+.plate-one__quote p {
+  font-style: italic;
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.plate-one__quote footer {
+  margin-top: 10px;
+  font-size: var(--fs-ui);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+}
+.plate-one__quote cite {
+  font-style: italic;
+  font-variant-caps: normal;
+  letter-spacing: 0;
+}
+
+.plate-one__engraving {
+  grid-area: plate;
+  margin: 0;
+  align-self: start;
+}
+.plate-one__engraving img {
+  width: 100%;
+  height: auto;
+  max-height: min(560px, 62vh);
+  object-fit: cover;
+  object-position: top center;
+}
+
+.plate-one__lens {
+  position: absolute;
+  z-index: 3;
+  width: clamp(230px, 27vw, 390px);
+  aspect-ratio: 3 / 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.plate-one__lens:active {
+  cursor: grabbing;
+}
+.plate-one__lens:focus-visible {
+  outline-offset: 5px;
+  border-radius: 999px;
+}
+.plate-one__grip {
+  width: 22px;
+  height: 22px;
+  opacity: 0.5;
+}
+
+.plate-one__figure {
+  grid-area: figure;
+  align-self: start;
+  display: grid;
+  gap: 18px;
+  padding-left: clamp(20px, 2.6vw, 40px);
+  border-left: var(--hair) solid var(--rule-faint);
+}
+
+.plate-one__notice {
+  padding: 12px 14px;
+  border: var(--hair) solid var(--spot);
+  border-radius: 10px;
+  color: var(--ink);
+}
+
+.plate-one__actions {
+  grid-area: actions;
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+}
+
+/* ——— The ray diagram ——— */
+
+.ray-diagram {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+.ray-diagram svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.rd-letter {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.3;
+  font-family: var(--font-text);
+  fill: var(--ink);
+}
+.rd-letter--spot {
+  fill: var(--spot-ink);
+}
+.rd-var {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.3;
+  font-family: var(--font-text);
+  fill: var(--ink);
+}
+.rd-var--spot {
+  fill: var(--spot-ink);
+}
+.rd-note {
+  font-style: italic;
+  font-weight: 400;
+  font-size: 13.5px;
+  line-height: 1.3;
+  font-family: var(--font-text);
+  fill: var(--ink-faint);
+}
+.rd-section {
+  font-family: var(--font-text);
+  font-size: 13px;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+  fill: var(--ink-faint);
+}
+.rd-note .rd-var {
+  font-size: inherit;
+  fill: inherit;
+}
+.rd-readout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  margin: 0;
+}
+.rd-readout div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 7px;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.rd-readout dt {
+  font-size: var(--fs-ui);
+  color: var(--ink-soft);
+}
+.rd-readout dd {
+  margin: 0;
+  font-size: var(--fs-ui);
+}
+.rd-spot {
+  color: var(--spot-ink);
+}
+.rd-footnote {
+  font-size: var(--fs-ui);
+  color: var(--ink-faint);
+}
+
+@media (max-width: 1080px) {
+  .plate-one {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'field'
+      'figure';
+  }
+  .plate-one__figure {
+    margin-top: 40px;
+    padding: 32px 0 0;
+    border-left: 0;
+    border-top: var(--hair) solid var(--rule-faint);
+  }
+}
+
+@media (max-width: 640px) {
+  .plate-one__field {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'head'
+      'lede'
+      'actions'
+      'plate'
+      'quote';
+  }
+  .plate-one__engraving img {
+    max-height: 340px;
+  }
+  .plate-one__lede {
+    font-size: var(--fs-body);
+  }
+  .plate-one__lens {
+    width: min(72vw, 300px);
+  }
+  .rd-readout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ——— Shared plate text ——— */
+
+.anatomy h2,
+.renderers h2,
+.specimens h2,
+.tension h2,
+.closing h2 {
+  font-size: clamp(2.2rem, 4.6vw, 3.7rem);
+  line-height: 0.98;
+  letter-spacing: -0.024em;
+}
+.anatomy__text,
+.renderers__text,
+.specimens__text,
+.tension__text {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px clamp(24px, 4vw, 64px);
+  align-items: start;
+}
+.anatomy__text p,
+.renderers__text p,
+.specimens__text p,
+.tension__text p {
+  max-width: 52ch;
+  font-size: var(--fs-body);
+  color: var(--ink-soft);
+}
+
+/* ——— Plate II: anatomy ——— */
+
+.anatomy {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr);
+  grid-template-areas:
+    'text text'
+    'stage legend'
+    'caption legend';
+  grid-template-rows: auto auto 1fr;
+  gap: clamp(28px, 3.2vw, 48px) clamp(24px, 3.4vw, 56px);
+  padding: var(--plate-pad);
+}
+.anatomy__text {
+  grid-area: text;
+}
+.anatomy__stage {
+  grid-area: stage;
+  position: relative;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  border: var(--hair) solid var(--rule-faint);
+}
+.anatomy__engraving {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 30%;
+}
+.anatomy__glass {
+  position: absolute;
+  left: 12%;
+  top: 18%;
+  width: 74%;
+  height: 58%;
+}
+.anatomy__leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.anatomy__leaders line {
+  stroke: var(--ink);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.anatomy__leaders circle {
+  fill: var(--ink);
+}
+.anatomy__leaders g,
+.anatomy__marker {
+  transition: opacity 220ms var(--ease-out);
+}
+.anatomy__leaders g[data-on='false'],
+.anatomy__marker[data-on='false'] {
+  opacity: 0.3;
+}
+.anatomy__marker {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  translate: -50% -50%;
+  border: var(--hair) solid var(--rule);
+  border-radius: 50%;
+  background: var(--stock);
+  font-style: italic;
+  font-weight: 600;
+  font-size: var(--fs-ui);
+  line-height: 1;
+  font-family: var(--font-text);
+  color: var(--ink);
+}
+.anatomy__legend {
+  grid-area: legend;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: var(--hair) solid var(--rule);
+}
+.anatomy__legend li {
+  padding: 10px 0 14px;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.anatomy__legend .switch {
+  width: 100%;
+}
+.anatomy__legend code {
+  margin-left: auto;
+  color: var(--ink-soft);
+}
+.anatomy__letter {
+  font-style: italic;
+  font-weight: 600;
+  font-size: var(--fs-ui);
+  line-height: 1;
+  font-family: var(--font-text);
+  color: var(--ink-faint);
+  width: 1ch;
+}
+.anatomy__name {
+  font-weight: 700;
+  font-size: var(--fs-ui);
+  line-height: 1;
+  font-family: var(--font-display);
+  font-stretch: 112%;
+}
+.anatomy__legend li > p {
+  margin: 4px 0 0 50px;
+  font-size: var(--fs-ui);
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.anatomy__legend li[data-on='false'] .anatomy__name {
+  color: var(--ink-faint);
+}
+.anatomy__sun {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 12px 0 0 50px;
+}
+.anatomy__sun .caption {
+  max-width: 22ch;
+}
+.anatomy__caption {
+  grid-area: caption;
+  align-self: start;
+  margin-top: -16px;
+}
+
+/* ——— Plate III: renderers ——— */
+
+.renderers {
+  display: grid;
+  gap: clamp(24px, 3vw, 40px);
+  padding: var(--plate-pad);
+}
+.renderers__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-ui);
+  line-height: 1.45;
+}
+.renderers__table th,
+.renderers__table td {
+  padding: 16px 18px 16px 0;
+  vertical-align: top;
+  text-align: left;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.renderers__table thead th {
+  padding-top: 0;
+  padding-bottom: 10px;
+  border-bottom: var(--hair) solid var(--rule);
+  font-weight: 600;
+  font-size: var(--fs-label);
+  line-height: 1.3;
+  font-family: var(--font-text);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+}
+.renderers__table tbody th {
+  width: 20%;
+  font-weight: 700;
+  font-size: var(--fs-ui);
+  line-height: 1.3;
+  font-family: var(--font-display);
+  font-stretch: 112%;
+}
+.renderers__table td {
+  color: var(--ink-soft);
+}
+.renderers__table tr[data-current] th,
+.renderers__table tr[data-current] td {
+  color: var(--ink);
+}
+.renderers__here {
+  display: block;
+  margin-top: 8px;
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--fs-ui);
+  line-height: 1;
+  font-family: var(--font-text);
+  color: var(--spot-ink);
+}
+.renderers__verdict {
+  font-size: var(--fs-body);
+  max-width: 64ch;
+}
+.renderers__figure {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+.renderers__stage {
+  aspect-ratio: 16 / 9;
+  max-height: 560px;
+  width: 100%;
+  border: var(--hair) solid var(--rule-faint);
+}
+.renderers__bounds {
+  position: absolute;
+  inset: 0;
+}
+.renderers__pane {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  cursor: grab;
+  touch-action: none;
+}
+.renderers__pane:active {
+  cursor: grabbing;
+}
+.renderers__pane svg {
+  width: 22px;
+  height: 22px;
+  opacity: 0.5;
+}
+.renderers__pane--capsule {
+  width: clamp(200px, 26vw, 320px);
+  aspect-ratio: 3 / 1;
+}
+.renderers__pane--lens {
+  width: clamp(130px, 15vw, 200px);
+  aspect-ratio: 1;
+}
+
+/* ——— Plate V: surface tension ——— */
+
+.tension {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(260px, 1fr);
+  grid-template-areas:
+    'text text'
+    'stage legend'
+    'caption legend';
+  grid-template-rows: auto auto 1fr;
+  gap: clamp(28px, 3.2vw, 48px) clamp(24px, 3.4vw, 56px);
+  padding: var(--plate-pad);
+}
+.tension__text {
+  grid-area: text;
+}
+.tension__stage {
+  grid-area: stage;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: var(--hair) solid var(--rule-faint);
+}
+.tension__engraving {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Fig. 12: rays from the lens MN converging on the screen DFGE. */
+  object-position: 50% 93%;
+}
+.tension__group {
+  position: absolute;
+  inset: 0;
+}
+.tension__capsule {
+  --capsule-h: 64px;
+  position: absolute;
+  left: 8%;
+  top: calc(50% - var(--capsule-h) / 2);
+  display: flex;
+  align-items: center;
+  height: var(--capsule-h);
+  padding: 0 14px;
+  color: var(--ink);
+}
+.tension__capsule svg {
+  width: 22px;
+  height: 22px;
+  margin: 0 11px;
+}
+.tension__drop {
+  --drop: 70px;
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: var(--drop);
+  height: var(--drop);
+  color: var(--ink);
+  cursor: grab;
+  touch-action: none;
+}
+.tension__drop:active {
+  cursor: grabbing;
+}
+.tension__drop:focus-visible {
+  outline: 2px solid var(--spot);
+  outline-offset: 4px;
+}
+.tension__drop svg {
+  width: 24px;
+  height: 24px;
+}
+.tension__caption {
+  grid-area: caption;
+  align-self: start;
+  margin-top: -16px;
+}
+.tension__legend {
+  grid-area: legend;
+  display: grid;
+  align-content: start;
+  justify-items: stretch;
+  gap: 26px;
+  padding-top: 14px;
+  border-top: var(--hair) solid var(--rule);
+}
+.tension__legend > .action {
+  justify-self: start;
+}
+.tension__readout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: var(--hair) solid var(--rule-faint);
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.tension__readout div {
+  padding: 10px 0 12px;
+}
+.tension__readout div + div {
+  padding-left: 14px;
+  border-left: var(--hair) solid var(--rule-faint);
+}
+.tension__readout dt {
+  font-weight: 600;
+  font-size: var(--fs-label);
+  line-height: 1.3;
+  font-family: var(--font-text);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+}
+.tension__readout dd {
+  margin: 4px 0 0;
+  font-weight: 700;
+  font-size: var(--fs-ui);
+  line-height: 1.2;
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  color: var(--ink);
+  transition: color 160ms var(--ease-out);
+}
+.tension__readout dd[data-state='bridged'],
+.tension__readout dd[data-state='one-body'] {
+  color: var(--spot-ink);
+}
+
+/* ——— Plate IV: specimens ——— */
+
+.specimens {
+  display: grid;
+  gap: clamp(28px, 3vw, 44px);
+  padding: var(--plate-pad);
+}
+.specimens__sheet {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(20px, 2.4vw, 36px);
+  background: none !important;
+}
+.specimen {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.specimen--transport {
+  grid-column: 1 / span 7;
+}
+.specimen--tabs {
+  grid-column: 8 / span 5;
+}
+.specimen--search {
+  grid-column: 1 / span 5;
+}
+.specimen--notice {
+  grid-column: 6 / span 7;
+}
+.specimen__stage {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: 28px;
+  border: var(--hair) solid var(--rule-faint);
+  background-image: var(--sheet);
+  background-size: 1200px auto;
+  background-repeat: no-repeat;
+}
+.specimen--transport .specimen__stage {
+  background-position: 45% 18%;
+}
+.specimen--tabs .specimen__stage {
+  background-position: 88% 52%;
+}
+.specimen--search .specimen__stage {
+  background-position: 20% 80%;
+}
+.specimen--notice .specimen__stage {
+  background-position: 70% 95%;
+}
+.specimen__code summary::-webkit-details-marker {
+  display: none;
+}
+.specimen__chevron {
+  width: 14px;
+  height: 14px;
+  transition: rotate 200ms var(--ease-out);
+}
+.specimen__code[open] .specimen__chevron {
+  rotate: 90deg;
+}
+.specimen__code summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  width: fit-content;
+  font-weight: 600;
+  font-size: var(--fs-ui);
+  line-height: 1;
+  font-family: var(--font-display);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.specimen__code summary:hover {
+  color: var(--ink);
+}
+.specimen__code[open] summary {
+  margin-bottom: 10px;
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 22px 8px 8px;
+}
+.transport button {
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.transport__skip {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+.transport__skip:hover {
+  color: var(--spot-ink);
+}
+.transport__skip svg,
+.transport__play svg {
+  width: 20px;
+  height: 20px;
+}
+.transport__play {
+  width: 58px;
+  height: 58px;
+}
+.transport__title {
+  margin-left: 12px;
+  font-size: var(--fs-ui);
+  line-height: 1.3;
+  color: var(--ink-soft);
+}
+.transport__title b {
+  display: block;
+  font-style: italic;
+  font-weight: 600;
+  font-size: var(--fs-ui);
+  line-height: 1.3;
+  font-family: var(--font-text);
+  color: var(--ink);
+}
+
+.tabs {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+}
+.tabs__tab {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 68px;
+  padding: 9px 12px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: var(--fs-label);
+  line-height: 1;
+  font-family: var(--font-display);
+  cursor: pointer;
+  transition: color 160ms var(--ease-out);
+}
+.tabs__tab svg {
+  width: 20px;
+  height: 20px;
+}
+.tabs__tab:hover {
+  color: var(--ink);
+}
+.tabs__tab[aria-current='page'] {
+  color: var(--spot-ink);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 380px);
+  padding: 13px 20px;
+  color: var(--ink-soft);
+  cursor: text;
+}
+.search svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--fs-body);
+  line-height: 1.3;
+  font-family: var(--font-text);
+  outline: none;
+}
+.search input::placeholder {
+  color: var(--ink-soft);
+}
+.search:focus-within {
+  outline: 2px solid var(--spot);
+  outline-offset: 3px;
+}
+
+.notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: min(100%, 440px);
+  padding: 16px 16px 16px 20px;
+}
+.notice__icon {
+  width: 24px;
+  height: 24px;
+  color: var(--spot-ink);
+}
+.notice h3 {
+  font-size: var(--fs-ui);
+  font-stretch: 110%;
+  letter-spacing: -0.01em;
+}
+.notice p {
+  margin-top: 3px;
+  font-size: var(--fs-ui);
+  color: var(--ink-soft);
+}
+.notice__action {
+  padding: 10px 14px;
+  border: var(--hair) solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: var(--fs-ui);
+  line-height: 1;
+  font-family: var(--font-display);
+  cursor: pointer;
+}
+.notice__action:hover {
+  border-color: var(--spot);
+  color: var(--spot-ink);
+}
+
+/* ——— Closing ——— */
+
+.closing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(28px, 4vw, 64px);
+  align-items: center;
+  margin: 0 var(--gutter);
+}
+.closing__text {
+  display: grid;
+  gap: 20px;
+}
+.closing__text p {
+  max-width: 48ch;
+  font-size: var(--fs-body);
+  color: var(--ink-soft);
+}
+.closing__actions {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+}
+
+@media (max-width: 1080px) {
+  .anatomy,
+  .tension {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'text'
+      'stage'
+      'caption'
+      'legend';
+  }
+  .tension {
+    grid-template-areas:
+      'text'
+      'stage'
+      'caption'
+      'legend';
+  }
+  .anatomy__caption,
+  .tension__caption {
+    margin-top: -12px;
+  }
+  .anatomy__text,
+  .renderers__text,
+  .specimens__text,
+  .tension__text {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tension__legend {
+    max-width: 520px;
+  }
+  .specimen--transport,
+  .specimen--tabs,
+  .specimen--search,
+  .specimen--notice {
+    grid-column: 1 / -1;
+  }
+  .closing {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .renderers__table thead {
+    display: none;
+  }
+  .renderers__table tr {
+    display: grid;
+    padding: 14px 0;
+    border-bottom: var(--hair) solid var(--rule-faint);
+  }
+  .renderers__table th,
+  .renderers__table td {
+    padding: 4px 0;
+    border: 0;
+  }
+  .renderers__table tbody th {
+    width: auto;
+    padding-bottom: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notice {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .notice__action {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .anatomy__legend li > p,
+  .anatomy__sun {
+    margin-left: 0;
+  }
+  .specimen__stage {
+    padding: 20px 12px;
+    min-height: 180px;
+  }
+  .transport__title {
+    display: none;
+  }
+  .tabs__tab {
+    min-width: 0;
+    padding: 9px 10px 8px;
+  }
+  .renderers__stage {
+    aspect-ratio: 4 / 5;
+  }
+  .tension__stage {
+    aspect-ratio: 4 / 3;
+  }
+  .tension__engraving {
+    object-position: 50% 100%;
+  }
+  .tension__capsule {
+    --capsule-h: 56px;
+    padding: 0 10px;
+  }
+  .tension__capsule svg {
+    margin: 0 8px;
+  }
+  .tension__drop {
+    --drop: 60px;
+  }
+}

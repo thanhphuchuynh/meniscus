@@ -1,0 +1,303 @@
+.manual {
+  display: grid;
+  grid-template-columns: minmax(200px, 250px) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 72px);
+  padding: clamp(24px, 3.4vw, 44px) var(--gutter) 0;
+}
+
+/* ——— Contents ——— */
+
+.manual__toc {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding-top: 8px;
+  border-top: var(--hair) solid var(--rule);
+}
+.manual__toc-title {
+  margin: 10px 0 12px;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+.manual__toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.manual__toc a {
+  display: grid;
+  grid-template-columns: 2.2ch minmax(0, 1fr);
+  gap: 8px;
+  padding: 6px 0;
+  font-size: var(--fs-ui);
+  line-height: 1.3;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.manual__toc a .num {
+  font-size: var(--fs-ui);
+  line-height: 1.7;
+  color: var(--ink-faint);
+}
+.manual__toc a:hover {
+  color: var(--ink);
+}
+.manual__toc a[aria-current='location'] {
+  color: var(--spot-ink);
+}
+.manual__toc a[aria-current='location'] .num {
+  color: var(--spot-ink);
+}
+
+/* ——— Body ——— */
+
+.manual__body {
+  min-width: 0;
+  max-width: 820px;
+}
+.manual__head {
+  padding-bottom: clamp(24px, 3vw, 36px);
+  margin-bottom: 8px;
+  border-bottom: var(--hair) solid var(--rule);
+}
+.manual__head h1 {
+  font-size: clamp(2.6rem, 5.6vw, 4.6rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+.manual__head p {
+  max-width: 60ch;
+  margin-top: 16px;
+  font-size: var(--fs-body);
+  color: var(--ink-soft);
+}
+
+.manual__section {
+  display: grid;
+  gap: 18px;
+  padding: clamp(40px, 5vw, 64px) 0 8px;
+}
+.manual__section > p,
+.manual__list,
+.manual__steps {
+  max-width: 68ch;
+}
+.manual__section h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 4px;
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  letter-spacing: -0.02em;
+}
+.manual__sect {
+  font-family: var(--font-text);
+  font-size: var(--fs-lede);
+  font-weight: 500;
+  font-style: italic;
+  font-stretch: 100%;
+  color: var(--spot-ink);
+  letter-spacing: 0;
+}
+.manual__section .install {
+  width: fit-content;
+}
+.manual__steps,
+.manual__list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 1.4em;
+}
+.manual__steps li::marker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-ui);
+  color: var(--ink-faint);
+}
+.manual__list li::marker {
+  color: var(--spot);
+}
+
+.manual__figure {
+  display: grid;
+  gap: 14px;
+  margin: 10px 0;
+  padding: 20px 0;
+  border-top: var(--hair) solid var(--rule-faint);
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.manual__probe {
+  max-width: 420px;
+}
+.manual__figure .ray-diagram {
+  max-width: 680px;
+}
+
+.manual__table-wrap {
+  overflow-x: auto;
+  border-top: var(--hair) solid var(--rule);
+}
+.manual__table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: var(--fs-ui);
+  line-height: 1.45;
+}
+.manual__table th,
+.manual__table td {
+  padding: 12px 14px 12px 0;
+  vertical-align: top;
+  text-align: left;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.manual__table thead th {
+  padding-top: 10px;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+}
+.manual__table tbody th {
+  white-space: nowrap;
+  font-weight: 400;
+}
+.manual__table td {
+  color: var(--ink-soft);
+}
+.manual__type {
+  white-space: normal !important;
+  font-size: var(--fs-ui);
+}
+.manual__default {
+  font-family: var(--font-mono);
+  font-size: var(--fs-ui);
+  white-space: nowrap;
+}
+.manual__table--support {
+  min-width: 480px;
+}
+.manual__table--support tbody th {
+  white-space: normal;
+  color: var(--ink);
+}
+
+.manual__paths {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: var(--hair) solid var(--rule);
+}
+.manual__paths div {
+  display: grid;
+  grid-template-columns: 9ch minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.manual__paths dt {
+  font-family: var(--font-mono);
+  font-size: var(--fs-ui);
+  color: var(--spot-ink);
+}
+.manual__paths dd {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.manual__note {
+  max-width: 68ch;
+  padding: 16px 18px;
+  border: var(--hair) solid var(--rule);
+  border-radius: 12px;
+  background: var(--stock-raised);
+}
+.manual__note p {
+  font-size: var(--fs-ui);
+  color: var(--ink-soft);
+}
+.manual__note b {
+  color: var(--ink);
+}
+
+.manual__demo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  border: var(--hair) solid var(--rule-faint);
+  background-size: 1100px auto;
+  background-position: 60% 40%;
+}
+.manual__press {
+  padding: 18px 30px;
+  border: 0;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: var(--fs-ui);
+  line-height: 1;
+  font-family: var(--font-display);
+  font-stretch: 110%;
+  cursor: pointer;
+}
+
+@media (max-width: 960px) {
+  .manual {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .manual__toc {
+    position: static;
+    max-height: none;
+  }
+  .manual__toc ol {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    column-gap: 20px;
+  }
+}
+
+/* ——— Motion demos ——— */
+
+.manual__replay {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  padding: 9px 14px;
+  background: var(--stock);
+}
+.manual__tabs {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+}
+.manual__tabs button {
+  position: relative;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: var(--fs-ui);
+  line-height: 1;
+  font-family: var(--font-display);
+  cursor: pointer;
+  transition: color 160ms var(--ease-out);
+}
+.manual__tabs button:hover {
+  color: var(--ink);
+}
+.manual__tabs button[aria-current='page'] {
+  color: var(--spot-ink);
+}
+.manual__tabs button:focus-visible {
+  outline: 2px solid var(--spot);
+  outline-offset: 2px;
+}

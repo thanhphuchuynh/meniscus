@@ -1,0 +1,75 @@
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/stix-two-text/wght.css';
+@import '@fontsource-variable/stix-two-text/wght-italic.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+/*
+ * Two-color textbook print: cool plate stock, blue-black ink, one vermilion
+ * spot ink for rays and active states, pale cyan only inside glass bodies.
+ * Dark mode is a lantern slide: the same plate, projected.
+ */
+:root {
+  color-scheme: light;
+  --stock: #eef2f4;
+  --stock-deep: #e2e8ec;
+  --stock-raised: #f6f8f9;
+  --ink: #0f1a24;
+  --ink-soft: #364452;
+  --ink-faint: #5a6773;
+  --spot: #ff4a1c;
+  --spot-ink: #c2320e;
+  --glass-fill: #c4e4ec;
+  --glass-edge: #7fb9c8;
+  --rule: rgba(15, 26, 36, 0.86);
+  --rule-faint: rgba(15, 26, 36, 0.18);
+
+  --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', sans-serif;
+  --font-text: 'STIX Two Text Variable', 'STIX Two Text', 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Type scale: four text steps, each about 1.25x the last. */
+  --fs-label: 0.75rem; /* 12px: small-caps labels, table heads, folios */
+  --fs-ui: 0.9375rem; /* 15px: controls, captions, notes, code */
+  --fs-body: 1.1875rem; /* 19px: running text */
+  --fs-lede: 1.5rem; /* 24px: ledes */
+
+  --hair: 1px;
+  --measure: 66ch;
+  --gutter: clamp(16px, 3.6vw, 44px);
+  --plate-pad: clamp(16px, 3vw, 40px);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='print']) {
+    color-scheme: dark;
+    --stock: #0b141d;
+    --stock-deep: #07101a;
+    --stock-raised: #111d28;
+    --ink: #e6edf1;
+    --ink-soft: #b3c0ca;
+    --ink-faint: #8a99a6;
+    --spot: #ff643a;
+    --spot-ink: #ff8660;
+    --glass-fill: #173f4b;
+    --glass-edge: #3f8ea3;
+    --rule: rgba(230, 237, 241, 0.82);
+    --rule-faint: rgba(230, 237, 241, 0.16);
+  }
+}
+
+:root[data-theme='lantern'] {
+  color-scheme: dark;
+  --stock: #0b141d;
+  --stock-deep: #07101a;
+  --stock-raised: #111d28;
+  --ink: #e6edf1;
+  --ink-soft: #b3c0ca;
+  --ink-faint: #8a99a6;
+  --spot: #ff643a;
+  --spot-ink: #ff8660;
+  --glass-fill: #173f4b;
+  --glass-edge: #3f8ea3;
+  --rule: rgba(230, 237, 241, 0.82);
+  --rule-faint: rgba(230, 237, 241, 0.16);
+}

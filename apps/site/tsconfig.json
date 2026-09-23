@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vite/client"],
+    "paths": {
+      "meniscus": ["../../packages/meniscus/src/index.ts"],
+      "meniscus/core": ["../../packages/meniscus/src/core/index.ts"],
+      "meniscus/webgl": ["../../packages/meniscus/src/webgl/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

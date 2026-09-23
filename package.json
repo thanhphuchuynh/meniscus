@@ -1,0 +1,18 @@
+{
+  "name": "meniscus-workspace",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.5.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm --filter meniscus build && pnpm --filter site build",
+    "dev": "pnpm --filter site dev",
+    "test": "pnpm --filter meniscus test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.vercel
+.env*
+!.env.example
+
+# Machine-local design-tool state
+.impeccable/config.local.json
+.impeccable/questions/
+.impeccable/review/diff/

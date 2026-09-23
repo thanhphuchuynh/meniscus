@@ -1,0 +1,629 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-23T16:23:17.671104+00:00",
+  "title": "Design System: meniscus",
+  "extensions": {
+    "colorMeta": {
+      "spot": {
+        "role": "primary",
+        "displayName": "Vermilion Spot Ink",
+        "tonalRamp": [
+          "oklch(15% 0.21 36)",
+          "oklch(25% 0.21 36)",
+          "oklch(35% 0.21 36)",
+          "oklch(48% 0.21 36)",
+          "oklch(60% 0.21 36)",
+          "oklch(72% 0.21 36)",
+          "oklch(84% 0.21 36)",
+          "oklch(95% 0.21 36)"
+        ],
+        "note": "Rays, the sun, active and focused states only."
+      },
+      "spot-ink": {
+        "role": "primary",
+        "displayName": "Deep Vermilion",
+        "tonalRamp": [
+          "oklch(15% 0.18 36)",
+          "oklch(25% 0.18 36)",
+          "oklch(35% 0.18 36)",
+          "oklch(48% 0.18 36)",
+          "oklch(60% 0.18 36)",
+          "oklch(72% 0.18 36)",
+          "oklch(84% 0.18 36)",
+          "oklch(95% 0.18 36)"
+        ],
+        "note": "Text-safe spot for type and hover fills."
+      },
+      "glass-fill": {
+        "role": "tertiary",
+        "displayName": "Glass Cyan",
+        "tonalRamp": [
+          "oklch(15% 0.04 215)",
+          "oklch(25% 0.04 215)",
+          "oklch(35% 0.04 215)",
+          "oklch(48% 0.04 215)",
+          "oklch(60% 0.04 215)",
+          "oklch(72% 0.04 215)",
+          "oklch(84% 0.04 215)",
+          "oklch(95% 0.04 215)"
+        ],
+        "note": "Only inside glass bodies drawn in section."
+      },
+      "glass-edge": {
+        "role": "tertiary",
+        "displayName": "Glass Edge Cyan",
+        "tonalRamp": [
+          "oklch(15% 0.06 215)",
+          "oklch(25% 0.06 215)",
+          "oklch(35% 0.06 215)",
+          "oklch(48% 0.06 215)",
+          "oklch(60% 0.06 215)",
+          "oklch(72% 0.06 215)",
+          "oklch(84% 0.06 215)",
+          "oklch(95% 0.06 215)"
+        ],
+        "note": "Hatch inside glass sections."
+      },
+      "stock": {
+        "role": "neutral",
+        "displayName": "Plate Stock",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ]
+      },
+      "stock-deep": {
+        "role": "neutral",
+        "displayName": "Deep Stock",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ]
+      },
+      "stock-raised": {
+        "role": "neutral",
+        "displayName": "Raised Stock",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Blue-Black Ink",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ]
+      },
+      "rule-faint": {
+        "role": "neutral",
+        "displayName": "Faint Rule",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ]
+      },
+      "lantern-spot": {
+        "role": "primary",
+        "displayName": "Vermilion Spot Ink (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.21 36)",
+          "oklch(25% 0.21 36)",
+          "oklch(35% 0.21 36)",
+          "oklch(48% 0.21 36)",
+          "oklch(60% 0.21 36)",
+          "oklch(72% 0.21 36)",
+          "oklch(84% 0.21 36)",
+          "oklch(95% 0.21 36)"
+        ],
+        "note": "Value of --spot under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-spot-ink": {
+        "role": "primary",
+        "displayName": "Deep Vermilion (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.18 36)",
+          "oklch(25% 0.18 36)",
+          "oklch(35% 0.18 36)",
+          "oklch(48% 0.18 36)",
+          "oklch(60% 0.18 36)",
+          "oklch(72% 0.18 36)",
+          "oklch(84% 0.18 36)",
+          "oklch(95% 0.18 36)"
+        ],
+        "note": "Value of --spot-ink under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-glass-fill": {
+        "role": "tertiary",
+        "displayName": "Glass Cyan (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.04 215)",
+          "oklch(25% 0.04 215)",
+          "oklch(35% 0.04 215)",
+          "oklch(48% 0.04 215)",
+          "oklch(60% 0.04 215)",
+          "oklch(72% 0.04 215)",
+          "oklch(84% 0.04 215)",
+          "oklch(95% 0.04 215)"
+        ],
+        "note": "Value of --glass-fill under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-glass-edge": {
+        "role": "tertiary",
+        "displayName": "Glass Edge Cyan (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.06 215)",
+          "oklch(25% 0.06 215)",
+          "oklch(35% 0.06 215)",
+          "oklch(48% 0.06 215)",
+          "oklch(60% 0.06 215)",
+          "oklch(72% 0.06 215)",
+          "oklch(84% 0.06 215)",
+          "oklch(95% 0.06 215)"
+        ],
+        "note": "Value of --glass-edge under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-stock": {
+        "role": "neutral",
+        "displayName": "Plate Stock (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ],
+        "note": "Value of --stock under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-stock-deep": {
+        "role": "neutral",
+        "displayName": "Deep Stock (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ],
+        "note": "Value of --stock-deep under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-stock-raised": {
+        "role": "neutral",
+        "displayName": "Raised Stock (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ],
+        "note": "Value of --stock-raised under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-ink": {
+        "role": "neutral",
+        "displayName": "Blue-Black Ink (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ],
+        "note": "Value of --ink under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ],
+        "note": "Value of --ink-soft under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-ink-faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ],
+        "note": "Value of --ink-faint under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-rule": {
+        "role": "neutral",
+        "displayName": "Rule (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ],
+        "note": "Value of --rule under [data-theme='lantern'] or dark system preference."
+      },
+      "lantern-rule-faint": {
+        "role": "neutral",
+        "displayName": "Faint Rule (lantern)",
+        "tonalRamp": [
+          "oklch(15% 0.02 245)",
+          "oklch(25% 0.02 245)",
+          "oklch(35% 0.02 245)",
+          "oklch(48% 0.02 245)",
+          "oklch(60% 0.02 245)",
+          "oklch(72% 0.02 245)",
+          "oklch(84% 0.02 245)",
+          "oklch(95% 0.02 245)"
+        ],
+        "note": "Value of --rule-faint under [data-theme='lantern'] or dark system preference."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Plate I headline only, max 12ch."
+      },
+      "page-title": {
+        "displayName": "Page title",
+        "purpose": "Playground and Manual page heads."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Titles of Plates II to IV and the closing section."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Manual section heads, after a spot-ink italic section number."
+      },
+      "lede": {
+        "displayName": "Lede (--fs-lede, 24px)",
+        "purpose": "Opening paragraph of Plate I."
+      },
+      "body": {
+        "displayName": "Body (--fs-body, 19px)",
+        "purpose": "Running text."
+      },
+      "caption": {
+        "displayName": "Caption (--fs-ui, 15px)",
+        "purpose": "Figure captions led by bold small-caps Fig. n., notes, table cells."
+      },
+      "ui": {
+        "displayName": "UI (--fs-ui, 15px)",
+        "purpose": "Buttons, nav, segment and control labels."
+      },
+      "label": {
+        "displayName": "Label (--fs-label, 12px)",
+        "purpose": "Folios, table heads, contents title, in all-small-caps."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Code, install line, live numbers in tabular figures."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The printed page’s one easing curve, for every CSS transition. Glass moves on the library’s springs instead."
+      },
+      {
+        "name": "state-color",
+        "value": "150-200ms",
+        "purpose": "Color, border and background changes on hover, check and focus."
+      },
+      {
+        "name": "translate",
+        "value": "220-260ms",
+        "purpose": "Switch knob slide (260ms), action arrow nudge of 3px (220ms), slider thumb scale 1.15 (150ms)."
+      },
+      {
+        "name": "disclosure",
+        "value": "rotate 90deg, 200ms",
+        "purpose": "Show-the-code chevron."
+      },
+      {
+        "name": "press",
+        "value": "scale 0.97, 160ms",
+        "purpose": "Buttons settle while held; icon buttons 0.92, the install Copy 0.95."
+      },
+      {
+        "name": "glass-springs",
+        "value": "library springs",
+        "purpose": "Selections flow as a stretching drop (leading edge k560/c38, trailing k240/c27); interactive glass lifts 1.2% on hover and swells 4.5% with a 560ms light bloom on press (k420/c24); appear fades 260ms, swells from 0.9 on a 620ms spring, and gathers its lens over 820ms."
+      },
+      {
+        "name": "surface-tension-demo",
+        "value": "once, 700ms delay, 1900ms hold",
+        "purpose": "Plate V's drop fuses with its capsule and separates the first time the plate is in view; any touch cancels it; off under prefers-reduced-motion."
+      },
+      {
+        "name": "ray-sweep",
+        "value": "9000ms cosine cycle, rAF",
+        "purpose": "Plate I diagram sweeps its probe across the rim when idle; pauses 3.5s after pointer input; off under prefers-reduced-motion."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "transition/animation-duration: 0.01ms",
+        "purpose": "Global collapse under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "xs",
+        "value": "480px"
+      },
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "720px"
+      },
+      {
+        "name": "manual",
+        "value": "960px"
+      },
+      {
+        "name": "lg",
+        "value": "1080px"
+      }
+    ],
+    "themes": [
+      {
+        "name": "print",
+        "selector": ":root, :root[data-theme='print']",
+        "purpose": "Ink on cool plate stock."
+      },
+      {
+        "name": "lantern",
+        "selector": ":root[data-theme='lantern'], or prefers-color-scheme: dark without a saved theme",
+        "purpose": "The same plate projected: lantern-* values under the same token names."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink pill with trailing arrow; the first of an action pair.",
+      "html": "<a class=\"ds-action ds-action--primary\" href=\"#\">Open the playground <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4.5 12h14M13 6.5l5.5 5.5-5.5 5.5\"/></svg></a>",
+      "css": ".ds-action{display:inline-flex;align-items:center;gap:9px;padding:12px 18px 12px 20px;border:1px solid var(--ink,#0f1a24);border-radius:999px;font-family: 'Archivo Variable','Archivo','Helvetica Neue',sans-serif;font-weight:700;font-stretch:110%;font-size:15px;line-height:1;text-decoration:none;cursor:pointer;transition:background 180ms cubic-bezier(0.16,1,0.3,1),color 180ms cubic-bezier(0.16,1,0.3,1),border-color 180ms cubic-bezier(0.16,1,0.3,1)}.ds-action svg{width:18px;height:18px;transition:translate 220ms cubic-bezier(0.16,1,0.3,1)}.ds-action:hover svg{translate:3px 0}.ds-action--primary{background:var(--ink,#0f1a24);color:var(--stock,#eef2f4)}.ds-action--primary:hover{background:var(--spot-ink,#c2320e);border-color:var(--spot-ink,#c2320e)}.ds-action:focus-visible{outline:2px solid var(--spot,#ff4a1c);outline-offset:3px}"
+    },
+    {
+      "name": "Quiet Action",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Outlined ink pill; the second of an action pair.",
+      "html": "<a class=\"ds-action-quiet\" href=\"#\">Read the manual</a>",
+      "css": ".ds-action-quiet{display:inline-flex;align-items:center;padding:12px 18px 12px 20px;border:1px solid var(--ink,#0f1a24);border-radius:999px;background:transparent;color:var(--ink,#0f1a24);font-family: 'Archivo Variable','Archivo','Helvetica Neue',sans-serif;font-weight:700;font-stretch:110%;font-size:15px;line-height:1;text-decoration:none;transition:color 180ms cubic-bezier(0.16,1,0.3,1),border-color 180ms cubic-bezier(0.16,1,0.3,1)}.ds-action-quiet:hover{border-color:var(--spot,#ff4a1c);color:var(--spot-ink,#c2320e)}.ds-action-quiet:focus-visible{outline:2px solid var(--spot,#ff4a1c);outline-offset:3px}"
+    },
+    {
+      "name": "Install Line",
+      "kind": "custom",
+      "refersTo": "install-line",
+      "description": "Mono command pill with an inset ink copy button.",
+      "html": "<span class=\"ds-install\"><span class=\"ds-install__prompt\">$</span><span>npm i meniscus</span><button type=\"button\">Copy</button></span>",
+      "css": ".ds-install{display:inline-flex;align-items:center;padding:4px 4px 4px 14px;border:1px solid var(--rule,rgba(15,26,36,.86));border-radius:999px;background:var(--stock-raised,#f6f8f9);font-family:'JetBrains Mono Variable','JetBrains Mono',ui-monospace,monospace;font-size:15px;color:var(--ink,#0f1a24);white-space:nowrap}.ds-install__prompt{color:var(--ink-faint,#5a6773);margin-right:8px}.ds-install button{margin-left:10px;padding:7px 12px;border:0;border-radius:999px;background:var(--ink,#0f1a24);color:var(--stock,#eef2f4);font-family: 'Archivo Variable','Archivo','Helvetica Neue',sans-serif;font-weight:600;font-size:15px;line-height:1;cursor:pointer;transition:background 160ms cubic-bezier(0.16,1,0.3,1)}.ds-install button:hover{background:var(--spot-ink,#c2320e)}.ds-install button:focus-visible{outline:2px solid var(--spot,#ff4a1c);outline-offset:3px}"
+    },
+    {
+      "name": "Masthead Nav",
+      "kind": "nav",
+      "description": "Wordmark and Archivo links; current page carries an inset 2px spot underline, and a small glass lens flows to the link under the pointer or focus. On the site it sits inside a glass capsule.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__mark\" href=\"#\">meniscus</a><a href=\"#\" aria-current=\"page\">Playground</a><a href=\"#\">Manual</a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:14px;padding:8px 8px 8px 20px;border-radius:999px;background:color-mix(in srgb,var(--stock,#eef2f4) 62%,transparent)}.ds-nav a{padding:8px 6px;font-family: 'Archivo Variable','Archivo','Helvetica Neue',sans-serif;font-weight:600;font-size:15px;line-height:1;color:var(--ink-soft,#364452);text-decoration:none}.ds-nav a:hover,.ds-nav a[aria-current=page]{color:var(--ink,#0f1a24)}.ds-nav a[aria-current=page]{box-shadow:inset 0 -2px 0 var(--spot,#ff4a1c)}.ds-nav .ds-nav__mark{margin-right:auto;font-weight:800;font-stretch:125%;font-size:1.3rem;letter-spacing:-.02em;color:var(--ink,#0f1a24)}.ds-nav a:focus-visible{outline:2px solid var(--spot,#ff4a1c);outline-offset:3px}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented-option",
+      "description": "Engraved tabs; the checked option sits on a small glass body (Glass Cyan) that flows between options as a stretching drop.",
+      "html": "<div class=\"ds-seg\"><label><input type=\"radio\" name=\"ds-seg\" checked><span>Engraving</span></label><label><input type=\"radio\" name=\"ds-seg\"><span>Type</span></label><label><input type=\"radio\" name=\"ds-seg\"><span>Grid</span></label></div>",
+      "css": ".ds-seg{display:flex;gap:2px;padding:3px;border:1px solid var(--rule,rgba(15,26,36,.86));border-radius:14px}.ds-seg label{flex:1 1 auto;display:flex}.ds-seg input{position:absolute;opacity:0}.ds-seg span{flex:1;display:inline-flex;justify-content:center;padding:7px 10px;border-radius:11px;font-family: 'Archivo Variable','Archivo','Helvetica Neue',sans-serif;font-weight:600;font-size:15px;line-height:1;color:var(--ink-soft,#364452);cursor:pointer;transition:color 160ms cubic-bezier(0.16,1,0.3,1)}.ds-seg span:hover{color:var(--ink,#0f1a24)}.ds-seg input:checked+span{background:color-mix(in srgb,var(--glass-fill,#c4e4ec) 72%,transparent);color:var(--ink,#0f1a24);box-shadow:0 1px 2px rgba(15,26,36,.16),inset 0 0 0 1px color-mix(in srgb,var(--glass-edge,#7fb9c8) 70%,transparent)}.ds-seg input:focus-visible+span{outline:2px solid var(--spot,#ff4a1c);outline-offset:2px}"
+    },
+    {
+      "name": "Switch",
+      "kind": "input",
+      "refersTo": "switch-track",
+      "description": "Engraved switch; the knob takes the spot ink when on.",
+      "html": "<button type=\"button\" role=\"switch\" aria-checked=\"true\" class=\"ds-switch\"><span class=\"ds-switch__track\"><span class=\"ds-switch__knob\"></span></span>Refraction</button>",
+      "css": ".ds-switch{display:inline-flex;align-items:center;gap:12px;padding:6px 0;border:0;background:none;color:var(--ink,#0f1a24);font-family: 'Archivo Variable','Archivo','Helvetica Neue',sans-serif;font-weight:700;font-size:15px;cursor:pointer}.ds-switch__track{position:relative;width:38px;height:22px;border:1px solid var(--rule,rgba(15,26,36,.86));border-radius:999px;background:var(--stock-raised,#f6f8f9);transition:border-color 200ms cubic-bezier(0.16,1,0.3,1)}.ds-switch__knob{position:absolute;top:3px;left:3px;width:14px;height:14px;border:1px solid var(--rule,rgba(15,26,36,.86));border-radius:50%;background:var(--stock,#eef2f4);transition:translate 260ms cubic-bezier(0.16,1,0.3,1),background 200ms cubic-bezier(0.16,1,0.3,1)}.ds-switch[aria-checked=true] .ds-switch__track{border-color:var(--spot,#ff4a1c)}.ds-switch[aria-checked=true] .ds-switch__knob{translate:16px 0;background:var(--spot,#ff4a1c);border-color:var(--spot,#ff4a1c)}.ds-switch:focus-visible{outline:2px solid var(--spot,#ff4a1c);outline-offset:4px;border-radius:3px}"
+    },
+    {
+      "name": "Scale",
+      "kind": "input",
+      "description": "Range input drawn as an engraved rule with tick graduations, a spot fill to the value, and a mono readout.",
+      "html": "<div class=\"ds-scale\"><label>Refraction</label><output>1.10</output><input type=\"range\" min=\"0\" max=\"100\" value=\"44\" style=\"--pct:44%\"></div>",
+      "css": ".ds-scale{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:2px 12px;width:320px}.ds-scale label{font-family: 'Archivo Variable','Archivo','Helvetica Neue',sans-serif;font-weight:600;font-size:15px;color:var(--ink,#0f1a24)}.ds-scale output{font-family:'JetBrains Mono Variable',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:15px}.ds-scale input{grid-column:1/-1;width:100%;height:26px;margin:0;appearance:none;-webkit-appearance:none;background:linear-gradient(var(--spot,#ff4a1c),var(--spot,#ff4a1c)) 0 50%/var(--pct) 2px no-repeat,repeating-linear-gradient(90deg,var(--ink-faint,#5a6773) 0 1px,transparent 1px 10%) 0 calc(50% + 6px)/100% 5px no-repeat,linear-gradient(var(--rule,rgba(15,26,36,.86)),var(--rule,rgba(15,26,36,.86))) 0 50%/100% 1px no-repeat;cursor:pointer}.ds-scale input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border:1.5px solid var(--ink,#0f1a24);border-radius:50%;background:var(--stock,#eef2f4);transition:border-color 150ms cubic-bezier(0.16,1,0.3,1),scale 150ms cubic-bezier(0.16,1,0.3,1)}.ds-scale input:active::-webkit-slider-thumb,.ds-scale input:focus-visible::-webkit-slider-thumb{border-color:var(--spot,#ff4a1c);scale:1.15}.ds-scale input:focus-visible{outline:none}"
+    },
+    {
+      "name": "Plate Frame with Figure Caption",
+      "kind": "card",
+      "description": "Engraved plate: rule border, faint outline offset 6px, register crosshairs, small-caps folio, and a Fig. n. caption.",
+      "html": "<section class=\"ds-plate\"><span class=\"ds-plate__folio\">Plate II</span><svg class=\"ds-plate__mark ds-tl\" viewBox=\"0 0 13 13\"><path d=\"M6.5 0v13M0 6.5h13\" stroke=\"currentColor\"/></svg><svg class=\"ds-plate__mark ds-br\" viewBox=\"0 0 13 13\"><path d=\"M6.5 0v13M0 6.5h13\" stroke=\"currentColor\"/></svg><div class=\"ds-plate__stage\"></div><p class=\"ds-caption\"><b>Fig. 2.</b> One glass over Plate IV of <i>Opticks</i>, lettered by layer.</p></section>",
+      "css": ".ds-plate{position:relative;margin:16px;padding:28px;border:1px solid var(--rule,rgba(15,26,36,.86));outline:1px solid var(--rule-faint,rgba(15,26,36,.18));outline-offset:6px;background:var(--stock,#eef2f4)}.ds-plate__folio{position:absolute;top:-1px;right:22px;translate:0 -50%;padding:0 8px;background:var(--stock,#eef2f4);font-family:'STIX Two Text Variable','STIX Two Text',serif;font-size:12px;font-variant-caps:all-small-caps;letter-spacing:.08em;color:var(--ink-faint,#5a6773)}.ds-plate__mark{position:absolute;width:13px;height:13px;color:var(--ink-faint,#5a6773)}.ds-tl{left:-7px;top:-7px}.ds-br{right:-7px;bottom:-7px}.ds-plate__stage{height:140px;border:1px solid var(--rule-faint,rgba(15,26,36,.18));margin-bottom:14px}.ds-caption{margin:0;font-family:'STIX Two Text Variable','STIX Two Text',serif;font-size:15px;line-height:1.45;color:var(--ink-soft,#364452)}.ds-caption b{font-weight:600;font-variant-caps:all-small-caps;letter-spacing:.06em;color:var(--ink,#0f1a24)}"
+    },
+    {
+      "name": "Code Block",
+      "kind": "card",
+      "refersTo": "code-block",
+      "description": "Raised-stock code panel, syntax in the two inks plus deep vermilion.",
+      "html": "<figure class=\"ds-code\"><pre><code><span class=\"k\">import</span> { Glass } <span class=\"k\">from</span> 'meniscus';</code></pre><button type=\"button\">Copy</button></figure>",
+      "css": ".ds-code{position:relative;margin:0;border:1px solid var(--rule-faint,rgba(15,26,36,.18));border-radius:12px;background:var(--stock-raised,#f6f8f9)}.ds-code pre{margin:0;padding:18px 20px;font-family:'JetBrains Mono Variable',ui-monospace,monospace;font-size:15px;line-height:1.65;color:var(--ink,#0f1a24)}.ds-code .k{color:var(--spot-ink,#c2320e)}.ds-code button{position:absolute;top:10px;right:10px;padding:6px 10px;border:1px solid var(--rule-faint,rgba(15,26,36,.18));border-radius:999px;background:var(--stock,#eef2f4);color:var(--ink-soft,#364452);font-family: 'Archivo Variable','Archivo','Helvetica Neue',sans-serif;font-weight:600;font-size:12px;line-height:1;cursor:pointer}.ds-code button:hover{color:var(--ink,#0f1a24);border-color:var(--rule,rgba(15,26,36,.86))}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Ray Plate",
+    "overview": "**Creative North Star: \"The Ray Plate\"**\n\nThe site is a page from a two-color optics textbook that happens to be live. Cool plate stock, blue-black ink, and one vermilion spot ink carry everything; pale cyan appears only where there is glass. Every section sits inside an engraved plate frame with a folio, every figure is numbered and captioned, and the diagrams are single-weight line engravings with lettered points and angle arcs, computed by the same library the page is advertising. The glass is the one material that is not ink: it floats over the printed content and bends it.\n\nDark mode is not an inverted palette but a lantern slide: the same plate, projected. Stock goes to near-black blue, ink turns to pale light, the spot ink brightens, and the glass body darkens to a deep cyan. Users toggle between **print** and **lantern** from the masthead; the choice persists, and otherwise follows the system preference.\n\nDensity is editorial: generous gutters, long running measure, figures given room. The system rejects aurora wallpaper with floating cards: there are no gradient backgrounds, no card grids, and no decorative shadows. Depth comes from the glass itself.",
+    "keyCharacteristics": [
+      "Two inks on cool stock, plus vermilion as the only accent and cyan confined to glass.",
+      "Engraved plate frames: 1px rule, faint 1px outline offset 6px, register crosshairs at two corners, small-caps folio set into the top rule.",
+      "Archivo at 125% width, weight 800 to 850, for heads; STIX Two Text for everything that reads; JetBrains Mono for code and numbers.",
+      "Numbered figures with \"Fig. n.\" captions; lettered, single-weight line diagrams.",
+      "Two themes, print and lantern, sharing every token name.",
+      "Glass (the meniscus library) is the only material with depth; it sits on the printed plate and refracts it."
+    ],
+    "rules": [
+      {
+        "name": "The Spot Ink Rule",
+        "body": "Vermilion marks light and state, nothing else: rays, the sun, and active or focused controls. It is never a background wash, a decorative stripe, or a heading color. The tab specimen's 12% spot tint behind the current tab is the widest it ever gets.",
+        "section": "colors"
+      },
+      {
+        "name": "The Glass-Only Cyan Rule",
+        "body": "Pale cyan exists only inside glass bodies (the section fill and hatch in ray diagrams). It is not a secondary accent for UI.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Inks Rule",
+        "body": "Anything that is not a ray, a state, or glass is drawn in ink on stock, with hierarchy made from the three ink strengths and two rule strengths, not from new hues.",
+        "section": "colors"
+      },
+      {
+        "name": "The Four Steps Rule",
+        "body": "Text uses only 12, 15, 19, and 24px. Anything larger is a heading on a clamp. The ray diagram's SVG lettering is drawn at figure scale and is the only exception.",
+        "section": "typography"
+      },
+      {
+        "name": "The Italic Variable Rule",
+        "body": "Physical quantities (θ, n) and lettered points (A, B, P, Q) are STIX italic, as in a printed figure; live numeric values beside them are mono tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The Small Caps Rule",
+        "body": "Labels are true small caps in the text serif (`font-variant-caps: all-small-caps`), never uppercased sans. \"Fig. n.\" in a caption is bold small caps in ink.",
+        "section": "typography"
+      },
+      {
+        "name": "The Only Glass Lifts Rule",
+        "body": "If something needs to sit above the page, it is a `Glass`; otherwise it is ink on stock. Do not add drop shadows to stock surfaces.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Sun Rule",
+        "body": "Every glass on a page shares one light source through `GlassProvider` (the home page's sun dial sets `lightAngle` for all of them, masthead included).",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** put every home section in a plate frame with a roman-numeral small-caps folio and at least one numbered, captioned figure.",
+      "**Do** keep vermilion to rays, the sun, and active or focused states; use `spot-ink` whenever vermilion is read as text.",
+      "**Do** confine pale cyan to glass bodies drawn in section.",
+      "**Do** set text on the four steps only (12, 15, 19, 24px) and headings in expanded Archivo on a clamp.",
+      "**Do** set physical quantities and lettered points in STIX italic and live numbers in mono tabular figures.",
+      "**Do** draw icons and diagram line work at a single engraving weight (1 to 1.5px strokes, no fills).",
+      "**Do** give every raster a provenance sidecar and a colophon credit, and a lantern duotone alongside the print one.",
+      "**Do** define every color for both print and lantern under the same token name."
+    ],
+    "donts": [
+      "**Don't** use aurora or gradient wallpaper with floating cards; the page is flat printed stock.",
+      "**Don't** add box shadows to stock surfaces; only glass has depth.",
+      "**Don't** introduce a second accent hue; hierarchy comes from the ink and rule strengths.",
+      "**Don't** use cyan for UI chrome, links, or highlights outside glass.",
+      "**Don't** round the printed plate: frames, stages, and tables stay square; only touchable things are round.",
+      "**Don't** uppercase sans labels; labels are small caps in the text serif.",
+      "**Don't** use stock photography, generated illustration, or glyph icons; imagery is sourced period engraving and icons are drawn SVG."
+    ]
+  }
+}
