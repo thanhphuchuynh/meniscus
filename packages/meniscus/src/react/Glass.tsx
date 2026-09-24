@@ -31,7 +31,7 @@ import { useAppear } from './appear';
 import { OPTIC_SHADOW, SPOT, opticOpacity, opticTint, useOptics } from './optics';
 import { LayerContext } from './stack';
 import { backdropElement, useElementCopy, useFallback, type Backdrop } from './backdrop';
-import { MediaLayer, type MediaFrame } from './MediaLayer';
+import { MediaLayer, hostOrigin, type MediaFrame } from './MediaLayer';
 import { optionsKey } from './context';
 import { isMediaElement, type Media } from '../webgl/media';
 import { useGlassGroup } from './group';
@@ -81,6 +81,12 @@ export type GlassProps<T extends ElementType = 'div'> = GlassOwnProps & { as?: T
 /** Elements that can't hold the glass's layers. They render with the frosted surface only. */
 const CHILDLESS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr', 'textarea', 'select']);
 let warnedChildless = false;
+
+/** Room around a stacked glass's canvas, so the layers beneath refract from real pixels at its rim, px. */
+const STACK_MARGIN = 48;
+
+const opticsKey = (s: { presence: number; refraction: number; highlightX: number; highlightY: number; tint: number; shadow: number } | null | undefined) =>
+  s ? [s.presence, s.refraction, s.highlightX, s.highlightY, s.tint, s.shadow].map((v) => v.toFixed(3)).join(',') : '';
 
 /** Page around a copied backdrop, so its blur has something to draw from at the rim, px. */
 const COPY_MARGIN = 16;
@@ -217,6 +223,10 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   useElementCopy(copy, fallback.element, copyActive);
   const gRef = useRef(g);
   gRef.current = g;
+  const opticsRef = useRef(optics);
+  opticsRef.current = optics;
+  const layerRef = useRef(layer);
+  layerRef.current = layer;
   useIsomorphicLayoutEffect(() => (layer ? layer.bind(() => gRef.current) : undefined), [layer]);
   const optionsRef = useRef(options);
   optionsRef.current = options;
@@ -224,7 +234,22 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     const glass = gRef.current;
     if (!node || !glass) return null;
     const box = { x: -node.clientLeft, y: -node.clientTop, width: node.offsetWidth, height: node.offsetHeight };
-    return { panes: [{ x: box.x, y: box.y, glass, el: node }], box, merge: 0, shadow: false, key: `${box.width}x${box.height}|${optionsKey(optionsRef.current)}` };
+    const own = opticsRef.current?.state ?? null;
+    const key = `${box.width}x${box.height}|${optionsKey(optionsRef.current)}|${opticsKey(own)}`;
+    const self = { x: box.x, y: box.y, glass, el: node, optics: own };
+    const below = layerRef.current?.below() ?? [];
+    if (!below.length) return { panes: [self], box, merge: 0, shadow: false, key };
+    // Stacked: draw the glass beneath, back to front, and keep only this one.
+    const origin = hostOrigin(node);
+    const panes: MediaFrame['panes'] = below.map((b) => {
+      const r = b.el.getBoundingClientRect();
+      return { x: (r.left - origin.left) / origin.sx - node.clientLeft, y: (r.top - origin.top) / origin.sy - node.clientTop, glass: b.glass, el: b.el, optics: b.optics.state };
+    });
+    panes.push(self);
+    const m = STACK_MARGIN;
+    const wide = { x: box.x - m, y: box.y - m, width: box.width + 2 * m, height: box.height + 2 * m };
+    const stackKey = panes.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)},${opticsKey(p.optics)}`).join(';');
+    return { panes, box: wide, merge: 0, shadow: false, layered: true, clip: panes.length - 1, key: `${key}|${stackKey}` };
   }, [node]);
 
   const variant = VARIANTS[options.variant ?? 'regular'] ?? VARIANTS.regular;

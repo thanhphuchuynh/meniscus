@@ -2,6 +2,7 @@ import { glassProfile, lightingProfile, type ResolvedGlass } from '../core/glass
 import { ABERRATION_SPREAD } from '../core/filter';
 import { lightVector } from '../core/maps';
 import { profileKey } from '../core/profiles';
+import type { OpticalState } from '../core/physics';
 import { RIPPLE_MAX, type RippleField } from '../core/ripple';
 import { FRAGMENT, LUT_SAMPLES, MAX_PANES, VERTEX } from './shaders';
 
@@ -22,6 +23,8 @@ export interface RenderOptions {
   merge?: number;
   /** Draw only the glass (and its shadow), leaving the rest of the canvas clear. */
   panesOnly?: boolean;
+  /** With `layered`: composite panes 0…clip only, and keep just pane `clip` in the output, transparent elsewhere. */
+  clip?: number;
   /** A soft shadow outside the glass: strength 0 to 1, drop and blur in CSS px. */
   shadow?: { strength: number; drop: number; blur: number } | null;
 }
@@ -37,6 +40,8 @@ export interface PaneFrame {
   tint: [number, number, number, number];
   /** A liquid surface over this pane, drawn while it moves. */
   ripple?: RippleField | null;
+  /** Its optics on springs: presence fades it, refraction scales the bend, the highlight turns the light, tint and lift scale theirs. */
+  optics?: OpticalState | null;
 }
 
 const MAX_SLOPE = 1e4;
@@ -87,6 +92,7 @@ export class GlassRenderer {
     light: new Float32Array(MAX_PANES * 4),
     misc: new Float32Array(MAX_PANES * 4),
     wave: new Float32Array(MAX_PANES * 4),
+    optic: new Float32Array(MAX_PANES * 4),
   };
 
   constructor(readonly canvas: HTMLCanvasElement) {
@@ -103,7 +109,7 @@ export class GlassRenderer {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(`meniscus: program failed to link: ${gl.getProgramInfoLog(program)}`);
     this.program = program;
 
-    for (const name of ['u_layer', 'u_screenSource', 'u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_panesOnly', 'u_shadow', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc', 'u_waves', 'u_wave']) {
+    for (const name of ['u_layer', 'u_screenSource', 'u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_panesOnly', 'u_shadow', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc', 'u_waves', 'u_wave', 'u_optic']) {
       this.uniforms[name] = gl.getUniformLocation(program, name);
     }
 
@@ -244,7 +250,7 @@ export class GlassRenderer {
    * scales the source to the canvas like object-fit, or a rect places it.
    */
   render(panes: PaneFrame[], fit: Fit | SourceRect, pixelRatio: number, options: RenderOptions | number = {}): void {
-    const { merge = 0, panesOnly = false, shadow = null, layered = false } = typeof options === 'number' ? { merge: options } : options;
+    const { merge = 0, panesOnly = false, shadow = null, layered = false, clip } = typeof options === 'number' ? { merge: options } : options;
     const gl = this.gl;
     const cw = this.canvas.width;
     const ch = this.canvas.height;
@@ -283,9 +289,20 @@ export class GlassRenderer {
       const o = i * 4;
       a.rect.set([p.x * pixelRatio, p.y * pixelRatio, g.width * pixelRatio, g.height * pixelRatio], o);
       a.shape.set([g.radius * pixelRatio, g.bezel * pixelRatio, g.blur * pixelRatio, g.aberration * ABERRATION_SPREAD], o);
-      a.tint.set(p.tint, o);
-      const [lx, ly, lz] = lightVector(g.lightAngle, g.lightElevation);
+      const optics = p.optics;
+      const presence = optics ? Math.max(0, Math.min(1, optics.presence)) : 1;
+      const bend = optics ? Math.max(0, optics.refraction) * presence : 1;
+      a.tint.set([p.tint[0], p.tint[1], p.tint[2], optics ? p.tint[3] * Math.max(0, Math.min(1, optics.tint)) : p.tint[3]], o);
+      let [lx, ly, lz] = lightVector(g.lightAngle, g.lightElevation);
+      if (optics && (optics.highlightX || optics.highlightY)) {
+        // Turn the light toward the highlight offset.
+        const tx = lx + 0.6 * optics.highlightX;
+        const ty = ly + 0.6 * optics.highlightY;
+        const len = Math.hypot(tx, ty, lz);
+        [lx, ly, lz] = [tx / len, ty / len, lz / len];
+      }
       a.light.set([lx, ly, lz, g.specular], o);
+      a.optic.set([presence, bend, optics ? Math.max(0, optics.shadow) * presence : 1, 0], o);
       a.misc.set([g.rim, g.saturation, g.shade, pixelRatio], o);
       this.uploadProfile(i, g, `${profileKey(g.profile)}|${g.bezel}|${g.thickness}|${g.ior}|${g.caustics}|${g.radius}`);
       const field = p.ripple;
@@ -297,7 +314,7 @@ export class GlassRenderer {
           slot.version = field.version;
         }
         // Small-angle refraction: a surface tilted by slope s shifts the view s·T·(1 − 1/n).
-        a.wave.set([g.thickness * (1 - 1 / g.ior) * pixelRatio, field.cols, field.rows, 1], o);
+        a.wave.set([g.thickness * (1 - 1 / g.ior) * pixelRatio * bend, field.cols, field.rows, 1], o);
       } else {
         a.wave.set([0, 0, 0, 0], o);
       }
@@ -332,9 +349,12 @@ export class GlassRenderer {
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.waveTex);
     gl.uniform1i(u.u_waves!, 2);
     gl.uniform4fv(u.u_wave!, a.wave);
+    gl.uniform4fv(u.u_optic!, a.optic);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindVertexArray(this.vao);
-    if (layered && merge <= 0 && !panesOnly && count > 0) {
+    const stack = clip === undefined ? count : Math.max(0, Math.min(count, clip + 1));
+    if (layered && merge <= 0 && stack > 0 && (!panesOnly || clip !== undefined)) {
+      gl.uniform1i(u.u_panesOnly!, 0);
       this.ensureTargets(cw, ch);
       // First pass fits the original media to the stage. Every following pass
       // samples screen coordinates, including prior refraction and shadows.
@@ -344,15 +364,17 @@ export class GlassRenderer {
       gl.uniform1i(u.u_count!, count);
       gl.uniform1i(u.u_screenSource!, 1);
       gl.uniform1f(u.u_srcTexel!, 1);
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < stack; i++) {
         const input = this.targets[i % 2]!;
-        const output = i === count - 1 ? null : this.targets[(i + 1) % 2]!.framebuffer;
+        const output = i === stack - 1 ? null : this.targets[(i + 1) % 2]!.framebuffer;
+        // A clipped render keeps only its last pane.
+        if (clip !== undefined && i === stack - 1) gl.uniform1i(u.u_panesOnly!, 1);
         gl.bindFramebuffer(gl.FRAMEBUFFER, output);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, input.texture);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.uniform1i(u.u_layer!, i);
-        gl.uniform3f(u.u_shadow!, shadow && panes[i]!.shadow !== false ? shadow.strength : 0, shadow ? shadow.drop * pixelRatio : 0, shadow ? shadow.blur * pixelRatio : 1);
+        gl.uniform3f(u.u_shadow!, shadow && panes[i]!.shadow !== false ? shadow.strength * a.optic[i * 4 + 2]! : 0, shadow ? shadow.drop * pixelRatio : 0, shadow ? shadow.blur * pixelRatio : 1);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       }
     } else {

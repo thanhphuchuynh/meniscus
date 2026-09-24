@@ -50,6 +50,7 @@ uniform vec4 u_light[MAX_PANES];  // light vector xyz, specular strength
 uniform vec4 u_misc[MAX_PANES];   // rim strength, saturation, shade strength, displacement scale
 uniform mediump sampler2DArray u_waves; // liquid surface heights (layout px), one layer per pane
 uniform vec4 u_wave[MAX_PANES];         // shift per unit slope (canvas px), cols, rows, on
+uniform vec4 u_optic[MAX_PANES];        // presence, bend multiplier, lift, unused
 
 in vec2 v_px;
 out vec4 outColor;
@@ -180,7 +181,7 @@ Material paneMaterial(int i, float d) {
   float bezel = max(u_shape[i].y, 1e-3);
   float t = clamp(-d / bezel, 0.0, 1.0);
   vec2 table = texture(u_lut, vec2((t * (LUT_SAMPLES - 1.0) + 0.5) / LUT_SAMPLES, (float(i) + 0.5) / float(MAX_PANES))).rg;
-  return Material(table.r * u_misc[i].w, table.g, u_shape[i].z, u_shape[i].w, u_misc[i].y, u_tint[i], u_light[i], u_misc[i].x, u_misc[i].z, waveSlope(i), u_wave[i].x);
+  return Material(table.r * u_misc[i].w * u_optic[i].y, table.g, u_shape[i].z, u_shape[i].w, u_misc[i].y, u_tint[i], u_light[i], u_misc[i].x, u_misc[i].z, waveSlope(i), u_wave[i].x);
 }
 
 // The glass color for material m with outward normal n (premultiplied, before coverage).
@@ -260,6 +261,7 @@ void main() {
     }
     if (u_count > 0 && d <= 1.0) {
       Material m = Material(0.0, 0.0, 0.0, 0.0, 0.0, vec4(0.0), vec4(0.0), 0.0, 0.0, vec2(0.0), 0.0);
+      float presence = 0.0;
       for (int i = 0; i < MAX_PANES; i++) {
         if (i >= u_count) break;
         if (w[i] < 1e-3) continue;
@@ -275,11 +277,12 @@ void main() {
         m.shade += w[i] * p.shade;
         m.wave += w[i] * p.wave;
         m.waveDepth += w[i] * p.waveDepth;
+        presence += w[i] * u_optic[i].x;
       }
       m.light.xyz = normalize(m.light.xyz);
       // Normals that nearly cancel (the waist of a neck) stay short.
       vec2 n = g / max(length(g), ${glsl(NORMAL_FLOOR)});
-      color = mix(color, glassColor(m, n), clamp(0.5 - d, 0.0, 1.0));
+      color = mix(color, glassColor(m, n), clamp(0.5 - d, 0.0, 1.0) * presence);
     }
   } else {
     for (int i = 0; i < MAX_PANES; i++) {
@@ -288,7 +291,7 @@ void main() {
       vec2 n;
       float d = paneSdf(i, n);
       if (d > 1.0) continue;
-      color = mix(color, glassColor(paneMaterial(i, d), n), clamp(0.5 - d, 0.0, 1.0));
+      color = mix(color, glassColor(paneMaterial(i, d), n), clamp(0.5 - d, 0.0, 1.0) * u_optic[i].x);
     }
   }
 

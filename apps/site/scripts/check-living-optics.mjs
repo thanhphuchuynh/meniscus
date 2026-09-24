@@ -108,12 +108,21 @@ try {
     for (let k = 0; k < 60; k++) { const s = performance.now(); big.advance((clock += 1000 / 60)); costs.push(performance.now() - s); }
     costs.sort((x, y) => x - y);
     const simMs = costs[30];
+    // Optics at rest change nothing; presence 0 removes a pane; a clipped
+    // layered render keeps only its last pane.
+    const REST = { presence: 1, refraction: 1, highlightX: 0, highlightY: 0, tint: 1, shadow: 1 };
+    renderer.render(panes.map((p) => ({ ...p, optics: REST })), 'fill', 1); const restful = pixels();
+    renderer.render([panes[0]], 'fill', 1); const onlyFirst = pixels();
+    renderer.render([panes[0], { ...panes[1], optics: { ...REST, presence: 0 } }], 'fill', 1); const absent = pixels();
+    renderer.render(panes, 'fill', 1, { layered: true, clip: 1, panesOnly: true }); const clipped = pixels();
+    const alphaAt = (p, x, y) => p[((119 - y) * 160 + x) * 4 + 3];
+    const opticsCheck = { rest: diff(plain, restful), absent: diff(onlyFirst, absent), outside: alphaAt(clipped, 4, 4), inside: alphaAt(clipped, 95, 66), clipError: gl.getError() };
     canvas.width = 240; canvas.height = 180;
     renderer.render(panes, 'fill', 1.5, { layered: true, shadow });
     const resizeError = gl.getError();
     renderer.render(panes, 'fill', 1.5); const defaultError = gl.getError();
     renderer.dispose();
-    return { difference, shadowDifference, bottom, top, resizeError, defaultError, waves, simMs };
+    return { difference, shadowDifference, bottom, top, resizeError, defaultError, waves, simMs, opticsCheck };
   }, fileURLToPath(new URL('../../../', import.meta.url)));
   assert.equal(gpu.shadowDifference, 0, 'shadow=false must disable layered shadows');
   assert.ok(gpu.difference > 10000, JSON.stringify(gpu));
@@ -125,6 +134,11 @@ try {
   assert.ok(gpu.waves.asleep); assert.equal(gpu.waves.waveError, 0);
   assert.equal(gpu.waves.resizedError, 0, 'a resized field uploads within its layer'); assert.equal(gpu.waves.resizedCols, 24);
   assert.ok(gpu.simMs < 0.5, `ripple simulation budget: ${gpu.simMs} ms`);
+  assert.equal(gpu.opticsCheck.rest, 0, 'optics at rest must not change the glass');
+  assert.equal(gpu.opticsCheck.absent, 0, 'presence 0 removes a pane');
+  assert.equal(gpu.opticsCheck.outside, 0, 'a clipped render is transparent outside its pane');
+  assert.ok(gpu.opticsCheck.inside > 200, `a clipped render draws its pane: ${JSON.stringify(gpu.opticsCheck)}`);
+  assert.equal(gpu.opticsCheck.clipError, 0);
 
   const handle = page.getByRole('slider', { name: 'Navigation', exact: true });
   await handle.focus(); await page.keyboard.press('End');

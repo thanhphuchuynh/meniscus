@@ -1,5 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import type { ResolvedGlass } from '../core/glass';
+import type { OpticalState } from '../core/physics';
 import { resolveTint, tintVersion } from '../webgl/color';
 import { MERGED_SHADOW, isVideo, mediaRect, sourceReady, sourceSize, type Media } from '../webgl/media';
 import type { GlassRenderer, PaneFrame } from '../webgl/renderer';
@@ -12,6 +13,8 @@ export interface MediaPane {
   glass: ResolvedGlass;
   /** Where CSS custom properties in the tint resolve. */
   el: HTMLElement;
+  /** Its optics on springs, if any. */
+  optics?: OpticalState | null;
 }
 
 export interface MediaFrame {
@@ -20,6 +23,10 @@ export interface MediaFrame {
   box: { x: number; y: number; width: number; height: number };
   merge: number;
   shadow: boolean;
+  /** Composite the panes back to front, each refracting those before it. */
+  layered?: boolean;
+  /** With `layered`: keep only this pane in the output. */
+  clip?: number;
   /** Changes whenever anything that affects the drawing changes. */
   key: string;
 }
@@ -99,16 +106,7 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
         return;
       }
 
-      const hostRect = host.getBoundingClientRect();
-      // Divide out the glass's own squash (a centered matrix, area kept) so only
-      // ancestor scale remains, and anchor at the center, which it never moves.
-      const [ma, mb, mc, md] = ownMatrix(host);
-      const w = host.offsetWidth;
-      const h = host.offsetHeight;
-      const sx = w ? hostRect.width / (Math.abs(ma) * w + Math.abs(mc) * h) : 1;
-      const sy = h ? hostRect.height / (Math.abs(mb) * w + Math.abs(md) * h) : 1;
-      const left = hostRect.left + (hostRect.width - w * sx) / 2;
-      const top = hostRect.top + (hostRect.height - h * sy) / 2;
+      const { left, top, sx, sy } = hostOrigin(host);
       const pr = Math.min(maxPixelRatio, window.devicePixelRatio || 1);
       const { box } = f;
       const cw = Math.max(1, Math.round(box.width * pr));
@@ -138,8 +136,8 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
       }
       Object.assign(canvas.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.width}px`, height: `${box.height}px`, visibility: 'visible' });
       panes.length = 0;
-      for (const p of f.panes) panes.push({ x: p.x - box.x, y: p.y - box.y, glass: p.glass, tint: resolveTint(p.el, p.glass.tint), ripple: rippleOf(p.el) ?? null });
-      renderer.render(panes, placement, pr, { merge: f.merge, panesOnly: true, shadow: f.shadow ? MERGED_SHADOW : null });
+      for (const p of f.panes) panes.push({ x: p.x - box.x, y: p.y - box.y, glass: p.glass, tint: resolveTint(p.el, p.glass.tint), ripple: rippleOf(p.el) ?? null, optics: p.optics ?? null });
+      renderer.render(panes, placement, pr, { merge: f.merge, panesOnly: true, shadow: f.shadow ? MERGED_SHADOW : null, layered: f.layered, clip: f.clip });
     };
 
     import('../webgl/renderer').then(
@@ -185,6 +183,21 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
   }, [host, media, maxPixelRatio]);
 
   return <canvas ref={canvasRef} aria-hidden="true" data-meniscus-layer="webgl" style={{ ...CANVAS, ...style }} />;
+}
+
+/**
+ * Where a host's untransformed box sits on screen: its top left, and the
+ * scale its ancestors apply. Its own squash (a centered matrix, area kept) is
+ * divided out, anchored at the center, which the squash never moves.
+ */
+export function hostOrigin(host: HTMLElement): { left: number; top: number; sx: number; sy: number } {
+  const r = host.getBoundingClientRect();
+  const [ma, mb, mc, md] = ownMatrix(host);
+  const w = host.offsetWidth;
+  const h = host.offsetHeight;
+  const sx = w ? r.width / (Math.abs(ma) * w + Math.abs(mc) * h) : 1;
+  const sy = h ? r.height / (Math.abs(mb) * w + Math.abs(md) * h) : 1;
+  return { left: r.left + (r.width - w * sx) / 2, top: r.top + (r.height - h * sy) / 2, sx, sy };
 }
 
 /** The host's own inline matrix (the squash) as [a, b, c, d]; identity for anything else. */
