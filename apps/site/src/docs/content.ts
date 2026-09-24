@@ -8,6 +8,7 @@ export interface PropRow {
 export const GLASS_PROPS: PropRow[] = [
   { name: 'as', type: 'ElementType', default: "'div'", body: 'The element or component to render. Every other prop it accepts passes through.' },
   { name: 'variant', type: "'regular' | 'clear'", default: "'regular'", body: 'Regular frosts and tints for legibility over busy content. Clear stays nearly transparent, for glass over media.' },
+  { name: 'intensity', type: "'subtle' | 'regular' | 'strong' | number", default: "'regular'", body: 'How strongly the glass bends and lights, as a named step or a number from 0 (subtle) through 0.5 (regular) to 1 (strong). Explicit refraction, specular and aberration win.' },
   { name: 'appearance', type: "'auto' | 'light' | 'dark'", default: "'auto'", body: 'Light glass (a pale wash) or dark glass (a smoky one). Auto follows the page’s color scheme, a site’s own theme switch included, through CSS light-dark(). It sets the default tint; an explicit tint wins.' },
   { name: 'radius', type: "number | 'capsule'", default: '28', body: 'Corner radius in px, capped at half the short side. Capsule rounds the ends fully.' },
   { name: 'bezel', type: 'number', default: 'min(radius, 32)', body: 'Width of the curved band along the outline, in px. Capped at the corner radius.' },
@@ -28,6 +29,7 @@ export const GLASS_PROPS: PropRow[] = [
   { name: 'interactive', type: 'boolean', default: 'false', body: 'Lift on hover, swell on press with light blooming from the touch point, stretch toward the pointer, glow where it touches. When the glass itself moves, it squashes along its path and wobbles as it stops. Keyboard presses animate too.' },
   { name: 'appear', type: 'boolean', default: 'false', body: 'Materialize on mount: fade in, swell into place on a spring, and let the lens gather its bend. A plain fade under reduced motion.' },
   { name: 'ripple', type: 'boolean', default: 'false', body: 'A liquid surface: a tap rings it, a finger drawn across leaves a trail, and moving the glass sloshes it. Waves bend what is behind and catch the light, then die out. Drawn in WebGL: glass over an image, video or canvas backdrop (every browser, Chromium included), or a GlassPane in a GlassStage. Off under reduced motion.' },
+  { name: 'optics', type: 'GlassPhysics', default: '—', body: 'Springs for presence, refraction, highlight, tint and lift, from useGlassPhysics. The glass follows them frame by frame without re-rendering; with interactive, a press lifts it and the release sets it ringing.' },
   { name: 'shadow', type: 'string | false', default: 'a soft two-layer shadow', body: 'The box shadow under the glass, or false for none.' },
   { name: 'backdrop', type: 'HTMLElement | RefObject', default: '—', body: 'What lies behind the glass, for browsers that can’t refract the live page: media is refracted in WebGL, any other element as a live copy in Firefox. Must not contain the glass.' },
 ];
@@ -58,6 +60,23 @@ export const GROUP_PROPS: PropRow[] = [
   { name: 'as', type: 'ElementType', default: "'div'", body: 'The element the group renders. It is the positioned box its members are measured in.' },
   { name: 'backdrop', type: 'HTMLElement | RefObject', default: '—', body: 'What lies behind the group, as on Glass. Over an image or video, Safari and Firefox draw the merged glass in WebGL.' },
   { name: '…glass', type: 'GlassOptions', default: 'provider', body: 'Refraction, tint, blur, light and the rest apply to the whole surface. Members contribute only their outline and radius.' },
+];
+
+export const STACK_PROPS: PropRow[] = [
+  { name: 'physics', type: "'gentle' | 'snappy' | 'bouncy' | 'stiff' | { mass, stiffness, damping }", default: "'snappy'", body: 'The spring for every layer that sets none.' },
+  { name: 'stagger', type: 'number', default: '0.12', body: 'The wait between depth ranks in a shared transition, as a fraction of each layer’s spring period. Nearer layers lead; negative reverses; 0 moves them together.' },
+  { name: 'renderer', type: "'auto' | 'css' | 'webgl'", default: "'auto'", body: 'Auto refracts the live page where the browser can and uses WebGL over a media context elsewhere. CSS never uses WebGL; WebGL uses it over media everywhere.' },
+  { name: 'appear', type: 'boolean', default: 'false', body: 'Layers shown on mount enter from hidden, staggered by depth.' },
+  { name: 'as', type: 'ElementType', default: "'div'", body: 'The element the stack renders.' },
+];
+
+export const LAYER_PROPS: PropRow[] = [
+  { name: 'kind', type: "'context' | 'control'", default: "'control'", body: 'Control layers are glass that refracts everything beneath them, lower layers included. A context layer is the scene: images, video, gradients or any content.' },
+  { name: 'depth', type: 'number', default: 'page order', body: 'Stacking order: higher is nearer. Sets z-index.' },
+  { name: 'present', type: 'boolean', default: 'true', body: 'Whether the layer is shown. Changes animate on its springs, staggered with the layers changing in the same render. Absent layers are inert.' },
+  { name: 'physics', type: 'preset | { mass, stiffness, damping }', default: 'the stack’s', body: 'This layer’s spring. It also sets the layer’s place in a stagger.' },
+  { name: 'source', type: 'img | video | canvas | RefObject', default: 'first inside', body: 'For a context layer: the media the WebGL path draws.' },
+  { name: '…glass', type: 'GlassOptions', default: 'provider', body: 'Control layers take every Glass prop: intensity, tint, radius, interactive, ripple and the rest.' },
 ];
 
 export const CODE = {
@@ -187,4 +206,20 @@ traceRay(optics, 6); // a ray entering 6 px in from the outline
 // angles in radians, height and shift in px
 
 computeRefractionProfile(optics).maxDisplacement; // 11.84: the largest shift the renderer applies`,
+  stack: `import { Glass } from 'meniscus';
+
+export function Workspace({ open }: { open: boolean }) {
+  return (
+    <Glass.Stack physics="snappy" stagger={0.12} style={{ height: 480 }}>
+      <Glass.Layer kind="context">
+        <img src="/photos/harbor.jpg" alt="The harbor at dusk" />
+      </Glass.Layer>
+      <Glass.Layer as="nav" depth={1} present={open} className="sidebar" radius={22}>…</Glass.Layer>
+      <Glass.Layer depth={2} present={open} className="card" radius={26} interactive>…</Glass.Layer>
+    </Glass.Stack>
+  );
+}
+
+/* Layers move in with your CSS: */
+.sidebar { translate: calc((1 - var(--meniscus-presence, 1)) * -28px) 0; }`,
 };

@@ -84,6 +84,8 @@ const PROPS: Record<string, PropRow[]> = {
     { name: 'interactive', type: 'boolean', default: 'false', body: 'Press, hover and pointer-glow response. Off while disabled.' },
     { name: 'appear', type: 'boolean', default: 'false', body: 'Materialize on mount.' },
     { name: 'ripple', type: 'boolean', default: 'false', body: 'Liquid surface over a media backdrop or in a stage.' },
+    { name: 'optics', type: 'GlassPhysics', body: 'Springs for presence, refraction, highlight, tint and lift, from useGlassPhysics.' },
+    { name: 'intensity', type: "'subtle' | 'regular' | 'strong' | number", default: "'regular'", body: 'Semantic strength; raw refraction, specular and aberration win.' },
     { name: 'backdrop', type: 'HTMLElement | RefObject', body: 'What lies behind, for browsers that can’t refract the live page.' },
     { name: 'mode', type: "'auto' | 'refract' | 'frost' | 'none'", default: "'auto'", body: 'Rendering path.' },
     { name: 'shadow', type: 'string | false', body: 'Box shadow under the glass.' },

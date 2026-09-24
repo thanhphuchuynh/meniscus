@@ -8,7 +8,7 @@ import { RayDiagram } from '../shared/RayDiagram';
 import { Scale } from '../shared/Scale';
 import { sitePath } from '../shared/paths';
 import { plateSrc, useTheme } from '../shared/theme';
-import { CODE, GLASS_PROPS, GROUP_PROPS, INDICATOR_PROPS, STAGE_PROPS, type PropRow } from './content';
+import { CODE, GLASS_PROPS, GROUP_PROPS, INDICATOR_PROPS, LAYER_PROPS, STACK_PROPS, STAGE_PROPS, type PropRow } from './content';
 
 const SECTIONS = [
   ['install', 'Installation'],
@@ -18,6 +18,7 @@ const SECTIONS = [
   ['paths', 'Rendering paths'],
   ['provider', 'Defaults and one sun'],
   ['stage', 'The WebGL stage'],
+  ['stack', 'Stacked glass'],
   ['interaction', 'Interaction'],
   ['indicator', 'Selections that flow'],
   ['group', 'Surface tension'],
@@ -295,7 +296,26 @@ export function Docs() {
             </p>
           </Section>
 
-          <Section id="interaction" n={8} title="Interaction">
+          <Section id="stack" n={8} title="Stacked glass">
+            <p>
+              <code>Glass.Stack</code> holds layers ordered by <code>depth</code>. A <code>kind="context"</code> layer is the scene: an image, video,
+              gradient or any content. Control layers are glass that refracts everything painted beneath them, lower glass included: live in Chromium,
+              and over a media context in Safari and Firefox, where each layer draws the media and every layer beneath it in WebGL.{' '}
+              <a href={sitePath('/#stack')}>Glass on glass</a> on the home page stacks a sidebar and a card.
+            </p>
+            <CodeBlock code={CODE.stack} label="A sidebar and a card over a photo" />
+            <p>
+              Each layer’s optics move on springs: presence, refraction, highlight, tint and shadow, each at its own speed. The highlight settles first
+              and the shadow last, and a flung layer rings with the momentum of its release; nothing has a duration. When layers change{' '}
+              <code>present</code> in one render, nearer ones lead and deeper ones follow by <code>stagger</code> times their spring’s period. Layers move
+              in with your CSS through <code>--meniscus-presence</code>. Drive any glass this way with <code>useGlassPhysics</code> and its{' '}
+              <code>optics</code> prop, or run <code>GlassPhysics</code> outside React with <code>scheduler: 'manual'</code>.
+            </p>
+            <PropsTable rows={STACK_PROPS} caption="Glass.Stack props" />
+            <PropsTable rows={LAYER_PROPS} caption="Glass.Layer props" />
+          </Section>
+
+          <Section id="interaction" n={9} title="Interaction">
             <div className="manual__demo" style={{ backgroundImage: `url(${plateSrc('opticks-plate-4', theme)})` }}>
               <Glass key={summons} as="button" type="button" radius="capsule" interactive appear={summons > 0} className="manual__press">
                 Press and drag
@@ -322,7 +342,7 @@ export function Docs() {
             </p>
           </Section>
 
-          <Section id="indicator" n={9} title="Selections that flow">
+          <Section id="indicator" n={10} title="Selections that flow">
             <div className="manual__demo" style={{ backgroundImage: `url(${plateSrc('opticks-plate-2', theme)})` }}>
               <Glass as="nav" radius="capsule" className="manual__tabs" aria-label="Demo tabs">
                 <GlassIndicator target={tabEl} tint="var(--glass-spot)" />
@@ -347,7 +367,7 @@ export function Docs() {
             <PropsTable rows={INDICATOR_PROPS} caption="GlassIndicator props" />
           </Section>
 
-          <Section id="group" n={10} title="Surface tension">
+          <Section id="group" n={11} title="Surface tension">
             <p>
               Every <code>Glass</code> inside a <code>GlassGroup</code> is drawn as one surface. Outlines closer than <code>spacing</code> grow a neck
               between them, the way two drops bridge; within twice that distance they lean toward each other; pulled apart, the neck thins and lets go. The
@@ -368,7 +388,7 @@ export function Docs() {
             <CodeBlock code={CODE.merge} label="Panes that merge on the WebGL stage" />
           </Section>
 
-          <Section id="a11y" n={11} title="Accessibility">
+          <Section id="a11y" n={12} title="Accessibility">
             <ul className="manual__list">
               <li>
                 Glass is decoration on the element you choose. Semantics come from <code>as</code> and your markup; the filter, highlight and glow layers are
@@ -392,7 +412,7 @@ export function Docs() {
             </ul>
           </Section>
 
-          <Section id="performance" n={12} title="Performance">
+          <Section id="performance" n={13} title="Performance">
             <ul className="manual__list">
               <li>Each refracting glass is one SVG filter. Its maps are built once per corner shape and cached, so resizing costs nothing.</li>
               <li>
@@ -413,7 +433,7 @@ export function Docs() {
             </ul>
           </Section>
 
-          <Section id="core" n={13} title="meniscus/core">
+          <Section id="core" n={14} title="meniscus/core">
             <p>
               The optics without React: resolve options, build and encode the maps, write the filter markup, or trace single rays. It has no directives and
               runs on the server, in workers, or in any framework.
@@ -422,7 +442,7 @@ export function Docs() {
             <CodeBlock code={CODE.trace} label="Tracing rays" />
           </Section>
 
-          <Section id="support" n={14} title="Browser support">
+          <Section id="support" n={15} title="Browser support">
             <div className="manual__table-wrap">
               <table className="manual__table manual__table--support">
                 <caption className="visually-hidden">What each browser draws</caption>
@@ -460,7 +480,7 @@ export function Docs() {
             <p className="caption">As of September 2026. The detection follows what each engine draws, not a version list, so a browser that gains SVG backdrop filters gains refraction.</p>
           </Section>
 
-          <Section id="limits" n={15} title="Limits">
+          <Section id="limits" n={16} title="Limits">
             <ul className="manual__list">
               <li>Only rounded rectangles and capsules. Other outlines would need their own distance fields.</li>
               <li>
@@ -479,7 +499,7 @@ export function Docs() {
             </ul>
           </Section>
 
-          <Section id="releases" n={16} title="Versions and releases">
+          <Section id="releases" n={17} title="Versions and releases">
             <p>
               The package version is <code>{packageJson.version}</code>. Meniscus follows Semantic Versioning; before 1.0, a minor release may change
               the public API. Git tags use the matching <code>v</code> prefix.

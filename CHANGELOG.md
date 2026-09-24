@@ -7,11 +7,15 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 ### Added
 
 - `ripple` on `Glass` and `GlassPane`: a damped-wave liquid surface. Taps ring it, fingers leave trails, and the glass sloshes when it starts or stops. Waves refract the backdrop and catch the light, in WebGL, and cost nothing at rest.
+- `Glass.Stack` and `Glass.Layer`: depth-ordered glass layers over a scene. Control layers refract the layers beneath them, live in Chromium and in WebGL over media elsewhere, and layers that change together are staggered by depth.
+- `useGlassPhysics`, `GlassPhysics` and `SPRINGS`: presence, refraction, highlight, tint and shadow on independent springs with mass, stiffness and damping, driven by momentum rather than durations. `GlassPhysics` runs outside React with a manual scheduler.
+- `optics` on `Glass`, and `intensity` (`'subtle' | 'regular' | 'strong'` or 0 to 1) on every glass.
 
 ### Changed
 
 - `interactive` glass that moves squashes along its path and wobbles as it stops.
 - Glass with a media `backdrop` and `ripple` draws in WebGL in every browser, including Chromium.
+- One spring solver now drives press, squash and layer optics.
 
 ## [0.2.0] - 2026-09-25
 

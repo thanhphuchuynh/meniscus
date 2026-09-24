@@ -97,6 +97,7 @@ Where the `regular` and `clear` variants differ, defaults read regular / clear.
 | --- | --- | --- | --- |
 | `as` | `ElementType` | `'div'` | Element or component to render |
 | `variant` | `'regular' \| 'clear'` | `'regular'` | Regular frosts for legibility; clear stays transparent over media |
+| `intensity` | `'subtle' \| 'regular' \| 'strong' \| number` | `'regular'` | How strongly the glass bends and lights; 0 to 1 between the steps. Explicit `refraction`, `specular` and `aberration` win |
 | `appearance` | `'auto' \| 'light' \| 'dark'` | `'auto'` | Light or dark glass; auto follows the page's color scheme via `light-dark()` |
 | `radius` | `number \| 'capsule'` | `28` | Corner radius in px, capped at half the short side |
 | `bezel` | `number` | `min(radius, 32)` | Width of the curved rim in px, capped at the radius |
@@ -116,6 +117,7 @@ Where the `regular` and `clear` variants differ, defaults read regular / clear.
 | `mode` | `'auto' \| 'refract' \| 'frost' \| 'none'` | `'auto'` | Rendering path |
 | `interactive` | `boolean` | `false` | Lift on hover; swell on press with light blooming from the touch point; stretch toward the pointer; squash along its path while it moves |
 | `ripple` | `boolean` | `false` | A liquid surface: taps ring it, a finger drawn across leaves a trail, moving the glass sloshes it. Needs WebGL (see Motion) |
+| `optics` | `GlassPhysics` | none | Springs for presence, refraction, highlight, tint and lift, from `useGlassPhysics` (see Physics) |
 | `appear` | `boolean` | `false` | Materialize on mount: fade in, swell into place, and let the lens gather its bend |
 | `backdrop` | `HTMLElement \| RefObject` | none | What lies behind the glass, for browsers without live refraction (see Rendering paths) |
 | `shadow` | `string \| false` | soft two-layer shadow | Box shadow under the glass |
@@ -221,6 +223,62 @@ Set `layered` on `GlassStage` to composite panes back to front in registration o
 
 Give the stage `merge={28}` and panes closer than 28 px flow into one body, with the neck blending each pane's glass into the other's.
 
+## Stacked glass
+
+`Glass.Stack` holds layers ordered by `depth`. A `kind="context"` layer is the scene: an image, video, gradient or any content. Control layers are glass that refracts everything painted beneath it, lower glass included.
+
+```tsx
+import { Glass } from 'meniscus';
+
+export function Workspace({ open }: { open: boolean }) {
+  return (
+    <Glass.Stack physics="snappy" stagger={0.12} style={{ height: 480 }}>
+      <Glass.Layer kind="context">
+        <img src="/photos/harbor.jpg" alt="The harbor at dusk" />
+      </Glass.Layer>
+      <Glass.Layer as="nav" depth={1} present={open} className="sidebar" radius={22}>…</Glass.Layer>
+      <Glass.Layer depth={2} present={open} className="card" radius={26} interactive>…</Glass.Layer>
+    </Glass.Stack>
+  );
+}
+
+/* Layers move in with your CSS: */
+.sidebar { translate: calc((1 - var(--meniscus-presence, 1)) * -28px) 0; }
+```
+
+| Scene behind the stack | Chromium | Safari, Firefox |
+|---|---|---|
+| Any page content | Live refraction; each layer bends the layers beneath it, text included | Frosted; blur and tint stack |
+| An image, video or canvas in the context layer | Live refraction | WebGL: each layer draws the media and every layer beneath it, back to front |
+
+`renderer="css"` never uses WebGL; `renderer="webgl"` uses it over media in every browser. When several layers change `present` in one render, nearer layers lead and deeper ones follow, each waiting its rank × `stagger` × its spring's period; a negative `stagger` reverses the order. With `appear`, layers shown on mount enter the same way. Absent layers stay in the page but are `inert` and hidden from assistive technology. Layers move in with your CSS through `--meniscus-presence`.
+
+## Physics
+
+Every layer's optics move on springs: presence, refraction, highlight, tint and shadow, each at its own speed. The highlight settles first, because light reflects at once; the shadow lags, because it follows the glass's height. Nothing has a duration. A release sets the springs moving with its momentum, so a fast fling rings and a slow one barely moves. Presets are `gentle`, `snappy` (the default), `bouncy` and `stiff`, or pass `{ mass, stiffness, damping }`.
+
+```tsx
+import { Glass, useGlassPhysics } from 'meniscus';
+
+export function Tile() {
+  const optics = useGlassPhysics({ physics: 'bouncy' });
+  return (
+    <Glass optics={optics} onPointerEnter={() => optics.to({ tint: 0.4, highlightX: 0.5 })} onPointerLeave={() => optics.to({ tint: 1, highlightX: 0 })}>
+      …
+    </Glass>
+  );
+}
+
+// Outside React, drive it from any loop:
+import { GlassPhysics } from 'meniscus/core';
+const physics = new GlassPhysics({ scheduler: 'manual' });
+physics.subscribe((state) => draw(state));
+physics.to({ presence: 0 }, { delay: 80 });
+physics.step(1 / 60);
+```
+
+`useGlassPhysics` gives a component one instance for its life and never re-renders it per frame: the glass writes its springs to CSS custom properties, its refraction filter and, on the WebGL path, its uniforms. Under reduced motion, targets apply at once.
+
 ## meniscus/core
 
 The optics without React, safe on the server and in workers:
@@ -248,6 +306,7 @@ traceRay({ bezel: 32, thickness: 32, ior: 1.5 }, 6); // one ray, 6 px in from th
 - Rounded rectangles and capsules only.
 - A backdrop filter sees only what is painted inside its nearest ancestor with a `filter`, `opacity` below 1, `mask`, `clip-path`, `mix-blend-mode` or its own `backdrop-filter`. Glass inside such an ancestor, including glass inside glass, shows that ancestor's content. Fade glass through its own opacity, not a parent's.
 - Sharp corners don't refract: the bezel is capped at the corner radius.
+- In Safari and Firefox, a stacked layer drawn in WebGL covers the text of the layers beneath it rather than refracting it; only media and glass reach WebGL.
 - Ripples need WebGL: over plain page content in Chromium, where live SVG refraction draws the glass, `ripple` does nothing (a development warning says so). Inside a `GlassStage` or `GlassGroup`, the drawn glass follows the element's bounding box, so a diagonal squash is approximated.
 - Maps are cached per profile function. Define a custom `profile` once, outside your components, or every render builds new maps.
 - `as` must be an element that can hold children. Void elements (`input`, `img`) render frosted, without refraction or highlights; wrap them in a `Glass` instead.
