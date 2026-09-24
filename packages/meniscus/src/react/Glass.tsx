@@ -2,6 +2,7 @@ import {
   createElement,
   forwardRef,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useRef,
@@ -28,6 +29,7 @@ import { useLiquidInteraction, type InteractionHandlers } from './interaction';
 import { registerRipple, useLiquidMotion, warnUndrawnRipple } from './liquid';
 import { useAppear } from './appear';
 import { OPTIC_SHADOW, SPOT, opticOpacity, opticTint, useOptics } from './optics';
+import { LayerContext } from './stack';
 import { backdropElement, useElementCopy, useFallback, type Backdrop } from './backdrop';
 import { MediaLayer, type MediaFrame } from './MediaLayer';
 import { optionsKey } from './context';
@@ -185,7 +187,9 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     return group.register(node, () => radiusRef.current);
   }, [group, node]);
   const hidden = useAppear(node, appear, reducedMotion, g !== null);
-  const fallback = useFallback(childless ? undefined : backdrop, node, modePreference, mode, ripple && !reducedMotion);
+  // A control layer of a stack: its WebGL preference, and the glass beneath it.
+  const layer = useContext(LayerContext);
+  const fallback = useFallback(childless ? undefined : backdrop, node, modePreference, mode, (ripple && !reducedMotion) || !!layer?.preferWebGL);
   const copying = fallback.path === 'element';
   const webgl = fallback.path === 'webgl';
   // Only WebGL draws waves: this glass's own media layer, or a stage drawing it (mode none).
@@ -213,6 +217,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   useElementCopy(copy, fallback.element, copyActive);
   const gRef = useRef(g);
   gRef.current = g;
+  useIsomorphicLayoutEffect(() => (layer ? layer.bind(() => gRef.current) : undefined), [layer]);
   const optionsRef = useRef(options);
   optionsRef.current = options;
   const mediaFrame = useCallback((): MediaFrame | null => {
@@ -302,7 +307,8 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
         <span data-meniscus-layer="glow" style={GLOW} />
       </span>
     ) : null,
-    children,
+    // Glass inside this one is not part of the stack.
+    layer ? <LayerContext.Provider value={null}>{children}</LayerContext.Provider> : children,
   );
 }
 

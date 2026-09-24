@@ -1,4 +1,10 @@
-export { Glass, DEFAULT_SHADOW, GLASS_OPTION_KEYS, type GlassProps, type GlassOwnProps } from './react/Glass';
+import { Glass as GlassBase } from './react/Glass';
+import { GlassLayer, GlassStack } from './react/GlassStack';
+
+/** A surface of liquid glass, with `Glass.Stack` and `Glass.Layer` for layered glass. */
+export const Glass = Object.assign(GlassBase, { Stack: GlassStack, Layer: GlassLayer });
+export { DEFAULT_SHADOW, GLASS_OPTION_KEYS, type GlassProps, type GlassOwnProps } from './react/Glass';
+export { GlassStack, GlassLayer, type GlassStackProps, type GlassLayerProps, type StackRenderer } from './react/GlassStack';
 export { GlassButton, type GlassButtonProps } from './react/GlassButton';
 export { GlassPanel, type GlassPanelProps } from './react/GlassPanel';
 export { GlassGlyph, type GlassGlyphProps } from './react/GlassGlyph';
