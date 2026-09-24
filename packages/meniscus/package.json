@@ -1,7 +1,14 @@
 {
   "name": "meniscus",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Liquid glass for React, refracted by optics: a real bezel profile and Snell's law, with frosted and WebGL paths for every browser.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thanhphuchuynh/meniscus.git",
+    "directory": "packages/meniscus"
+  },
+  "homepage": "https://thanhphuchuynh.github.io/meniscus/",
+  "bugs": "https://github.com/thanhphuchuynh/meniscus/issues",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

@@ -4,6 +4,13 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 
 ## [Unreleased]
 
+## [0.1.1]
+
+### Changed
+
+- Linked the npm package to its GitHub repository, issues, and live documentation.
+- Set up GitHub Actions trusted publishing for future npm releases.
+
 ## [0.1.0]
 
 ### Added

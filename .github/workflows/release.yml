@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -22,14 +23,18 @@ jobs:
           run_install: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: node -e 'if ("v" + require("./packages/meniscus/package.json").version !== process.env.GITHUB_REF_NAME) process.exit(1)'
       - run: pnpm install --frozen-lockfile
       - run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" release-notes.md
       - run: pnpm test
       - run: pnpm typecheck
       - run: pnpm build
       - run: npm pack --pack-destination "$GITHUB_WORKSPACE"
+        working-directory: packages/meniscus
+      - run: npm publish --access public
         working-directory: packages/meniscus
       - name: Publish GitHub Release
         env:
