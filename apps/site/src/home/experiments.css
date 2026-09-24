@@ -51,11 +51,13 @@
 .stack__card:active { cursor: grabbing; }
 .stack__card h3 { margin: 0 0 6px; font: 700 var(--fs-h3, 1.2rem) var(--font-display); }
 .stack__card p { margin: 0; }
+/* Content leaves before its glass and arrives after it, so no text floats on vanished glass. */
+.stack__sidebar > *, .stack__card > * { opacity: clamp(0, calc((var(--meniscus-presence, 1) - 0.55) / 0.4), 1); }
 .stack__controls { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: end; margin-top: 18px; }
 .stack__preset { display: grid; gap: 6px; font: 600 var(--fs-ui) var(--font-display); }
 .stack__preset select { font: inherit; padding: 6px 10px; border-radius: 10px; border: var(--hair) solid var(--rule-faint); background: transparent; color: var(--ink); }
 @media (max-width: 640px) {
   .stack__stage { height: 380px; }
-  .stack__sidebar { width: 136px; }
+  .stack__sidebar { width: 152px; padding: 14px 10px; }
   .stack__card { width: 220px; }
 }

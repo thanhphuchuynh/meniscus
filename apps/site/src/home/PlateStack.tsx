@@ -38,7 +38,8 @@ export function PlateStack() {
           leads while the deeper one follows, each settling on its own spring. Fling the card and let its light and shadow catch up.
         </p>
       </div>
-      <Glass.Stack className="stack__stage" physics={preset} stagger={stagger} appear>
+      {/* A new spring replays the entrance, so the choice shows at once. */}
+      <Glass.Stack key={preset} className="stack__stage" physics={preset} stagger={stagger} appear>
         <Glass.Layer kind="context" className="stack__scene">
           <img src={plateSrc('opticks-plate-2', theme)} alt="Newton’s Opticks, Book I, Plate II, behind two panes of glass." />
         </Glass.Layer>
@@ -67,7 +68,7 @@ export function PlateStack() {
         </Glass.Layer>
       </Glass.Stack>
       <div className="stack__controls">
-        <button type="button" className="action action--primary" aria-pressed={open} onClick={() => setOpen((o) => !o)}>
+        <button type="button" className="action action--primary" onClick={() => setOpen((o) => !o)}>
           {open ? 'Close the panes' : 'Open the panes'}
         </button>
         <label className="stack__preset">
