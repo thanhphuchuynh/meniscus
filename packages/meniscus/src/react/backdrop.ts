@@ -53,15 +53,19 @@ export function useFallback(
   host: HTMLElement | null,
   preference: RenderModePreference | undefined,
   mode: RenderMode,
+  /** Waves need WebGL: take the media path even where live refraction works. */
+  preferWebGL = false,
 ): { path: FallbackPath | null; element: HTMLElement | null; fail: () => void } {
   const reducedTransparency = useMediaQuery(REDUCED_TRANSPARENCY);
   const [state, setState] = useState<{ path: FallbackPath | null; element: HTMLElement | null }>({ path: null, element: null });
   // A path that failed (unreadable media, a lost context) is not tried again.
   const [failed, setFailed] = useState<FallbackPath | null>(null);
-  const eligible = !!backdrop && (preference ?? 'auto') === 'auto' && mode === 'frost' && !reducedTransparency;
+  const eligible = !!backdrop && (preference ?? 'auto') === 'auto' && (mode === 'frost' || (preferWebGL && mode === 'refract')) && !reducedTransparency;
   useIsomorphicLayoutEffect(() => {
     const element = eligible ? backdropElement(backdrop) : null;
     let path = pickFallback(element, host);
+    // Live refraction already draws everything a copy would; only WebGL adds waves.
+    if (path === 'element' && mode !== 'frost') path = null;
     if (path && path === failed) path = null;
     if (path !== state.path || (path ? element : null) !== state.element) setState({ path, element: path ? element : null });
   });

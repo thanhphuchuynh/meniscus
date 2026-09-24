@@ -335,7 +335,7 @@ function GlassPaneImpl(props: GlassPaneProps<ElementType>, forwardedRef: Forward
   const Pane = Glass as (p: Record<string, unknown>) => ReactElement | null;
   const keepCSSShadow = stage?.shadowMode === 'css' || (stage?.shadowMode === 'layered' && typeof props.shadow === 'string');
   const shadow = webgl && !keepCSSShadow ? false : props.shadow;
-  return <Pane {...props} ref={setRef} shadow={shadow} mode={webgl ? 'none' : 'frost'} data-meniscus-pane="" />;
+  return <Pane {...props} ref={setRef} shadow={shadow} mode={webgl ? 'none' : 'frost'} ripple={webgl ? props.ripple : false} data-meniscus-pane="" />;
 }
 
 /**

@@ -2,6 +2,7 @@ import {
   createElement,
   forwardRef,
   useCallback,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -17,17 +18,18 @@ import {
 import { DEFAULT_SHADOW, GLASS_OPTION_KEYS } from '../core/constants';
 import { DEFAULTS, VARIANTS, defaultTint, glassHighlight, glassTiles, resolveGlass, type GlassOptions, type HighlightURL } from '../core/glass';
 import type { Radius } from '../core/shape';
-import { REDUCED_MOTION, REDUCED_TRANSPARENCY, type RenderModePreference } from '../core/support';
+import { RippleField } from '../core/ripple';
+import { REDUCED_MOTION, REDUCED_TRANSPARENCY, supportsWebGL2, type RenderModePreference } from '../core/support';
 import { GlassFilter } from './GlassFilter';
 import { useGlassDefaults } from './context';
 import { useElementSize, useGlassMode, useIsomorphicLayoutEffect, useMediaQuery, usePixelRatio } from './hooks';
 import { useLiquidInteraction, type InteractionHandlers } from './interaction';
-import { useLiquidMotion } from './liquid';
+import { registerRipple, useLiquidMotion, warnUndrawnRipple } from './liquid';
 import { useAppear } from './appear';
-import { useElementCopy, useFallback, type Backdrop } from './backdrop';
+import { backdropElement, useElementCopy, useFallback, type Backdrop } from './backdrop';
 import { MediaLayer, type MediaFrame } from './MediaLayer';
 import { optionsKey } from './context';
-import type { Media } from '../webgl/media';
+import { isMediaElement, type Media } from '../webgl/media';
 import { useGlassGroup } from './group';
 import { useMergedRef } from './refs';
 import { DEV } from './dev';
@@ -43,6 +45,14 @@ export interface GlassOwnProps extends GlassOptions {
   interactive?: boolean;
   /** Materialize on mount: fade in, swell into place on a spring, and let the lens gather its bend. */
   appear?: boolean;
+  /**
+   * A liquid surface: a tap rings it, a finger drawn across leaves a trail,
+   * and moving the glass sloshes it. Waves bend what's behind and catch the
+   * light. Needs WebGL: glass over an image, video or canvas `backdrop`
+   * (which then draws in WebGL in every browser), or a `GlassPane` in a
+   * `GlassStage`. Off under reduced motion.
+   */
+  ripple?: boolean;
   /**
    * What lies behind the glass, for browsers that can't refract the live
    * page: an image, video or canvas is refracted in WebGL (Safari, Firefox);
@@ -117,7 +127,7 @@ function chain(ours: AnyHandler, theirs: AnyHandler): AnyHandler {
 
 function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HTMLElement>) {
   const defaults = useGlassDefaults();
-  const { as, mode: modePreference, interactive = false, appear = false, backdrop, shadow, style, children, ...rest } = props as GlassProps<ElementType> & {
+  const { as, mode: modePreference, interactive = false, appear = false, ripple = false, backdrop, shadow, style, children, ...rest } = props as GlassProps<ElementType> & {
     style?: CSSProperties;
   } & Record<string, unknown>;
 
@@ -156,7 +166,6 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   // A disabled control doesn't answer the pointer, so its glass doesn't either.
   const disabled = !!rest.disabled || rest['aria-disabled'] === true || rest['aria-disabled'] === 'true';
   const handlers = useLiquidInteraction(ref, interactive && !disabled, reducedMotion);
-  useLiquidMotion(node, { squash: interactive && !disabled, ripple: null, reducedMotion });
 
   const bare = mode === 'none';
   const g = size && size.width > 0 && size.height > 0 ? resolveGlass(options, size.width, size.height) : null;
@@ -167,9 +176,25 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     return group.register(node, () => radiusRef.current);
   }, [group, node]);
   const hidden = useAppear(node, appear, reducedMotion, g !== null);
-  const fallback = useFallback(childless ? undefined : backdrop, node, modePreference, mode);
+  const fallback = useFallback(childless ? undefined : backdrop, node, modePreference, mode, ripple && !reducedMotion);
   const copying = fallback.path === 'element';
   const webgl = fallback.path === 'webgl';
+  // Only WebGL draws waves: this glass's own media layer, or a stage drawing it (mode none).
+  const rippling = ripple && !reducedMotion && !group && !childless && (webgl || ownMode === 'none');
+  const fieldRef = useRef<RippleField | null>(null);
+  const field = rippling ? (fieldRef.current ??= new RippleField()) : null;
+  useIsomorphicLayoutEffect(() => {
+    if (field && g) field.resize(g.width, g.height, g.radius);
+  }, [field, g?.width, g?.height, g?.radius]);
+  useIsomorphicLayoutEffect(() => (field && node ? registerRipple(node, field) : undefined), [field, node]);
+  useLiquidMotion(node, { squash: interactive && !disabled, ripple: disabled ? null : field, reducedMotion });
+  useEffect(() => {
+    if (!ripple || reducedMotion || group || ownMode === 'none') return;
+    // Judged from the inputs, not the fallback state, which settles a render later.
+    const media = backdropElement(backdrop);
+    const drawable = !!media && isMediaElement(media) && supportsWebGL2() && (modePreference ?? 'auto') === 'auto' && !reducedTransparency;
+    if (!drawable) warnUndrawnRipple();
+  });
   const tiles = g && (mode === 'refract' || copying) && !reducedTransparency && !childless ? glassTiles(g) : null;
   const highlight = g && !bare && !childless && !webgl ? glassHighlight(g, pixelRatio) : null;
   // Refraction off (or unmeasured yet) leaves nothing to copy: plain frost.
