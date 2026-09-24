@@ -53,7 +53,7 @@
     - `accelerate(ax, ay): void`
     - `advance(now: number /* ms */): boolean`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `packages/meniscus/test/ripple.test.ts`:
 
@@ -267,12 +267,12 @@ describe('RippleField', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `pnpm --filter meniscus exec vitest run test/ripple.test.ts`
 Expected: FAIL, "Failed to resolve import ../src/core/ripple".
 
-- [ ] **Step 3: Implement `RippleField`**
+- [x] **Step 3: Implement `RippleField`**
 
 `packages/meniscus/src/core/ripple.ts`:
 
@@ -472,12 +472,12 @@ In `packages/meniscus/src/core/index.ts`, add:
 export type { RippleField } from './ripple';
 ```
 
-- [ ] **Step 4: Run the tests. Calibrate `DROP_SPEED` and `SLOSH` if the two calibration tests miss**
+- [x] **Step 4: Run the tests. Calibrate `DROP_SPEED` and `SLOSH` if the two calibration tests miss**
 
 Run: `pnpm --filter meniscus exec vitest run test/ripple.test.ts`
 Expected: all pass. If "peaks near slope 0.35" fails, scale `DROP_SPEED` by `0.35 / measured` (the response is linear). If the slosh peak misses `[0.12, 0.3]`, scale `SLOSH` by `0.2 / measured`. Print `measured` with a temporary `console.log` in the test and remove it afterwards. Re-run until green. Never widen a range to pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/meniscus/src/core/ripple.ts packages/meniscus/src/core/index.ts packages/meniscus/test/ripple.test.ts
@@ -504,7 +504,7 @@ git commit -m "feat(core): add damped-wave ripple field"
   - `warnUndrawnRipple(): void`
   - `useLiquidMotion(node, { squash, ripple, reducedMotion }): void`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `packages/meniscus/test/liquid.test.tsx`:
 
@@ -660,12 +660,12 @@ describe('a moving interactive glass', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `pnpm --filter meniscus exec vitest run test/liquid.test.tsx`
 Expected: FAIL, "Failed to resolve import ../src/react/liquid".
 
-- [ ] **Step 3: Export `Spring` and implement `liquid.ts`**
+- [x] **Step 3: Export `Spring` and implement `liquid.ts`**
 
 In `packages/meniscus/src/react/interaction.ts`, change `class Spring {` to `export class Spring {`.
 
@@ -886,12 +886,12 @@ Wire the squash into `Glass` now; ripple wiring comes in Task 3. In `packages/me
   useLiquidMotion(node, { squash: interactive && !disabled, ripple: null, reducedMotion });
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass, then the whole suite**
+- [x] **Step 4: Run the tests to verify they pass, then the whole suite**
 
 Run: `pnpm --filter meniscus exec vitest run test/liquid.test.tsx && pnpm --filter meniscus test`
 Expected: all pass, including the 80 existing tests. The existing interaction regressions for `scale` and `translate` must be unaffected.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/meniscus/src/react/liquid.ts packages/meniscus/src/react/interaction.ts packages/meniscus/src/react/Glass.tsx packages/meniscus/test/liquid.test.tsx
@@ -912,7 +912,7 @@ git commit -m "feat: squash moving interactive glass along its path"
 - Consumes: `RippleField` (Task 1). `registerRipple`, `rippleOf`, `useLiquidMotion` and `warnUndrawnRipple` (Task 2).
 - Produces: `GlassOwnProps.ripple?: boolean`. A rippling glass registers its `RippleField` under its element, resized to the resolved glass.
 
-- [ ] **Step 1: Write the failing tests** (append to `liquid.test.tsx`; add the imports at the top of the file)
+- [x] **Step 1: Write the failing tests** (append to `liquid.test.tsx`; add the imports at the top of the file)
 
 ```tsx
 import { useRef } from 'react';
@@ -1006,12 +1006,12 @@ describe('ripple', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `pnpm --filter meniscus exec vitest run test/liquid.test.tsx`
 Expected: the new tests FAIL (no `ripple` prop: `data-meniscus` is `refract`, `rippleOf` is undefined, no warning).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `backdrop.ts`, in `useFallback`:
 
@@ -1090,12 +1090,12 @@ export function useFallback(
   return <Pane {...props} ref={setRef} shadow={shadow} mode={webgl ? 'none' : 'frost'} ripple={webgl ? props.ripple : false} data-meniscus-pane="" />;
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `pnpm --filter meniscus test && pnpm --filter meniscus typecheck`
 Expected: all pass. The existing `backdrop fallbacks` tests still pass, because `preferWebGL` defaults to false.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/meniscus/src/react/Glass.tsx packages/meniscus/src/react/backdrop.ts packages/meniscus/src/webgl/GlassStage.tsx packages/meniscus/test/liquid.test.tsx
@@ -1117,7 +1117,7 @@ git commit -m "feat: add ripple prop to Glass and GlassPane"
 - Consumes: `RippleField` and `RIPPLE_MAX` (Task 1), `rippleOf` (Task 2).
 - Produces: `PaneFrame.ripple?: RippleField | null`. Renderer uniforms `u_waves` (texture unit 2) and `u_wave[MAX_PANES]`.
 
-- [ ] **Step 1: Write the failing GPU check**
+- [x] **Step 1: Write the failing GPU check**
 
 In `apps/site/scripts/check-living-optics.mjs`, inside the `page.evaluate` GPU block, add the import next to the others:
 
@@ -1159,12 +1159,12 @@ Add `waves, simMs` to the returned object, and after the existing GPU asserts:
   assert.ok(gpu.simMs < 0.5, `ripple simulation budget: ${gpu.simMs} ms`);
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `pnpm --filter site dev --port 5173` in the background, then `MENISCUS_TEST_URL=http://127.0.0.1:5173/ node apps/site/scripts/check-living-optics.mjs`
 Expected: FAIL on `waves must bend the image` (the renderer ignores `ripple`).
 
-- [ ] **Step 3: Implement the renderer**
+- [x] **Step 3: Implement the renderer**
 
 `renderer.ts`:
 
@@ -1258,7 +1258,7 @@ In the uniform setup after `gl.uniform4fv(u.u_misc!, a.misc);`:
 
 In `dispose()`, add `gl.deleteTexture(this.waveTex);`.
 
-- [ ] **Step 4: Implement the shader**
+- [x] **Step 4: Implement the shader**
 
 `shaders.ts`: add `import { RIPPLE_MAX } from '../core/ripple';`. After the `uniform vec4 u_misc[MAX_PANES];` line, add:
 
@@ -1308,7 +1308,7 @@ In `glassColor`: `vec2 offset = -n * m.shift;` becomes `vec2 offset = -n * m.shi
 
 In the merged branch: `Material m = Material(0.0, 0.0, 0.0, 0.0, 0.0, vec4(0.0), vec4(0.0), 0.0, 0.0, vec2(0.0), 0.0);`, and in the blend loop after `m.shade += w[i] * p.shade;`, add `m.wave += w[i] * p.wave;` and `m.waveDepth += w[i] * p.waveDepth;`.
 
-- [ ] **Step 5: Advance fields in the stage and media loops**
+- [x] **Step 5: Advance fields in the stage and media loops**
 
 `GlassStage.tsx`: import `rippleOf` from `'../react/liquid'`. Change `const loop = () => {` to `const loop = (now: number) => {`. In the pane loop, replace the `frames.push(...)` and `signature += ...` lines with:
 
@@ -1375,12 +1375,12 @@ function ownMatrix(el: HTMLElement): [number, number, number, number] {
 }
 ```
 
-- [ ] **Step 6: Run the checks**
+- [x] **Step 6: Run the checks**
 
 Run: `pnpm --filter meniscus test && pnpm typecheck && MENISCUS_TEST_URL=http://127.0.0.1:5173/ node apps/site/scripts/check-living-optics.mjs`
 Expected: unit tests and typecheck pass. The browser script prints `PASS` with `waves.calm === 0`, `waves.slept === 0`, `waves.wavy > 2000`, and `simMs < 0.5`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/meniscus/src/webgl packages/meniscus/src/react/MediaLayer.tsx apps/site/scripts/check-living-optics.mjs
@@ -1400,7 +1400,7 @@ git commit -m "feat(webgl): refract and light liquid surfaces"
 **Interfaces:**
 - Consumes: `ripple` on `Glass`/`GlassPane` (Task 3), the WebGL waves (Task 4) and the squash (Task 2).
 
-- [ ] **Step 1: Write the failing browser checks**
+- [x] **Step 1: Write the failing browser checks**
 
 In `check-living-optics.mjs`:
 
@@ -1422,12 +1422,12 @@ In `check-living-optics.mjs`:
 
 5. In the reduced-motion block, after the drag, add: `assert.equal(await lens.evaluate(el => el.style.transform), '', 'no squash under reduced motion');`.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `MENISCUS_TEST_URL=http://127.0.0.1:5173/ node apps/site/scripts/check-living-optics.mjs`
 Expected: FAIL on `a rippling lens over the engraving draws in WebGL` (the lens has no `ripple` yet).
 
-- [ ] **Step 3: Implement the demo**
+- [x] **Step 3: Implement the demo**
 
 `PlateSpecimen.tsx`: add `ripple` after `interactive` on the lens `Glass`. Replace the caption sentence `Flick the lens and let it settle. Change the index to bend the engraving’s lines; the section follows your pointer.` with `Flick the lens and it wobbles as it lands; tap it and ripples run across the glass, bending the engraving’s lines. Change the index to bend them further; the section follows your pointer.`
 
@@ -1435,7 +1435,7 @@ Expected: FAIL on `a rippling lens over the engraving draws in WebGL` (the lens 
 
 `experiments.css` line 4: remove `pointer-events: none;` from `.depth__pane`. Pane events bubble to the stage, whose parallax handler keeps working.
 
-- [ ] **Step 4: Run the browser checks, then look at the result**
+- [x] **Step 4: Run the browser checks, then look at the result**
 
 Run: `MENISCUS_CAPTURE=1 MENISCUS_TEST_URL=http://127.0.0.1:5173/ node apps/site/scripts/check-living-optics.mjs`
 Expected: `PASS`, no page errors.
@@ -1445,7 +1445,7 @@ Then run a scratchpad Playwright script (not committed):
 - **Refract + squash check (Chromium):** on the masthead glass (`[data-meniscus="refract"]`), set `el.style.transform = 'matrix(1.12, 0.06, 0.06, 0.9, 0, 0)'`, take a full unclipped screenshot, crop and view it. The refraction must follow the skewed outline. If it doesn't, restrict `squashTarget` on refract-path glass to axis-aligned stretches, as the spec's fallback says: pass the path into `useLiquidMotion` and zero `b` there. Add a unit test for that restriction.
 - **WebKit tap:** the same tap flow in WebKit. The hero is WebGL there by default; view the screenshot.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/site/src/home/PlateSpecimen.tsx apps/site/src/home/PlateDepth.tsx apps/site/src/home/experiments.css apps/site/scripts/check-living-optics.mjs
@@ -1462,7 +1462,7 @@ git commit -m "feat(site): ring the hero lens and depth panes"
 - Modify: `apps/site/src/components/Components.tsx` (Glass props table row)
 - Modify: `CHANGELOG.md` (Unreleased)
 
-- [ ] **Step 1: README**
+- [x] **Step 1: README**
 
 Props table, after the `interactive` row:
 
@@ -1484,7 +1484,7 @@ In Accessibility, change the reduced-motion bullet to: `Under prefers-reduced-mo
 
 In Limits, add: `- Ripples need WebGL: over plain page content in Chromium, where live SVG refraction draws the glass, ripple does nothing (a development warning says so). Inside a GlassStage or GlassGroup, the drawn glass follows the element's bounding box, so a diagonal squash is approximated.`
 
-- [ ] **Step 2: Manual and catalog**
+- [x] **Step 2: Manual and catalog**
 
 `content.ts`, `GLASS_PROPS` (the array holding `interactive`):
 - Change the `interactive` body to: `'Lift on hover, swell on press with light blooming from the touch point, stretch toward the pointer, glow where it touches. When the glass itself moves, it squashes along its path and wobbles as it stops. Keyboard presses animate too.'`
@@ -1492,7 +1492,7 @@ In Limits, add: `- Ripples need WebGL: over plain page content in Chromium, wher
 
 `Components.tsx`, `glass` props list, after `appear`: `{ name: 'ripple', type: 'boolean', default: 'false', body: 'Liquid surface over a media backdrop or in a stage.' },`.
 
-- [ ] **Step 3: CHANGELOG**
+- [x] **Step 3: CHANGELOG**
 
 Under `## [Unreleased]`:
 
@@ -1507,12 +1507,12 @@ Under `## [Unreleased]`:
 - Glass with a media `backdrop` and `ripple` draws in WebGL in every browser, including Chromium.
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `pnpm typecheck && pnpm --filter site build`
 Expected: both succeed; the tokens check passes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/meniscus/README.md apps/site/src/docs/content.ts apps/site/src/components/Components.tsx CHANGELOG.md
@@ -1523,7 +1523,17 @@ git commit -m "docs: document ripple and moving-glass squash"
 
 ### Task 7: Whole-branch verification and review
 
-- [ ] **Step 1:** Run `pnpm test && pnpm typecheck && pnpm build` from the repo root. All must pass; report the test count.
-- [ ] **Step 2:** Run `MENISCUS_TEST_URL=http://127.0.0.1:5173/ node apps/site/scripts/check-living-optics.mjs` → `PASS`.
-- [ ] **Step 3:** Dispatch one fresh reviewer on the most capable model over `git diff main...feat/liquid-physics`, with the spec and this plan. Fix the material findings, re-run steps 1–2, and commit the fixes.
-- [ ] **Step 4:** Update this plan's checkboxes and add a short "Decisions and progress" note at the end: calibrated constants, the Chromium transform finding, and measured `simMs`. Commit.
+- [x] **Step 1:** Run `pnpm test && pnpm typecheck && pnpm build` from the repo root. All must pass; report the test count.
+- [x] **Step 2:** Run `MENISCUS_TEST_URL=http://127.0.0.1:5173/ node apps/site/scripts/check-living-optics.mjs` → `PASS`.
+- [x] **Step 3:** Dispatch one fresh reviewer on the most capable model over `git diff main...feat/liquid-physics`, with the spec and this plan. Fix the material findings, re-run steps 1–2, and commit the fixes.
+- [x] **Step 4:** Update this plan's checkboxes and add a short "Decisions and progress" note at the end: calibrated constants, the Chromium transform finding, and measured `simMs`. Commit.
+
+## Decisions and progress
+
+- Executed inline on `feat/liquid-physics`; user asked to implement directly after the spec.
+- Calibrated: `DROP_SPEED` 300 (tap peak slope 0.350), `SLOSH` 0.0005 (stop slosh slope 0.197). A tap sleeps after 1.87 s with a 3.4 px peak height. Simulation cost 0.30 ms per 128 × 128 frame.
+- Chromium's live refraction follows a diagonal squash matrix correctly, so the spec's horizontal/vertical-only fallback was not needed.
+- Browser GPU checks: a calm field and a sleeping field are pixel-identical to no ripple; an excited field differs by 204,232; a resized field uploads within its layer.
+- The final review found and fixed two defects: the squash now hands `transform` back to the app mid-gesture, and `pointercancel` ends tracking. Seven minors are deferred (see the executor ledger).
+- Suite: 106 tests.
+
