@@ -170,6 +170,7 @@ export function Colophon() {
         <a href={HREF.components}>Components</a>
         <a href={HREF.playground}>Playground</a>
         <a href={HREF.docs}>Manual</a>
+        <a href="https://github.com/thanhphuchuynh/meniscus">GitHub</a>
         <a href={sitePath('/LICENSE.txt')}>License</a>
         <a href={sitePath('/THIRD_PARTY_NOTICES.txt')}>Third-party notices</a>
         <a href={sitePath('/PRIVACY.txt')}>Privacy</a>

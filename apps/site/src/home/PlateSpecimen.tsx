@@ -149,6 +149,9 @@ export function PlateSpecimen() {
             <a className="action action--quiet" href={sitePath('/docs/')}>
               Read the manual
             </a>
+            <a className="action action--quiet" href="https://github.com/thanhphuchuynh/meniscus">
+              View on GitHub
+            </a>
           </div>
         </div>
         <blockquote className="plate-one__quote">
