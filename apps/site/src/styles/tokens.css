@@ -1,43 +1,44 @@
+/* Generated from tokens.json by scripts/tokens.mjs. Edit the JSON, then run `pnpm --filter site tokens`. */
 @import '@fontsource-variable/archivo/wdth.css';
 @import '@fontsource-variable/stix-two-text/wght.css';
 @import '@fontsource-variable/stix-two-text/wght-italic.css';
 @import '@fontsource-variable/jetbrains-mono/wght.css';
 
-/*
- * Two-color textbook print: cool plate stock, blue-black ink, one vermilion
- * spot ink for rays and active states, pale cyan only inside glass bodies.
- * Dark mode is a lantern slide: the same plate, projected.
- */
 :root {
   color-scheme: light;
-  --stock: #eef2f4;
-  --stock-deep: #e2e8ec;
-  --stock-raised: #f6f8f9;
-  --ink: #0f1a24;
-  --ink-soft: #364452;
-  --ink-faint: #5a6773;
-  --spot: #ff4a1c;
-  --spot-ink: #c2320e;
-  --glass-fill: #c4e4ec;
-  --glass-edge: #7fb9c8;
-  --rule: rgba(15, 26, 36, 0.86);
-  --rule-faint: rgba(15, 26, 36, 0.18);
-
-  --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', sans-serif;
-  --font-text: 'STIX Two Text Variable', 'STIX Two Text', 'Times New Roman', serif;
-  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
-
-  /* Type scale: four text steps, each about 1.25x the last. */
-  --fs-label: 0.75rem; /* 12px: small-caps labels, table heads, folios */
-  --fs-ui: 0.9375rem; /* 15px: controls, captions, notes, code */
-  --fs-body: 1.1875rem; /* 19px: running text */
-  --fs-lede: 1.5rem; /* 24px: ledes */
-
-  --hair: 1px;
-  --measure: 66ch;
-  --gutter: clamp(16px, 3.6vw, 44px);
-  --plate-pad: clamp(16px, 3vw, 40px);
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --stock: #eef2f4; /* Plate stock: the page ground. */
+  --stock-deep: #e2e8ec; /* Recessed stock: wells and code grounds. */
+  --stock-raised: #f6f8f9; /* Raised stock: the install line, hovered icon buttons. */
+  --ink: #0f1a24; /* Text and engraved lines on any stock. */
+  --ink-soft: #364452; /* Secondary text, captions, idle controls. */
+  --ink-faint: #5a6773; /* Small-caps labels, units, graduations. */
+  --spot: #ff4a1c; /* Vermilion spot ink: rays, the sun, active and focused states only. */
+  --spot-ink: #c2320e; /* Text-safe spot for type and hover fills. */
+  --glass-fill: #c4e4ec; /* Glass cyan: glass bodies in diagrams, and selections. */
+  --glass-edge: #7fb9c8; /* The outline and hatch of glass bodies. */
+  --rule: rgba(15, 26, 36, 0.86); /* Full rules: plate frames, table heads, control borders. */
+  --rule-faint: rgba(15, 26, 36, 0.18); /* Faint rules: row dividers, stage borders. */
+  --glass-wash: rgba(255, 255, 255, 0.2); /* Tint of glass controls laid over a plate (specimens). */
+  --glass-wash-clear: rgba(255, 255, 255, 0.16); /* Tint of large glass bodies over a plate, where the engraving should read through. */
+  --glass-spot: rgba(255, 74, 28, 0.12); /* Tint of a selection indicator in a glass bar. */
+  --glass-spot-strong: rgba(255, 74, 28, 0.14); /* Tint of the one active glass control in a group, such as Play. */
+  --glass-bar: color-mix(in srgb, var(--stock) 62%, transparent); /* Tint of the masthead: stock, so the bar reads as part of the page. */
+  --glass-lens: color-mix(in srgb, var(--glass-fill) 50%, transparent); /* Tint of the masthead's hover lens. */
+  --glass-select: color-mix(in srgb, var(--glass-fill) 72%, transparent); /* Tint of the selection in segmented controls. */
+  --shadow-lens: 0 1px 2px rgba(15, 26, 36, 0.12), 0 4px 12px -4px rgba(15, 26, 36, 0.18); /* Under the masthead's hover lens. */
+  --shadow-select: 0 1px 2px rgba(15, 26, 36, 0.16); /* Under the selection in segmented controls. */
+  --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', sans-serif; /* Headings, controls, labels: Archivo, width axis up to 125%. */
+  --font-text: 'STIX Two Text Variable', 'STIX Two Text', 'Times New Roman', serif; /* Running text and captions. */
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace; /* Code and figures. */
+  --fs-label: 0.75rem; /* 12px: small-caps labels, table heads, folios. */
+  --fs-ui: 0.9375rem; /* 15px: controls, captions, notes, code. */
+  --fs-body: 1.1875rem; /* 19px: running text. */
+  --fs-lede: 1.5rem; /* 24px: ledes. */
+  --hair: 1px; /* Every rule and border. */
+  --measure: 66ch; /* Longest line of running text. */
+  --gutter: clamp(16px, 3.6vw, 44px); /* Side gutter of the page. */
+  --plate-pad: clamp(16px, 3vw, 40px); /* Padding inside a plate frame. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* The page's one easing curve. Glass moves on the library's springs instead. */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -55,6 +56,10 @@
     --glass-edge: #3f8ea3;
     --rule: rgba(230, 237, 241, 0.82);
     --rule-faint: rgba(230, 237, 241, 0.16);
+    --glass-wash: rgba(12, 24, 34, 0.3);
+    --glass-wash-clear: rgba(12, 24, 34, 0.28);
+    --glass-spot: rgba(255, 100, 58, 0.2);
+    --glass-spot-strong: rgba(255, 100, 58, 0.24);
   }
 }
 
@@ -72,4 +77,8 @@
   --glass-edge: #3f8ea3;
   --rule: rgba(230, 237, 241, 0.82);
   --rule-faint: rgba(230, 237, 241, 0.16);
+  --glass-wash: rgba(12, 24, 34, 0.3);
+  --glass-wash-clear: rgba(12, 24, 34, 0.28);
+  --glass-spot: rgba(255, 100, 58, 0.2);
+  --glass-spot-strong: rgba(255, 100, 58, 0.24);
 }

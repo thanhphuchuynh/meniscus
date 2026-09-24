@@ -37,11 +37,11 @@ The refraction is derived from optics, not faked. The displacement comes from a 
 - Filters cost GPU time. Defaults stay cheap; expensive layers such as chromatic aberration are opt-in.
 - Must be safe to server-render: no window access during render, and a graceful first paint before client detection.
 - Respects `prefers-reduced-motion` and `prefers-reduced-transparency`.
-- Open decision: the license. MIT is assumed for scaffolding until the user confirms.
+- The original project code and documentation are MIT licensed. Bundled fonts retain their SIL Open Font License 1.1 terms; see `apps/site/public/THIRD_PARTY_NOTICES.txt`.
 
 ## Brand Commitments
 
-- Name: **meniscus**, published unscoped on npm as `meniscus` (free as of 2026-09-23). The name refers to the curved surface of a liquid, which is the curved glass edge the library models.
+- Name: **meniscus**, intended for unscoped npm publication as `meniscus`. The name refers to the curved surface of a liquid, which is the curved glass edge the library models. Check npm availability again before publishing.
 - Apple's Liquid Glass is the reference for the effect, not for the brand. Never use Apple's marks or imply affiliation.
 
 ## Evidence on Hand

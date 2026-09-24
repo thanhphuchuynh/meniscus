@@ -18,6 +18,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         home: fileURLToPath(new URL('./index.html', import.meta.url)),
+        components: fileURLToPath(new URL('./components/index.html', import.meta.url)),
         playground: fileURLToPath(new URL('./playground/index.html', import.meta.url)),
         docs: fileURLToPath(new URL('./docs/index.html', import.meta.url)),
       },

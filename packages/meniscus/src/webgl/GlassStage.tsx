@@ -24,8 +24,8 @@ import { useMergedRef } from '../react/refs';
 import { optionsKey, useGlassDefaults } from '../react/context';
 import { useIsomorphicLayoutEffect } from '../react/hooks';
 import { GlassRenderer, type Fit, type PaneFrame } from './renderer';
-import { resolveTint } from './color';
-import { isVideo, sourceReady, sourceSize } from './media';
+import { resolveTint, tintVersion } from './color';
+import { MERGED_SHADOW, isVideo, sourceReady, sourceSize } from './media';
 import { MAX_PANES } from './shaders';
 
 export type StageStatus = 'pending' | 'ready' | 'fallback';
@@ -37,6 +37,8 @@ interface StageContextValue {
   register: (el: HTMLElement, options: () => GlassOptions) => () => void;
   /** Whether a pane gets one of the stage's WebGL slots. Panes past the limit frost instead. */
   drawn: (el: HTMLElement) => boolean;
+  /** Panes flow into one body, so they cast one shadow (drawn by the stage) instead of their own. */
+  merged: boolean;
 }
 
 const StageContext = createContext<StageContextValue | null>(null);
@@ -214,7 +216,7 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
       }
 
       frames.length = 0;
-      let signature = `${cw}x${ch}`;
+      let signature = `${cw}x${ch}|${tintVersion()}`;
       for (const [el, getOptions] of panes.current) {
         if (frames.length >= MAX_PANES) break;
         const r = el.getBoundingClientRect();
@@ -232,7 +234,8 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
       if (!live && !dirty.current && signature === lastSignature) return;
       lastSignature = signature;
       dirty.current = false;
-      renderer.render(frames, fit, pr, merge);
+      // Merged panes are one body: one shadow, drawn in the shader, not one per pane.
+      renderer.render(frames, fit, pr, { merge, shadow: merge > 0 ? MERGED_SHADOW : null });
       setStatus((s) => (s === 'ready' ? s : 'ready'));
     };
 
@@ -270,7 +273,7 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
     };
   }, [source, fit, maxPixelRatio, animate, cors, failed, restoreKey, merge]);
 
-  const value = useMemo(() => ({ status, register, drawn }), [status, register, drawn]);
+  const value = useMemo(() => ({ status, register, drawn, merged: merge > 0 }), [status, register, drawn, merge]);
 
   return (
     <StageContext.Provider value={value}>
@@ -320,7 +323,8 @@ function GlassPaneImpl(props: GlassPaneProps<ElementType>, forwardedRef: Forward
 
   const webgl = stage?.status === 'ready' && !!el && stage.drawn(el);
   const Pane = Glass as (p: Record<string, unknown>) => ReactElement | null;
-  return <Pane {...props} ref={setRef} mode={webgl ? 'none' : 'frost'} data-meniscus-pane="" />;
+  const shadow = webgl && stage.merged ? false : props.shadow;
+  return <Pane {...props} ref={setRef} shadow={shadow} mode={webgl ? 'none' : 'frost'} data-meniscus-pane="" />;
 }
 
 /**

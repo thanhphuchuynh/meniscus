@@ -28,7 +28,6 @@ const LEADERS: Array<{ key: Layer; letter: string; from: [number, number]; to: [
 export function PlateAnatomy({ sun, onSun }: { sun: number; onSun: (deg: number) => void }) {
   const theme = useTheme();
   const [on, setOn] = useState<Record<Layer, boolean>>({ refraction: true, frost: true, tint: true, rim: true, highlight: true, aberration: false });
-  const lantern = theme === 'lantern';
 
   return (
     <Plate folio="Plate II" className="anatomy" label="Anatomy of a glass">
@@ -49,7 +48,7 @@ export function PlateAnatomy({ sun, onSun }: { sun: number; onSun: (deg: number)
           refraction={on.refraction ? 1.3 : 0}
           blur={on.frost ? 1.6 : 0}
           saturation={1.5}
-          tint={on.tint ? (lantern ? 'rgba(12, 24, 34, 0.28)' : 'rgba(255, 255, 255, 0.16)') : 'transparent'}
+          tint={on.tint ? 'var(--glass-wash-clear)' : 'transparent'}
           rim={on.rim ? 0.7 : 0}
           specular={on.highlight ? 0.85 : 0}
           aberration={on.aberration ? 0.8 : 0}

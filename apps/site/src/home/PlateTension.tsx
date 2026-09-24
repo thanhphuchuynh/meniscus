@@ -75,7 +75,6 @@ export function PlateTension() {
   const engine = useEngine();
   const reducedMotion = useReducedMotion();
   const hintId = useId();
-  const lantern = theme === 'lantern';
 
   const group = useRef<HTMLDivElement>(null);
   const engraving = useRef<HTMLImageElement>(null);
@@ -280,7 +279,7 @@ export function PlateTension() {
           refraction={1.25}
           blur={1.2}
           saturation={1.5}
-          tint={lantern ? 'rgba(12, 24, 34, 0.26)' : 'rgba(255, 255, 255, 0.14)'}
+          tint="var(--glass-wash-clear)"
         >
           <Glass ref={capsule} className="tension__capsule" radius="capsule" aria-hidden="true">
             <Icon name="eye" />

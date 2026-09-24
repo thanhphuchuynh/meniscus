@@ -80,7 +80,7 @@ export function Segmented<T extends string>({
     <fieldset className={`segmented ${className ?? ''}`}>
       <legend className="scale__label">{label}</legend>
       <div className="segmented__row">
-        <GlassIndicator target={selected} className="segmented__glass" radius={11} tint="color-mix(in srgb, var(--glass-fill) 72%, transparent)" refraction={0.8} shadow="0 1px 2px rgba(15, 26, 36, 0.16)" />
+        <GlassIndicator target={selected} className="segmented__glass" radius={11} tint="var(--glass-select)" refraction={0.8} shadow="var(--shadow-select)" />
         {options.map((o) => (
           <label key={o.value} className="segmented__option" title={o.title}>
             <input type="radio" name={name} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} />

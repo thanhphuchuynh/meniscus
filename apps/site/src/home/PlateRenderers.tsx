@@ -32,7 +32,7 @@ const ROWS = [
 
 const PLATE_IV = { width: 1200, height: 1511 };
 /** Panes closer than this fuse on the stage, px. */
-const MERGE = 28;
+const MERGE = 64;
 
 /** Where a point of Plate IV (as fractions of the image) lands in a stage that covers with it. */
 function centered(stage: DOMRect, el: HTMLElement, fx: number, fy: number) {

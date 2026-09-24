@@ -147,6 +147,22 @@ export function Docs() {
               Its size comes from your layout. The refraction maps are built per corner shape, not per size, so a glass can resize or animate its width
               without rebuilding anything.
             </p>
+            <h3 id="components">Ready-to-use components</h3>
+            <p>
+              <code>GlassButton</code> is a native button with an interactive lens and a safe <code>type="button"</code> default. <code>GlassPanel</code> is a
+              padded glass container. <code>GlassTabs</code> provides the tab list, panels, keyboard navigation, and a flowing indicator together.
+              <code>GlassTextField</code>, <code>GlassSelect</code>, and <code>GlassCheckbox</code> wrap native form controls in glass while retaining their
+              labels, input props, refs, and form behavior. They all ship from <code>meniscus</code> and need no stylesheet. See their{' '}
+              <a href="/components/">live examples</a>.
+            </p>
+            <CodeBlock code={`import { GlassButton, GlassPanel, GlassTabs } from 'meniscus';
+
+<GlassButton onClick={save}>Save</GlassButton>
+<GlassPanel role="region" aria-label="Summary">Ready</GlassPanel>
+<GlassTabs label="Views" items={[
+  { value: 'all', label: 'All', content: <AllItems /> },
+  { value: 'saved', label: 'Saved', content: <SavedItems /> },
+]} />`} label="Ready-to-use components" />
           </Section>
 
           <Section id="props" n={3} title="Props">
@@ -304,7 +320,7 @@ export function Docs() {
           <Section id="indicator" n={9} title="Selections that flow">
             <div className="manual__demo" style={{ backgroundImage: `url(${plateSrc('opticks-plate-2', theme)})` }}>
               <Glass as="nav" radius="capsule" className="manual__tabs" aria-label="Demo tabs">
-                <GlassIndicator target={tabEl} tint={theme === 'lantern' ? 'rgba(255, 100, 58, 0.2)' : 'rgba(255, 74, 28, 0.12)'} />
+                <GlassIndicator target={tabEl} tint="var(--glass-spot)" />
                 {['Rays', 'Lenses', 'Prisms', 'Colors'].map((label, i) => (
                   <button key={label} type="button" ref={i === tab ? setTabEl : undefined} aria-current={i === tab ? 'page' : undefined} onClick={() => setTab(i)}>
                     {label}

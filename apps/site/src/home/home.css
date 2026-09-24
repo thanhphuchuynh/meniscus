@@ -789,6 +789,17 @@
   display: flex;
   gap: 2px;
   padding: 6px;
+  /* Horizontal slides carry the selection instead of scrolling the page. */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Carried, the drop lifts off the bar. */
+.tabs__lens {
+  transition: scale 240ms var(--ease-out);
+}
+.tabs[data-dragging] .tabs__lens {
+  scale: 1.12;
 }
 .tabs__tab {
   position: relative;
@@ -815,7 +826,7 @@
 .tabs__tab:hover {
   color: var(--ink);
 }
-.tabs__tab[aria-current='page'] {
+.tabs__tab[data-shown] {
   color: var(--spot-ink);
 }
 

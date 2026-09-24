@@ -168,6 +168,17 @@ describe('<GlassIndicator>', () => {
     expect(frames).toHaveLength(0);
   });
 
+  it('follows a box as well as an element, for dragging', () => {
+    mockSize(0, 0);
+    const { a } = tabs();
+    const { container, rerender } = render(<GlassIndicator target={a} />);
+    act(() => flushFrames(1));
+    rerender(<GlassIndicator target={{ x: 130, y: 4, width: 80, height: 32 }} />);
+    act(() => flushFrames());
+    const el = container.querySelector<HTMLElement>('[data-meniscus-indicator]')!;
+    expect([el.style.left, el.style.width]).toEqual(['130px', '80px']);
+  });
+
   it('moves straight to the target with reduced motion', () => {
     reduceMotion(true);
     mockSize(0, 0);

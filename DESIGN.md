@@ -182,6 +182,8 @@ Density is editorial: generous gutters, long running measure, figures given room
 
 ## Colors
 
+The tokens live in `apps/site/src/styles/tokens.json` (W3C design-token format, lantern values under `$extensions["meniscus.themes"]`); `tokens.css` is generated from it by `pnpm --filter site tokens`, and the build fails if the two disagree.
+
 A restrained two-ink print palette: blue-black on cool grey-white, one vermilion spot, and a pale cyan reserved for glass.
 
 ### Primary
@@ -314,7 +316,7 @@ Full-width, collapsed, 15px. Head cells are faint small caps over a full rule; b
 - **Colophon:** a full-rule top border, the typesetting and image credits in soft ink, and three Archivo links.
 
 ### Glass usage
-Glass is always the library's `Glass` (DOM), or `GlassStage` with `GlassPane` (WebGL, over an engraving source), wrapped in one `GlassProvider` per page. Shapes are capsules for bars, buttons, fields, and draggable lenses; fixed radii (28px, 46px) for cards. Tint follows the theme: a faint white wash in print (around 16 to 20% white), a dark blue wash in lantern (around 28 to 30% of lantern stock). Draggable glasses carry a two-bar grip icon at 45 to 50% opacity, respond to pointer and arrow keys (10px steps, 40px with Shift), and drive a ray diagram from their own geometry. A single interactive glass button may carry a faint spot tint to mark it as the active control. Selections in glass bars (Plate IV's tab bar, the manual's demo tabs) are a `GlassIndicator` with a faint spot tint, the current label in deep vermilion. Glass that merges is a `GlassGroup`: Plate V's capsule and drop share one surface with a 36px surface tension by default.
+Glass is always the library's `Glass` (DOM), or `GlassStage` with `GlassPane` (WebGL, over an engraving source), wrapped in one `GlassProvider` per page. Shapes are capsules for bars, buttons, fields, and draggable lenses; fixed radii (28px, 46px) for cards. Tint follows the theme through tokens, never a literal: `glass-wash` for controls over a plate, `glass-wash-clear` for large bodies the engraving reads through, `glass-bar` for the masthead. Draggable glasses carry a two-bar grip icon at 45 to 50% opacity, respond to pointer and arrow keys (10px steps, 40px with Shift), and drive a ray diagram from their own geometry. A single interactive glass button may carry `glass-spot-strong` to mark it as the active control. Selections in glass bars (Plate IV's tab bar, the manual's demo tabs) are a `GlassIndicator` tinted `glass-spot`, the current label in deep vermilion. Glass that merges is a `GlassGroup`: Plate V's capsule and drop share one surface with a 36px surface tension by default.
 
 ### Iconography
 Custom inline SVG icons on a 24px grid, 1.5px strokes, round caps and joins, no fills: the same single engraving weight as the figures. Rendered at 14 to 20px with `currentColor`.

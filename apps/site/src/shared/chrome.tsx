@@ -4,9 +4,9 @@ import { highlight } from 'sugar-high';
 import { Icon, MeniscusMark } from './Icon';
 import { setTheme, useTheme } from './theme';
 
-export type Page = 'home' | 'playground' | 'docs';
+export type Page = 'home' | 'components' | 'playground' | 'docs';
 
-const HREF: Record<Page, string> = { home: '/', playground: '/playground/', docs: '/docs/' };
+const HREF: Record<Page, string> = { home: '/', components: '/components/', playground: '/playground/', docs: '/docs/' };
 
 /** The page body behind the masthead. Firefox refracts a live copy of it; Chromium ignores it and refracts the page itself. */
 const PAGE_BODY = {
@@ -66,7 +66,7 @@ export function Masthead({ page }: { page: Page }) {
         variant="regular"
         blur={8}
         refraction={0.9}
-        tint="color-mix(in srgb, var(--stock) 62%, transparent)"
+        tint="var(--glass-bar)"
         backdrop={PAGE_BODY}
       >
         <a className="wordmark" href={HREF.home} aria-label="meniscus home">
@@ -78,12 +78,15 @@ export function Masthead({ page }: { page: Page }) {
             target={lens}
             className="masthead__lens"
             data-on={lensOn}
-            tint="color-mix(in srgb, var(--glass-fill) 50%, transparent)"
+            tint="var(--glass-lens)"
             refraction={1.1}
-            shadow="0 1px 2px rgba(15, 26, 36, 0.12), 0 4px 12px -4px rgba(15, 26, 36, 0.18)"
+            shadow="var(--shadow-lens)"
           />
           <a href={HREF.playground} aria-current={page === 'playground' ? 'page' : undefined} onPointerEnter={point} onFocus={point}>
             Playground
+          </a>
+          <a href={HREF.components} aria-current={page === 'components' ? 'page' : undefined} onPointerEnter={point} onFocus={point}>
+            Components
           </a>
           <a href={HREF.docs} aria-current={page === 'docs' ? 'page' : undefined} onPointerEnter={point} onFocus={point}>
             Manual
@@ -158,8 +161,12 @@ export function Colophon() {
       </p>
       <nav aria-label="Footer">
         <a href={HREF.home}>Plates</a>
+        <a href={HREF.components}>Components</a>
         <a href={HREF.playground}>Playground</a>
         <a href={HREF.docs}>Manual</a>
+        <a href="/LICENSE.txt">License</a>
+        <a href="/THIRD_PARTY_NOTICES.txt">Third-party notices</a>
+        <a href="/PRIVACY.txt">Privacy</a>
       </nav>
     </footer>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import type { ResolvedGlass } from '../core/glass';
-import { resolveTint } from '../webgl/color';
-import { isVideo, mediaRect, sourceReady, sourceSize, type Media } from '../webgl/media';
+import { resolveTint, tintVersion } from '../webgl/color';
+import { MERGED_SHADOW, isVideo, mediaRect, sourceReady, sourceSize, type Media } from '../webgl/media';
 import type { GlassRenderer, PaneFrame } from '../webgl/renderer';
 
 /** One pane of glass, in the host's layout px. */
@@ -35,7 +35,6 @@ export interface MediaLayerProps {
   style?: CSSProperties;
 }
 
-const SHADOW = { strength: 0.22, drop: 9, blur: 16.5 };
 const CANVAS: CSSProperties = { position: 'absolute', left: 0, top: 0, width: 0, height: 0, pointerEvents: 'none', display: 'block' };
 
 /**
@@ -84,6 +83,8 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
         try {
           renderer.setSource(media, w, h);
           uploaded = true;
+          // New pixels: draw even if nothing else changed.
+          last = '';
         } catch {
           // Cross-origin media without CORS can't be read.
           fail();
@@ -112,7 +113,7 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
         width: m.width / sx,
         height: m.height / sy,
       };
-      const key = `${f.key}|${box.x.toFixed(2)},${box.y.toFixed(2)},${cw}x${ch}|${placement.x.toFixed(2)},${placement.y.toFixed(2)},${placement.width.toFixed(2)},${placement.height.toFixed(2)}`;
+      const key = `${f.key}|${tintVersion()}|${box.x.toFixed(2)},${box.y.toFixed(2)},${cw}x${ch}|${placement.x.toFixed(2)},${placement.y.toFixed(2)},${placement.width.toFixed(2)},${placement.height.toFixed(2)}`;
       if (!live && key === last) return;
       last = key;
 
@@ -123,7 +124,7 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
       Object.assign(canvas.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.width}px`, height: `${box.height}px`, visibility: 'visible' });
       panes.length = 0;
       for (const p of f.panes) panes.push({ x: p.x - box.x, y: p.y - box.y, glass: p.glass, tint: resolveTint(p.el, p.glass.tint) });
-      renderer.render(panes, placement, pr, { merge: f.merge, panesOnly: true, shadow: f.shadow ? SHADOW : null });
+      renderer.render(panes, placement, pr, { merge: f.merge, panesOnly: true, shadow: f.shadow ? MERGED_SHADOW : null });
     };
 
     import('../webgl/renderer').then(

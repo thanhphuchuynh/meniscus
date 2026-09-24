@@ -36,13 +36,36 @@ export function parseColor(css: string): [number, number, number, number] | null
 }
 
 const WHITE_MIST: [number, number, number, number] = [1, 1, 1, 0.1];
-const tintCache = new WeakMap<HTMLElement, Map<string, [number, number, number, number]>>();
+let tintCache = new WeakMap<HTMLElement, Map<string, [number, number, number, number]>>();
+let version = 0;
+let watching = false;
+
+// A tint written with custom properties changes with the page's theme, which
+// is switched on the root element or by the system color scheme: forget the
+// resolved values then.
+function watch(): void {
+  if (watching || typeof document === 'undefined') return;
+  watching = true;
+  const reset = () => {
+    tintCache = new WeakMap();
+    version++;
+  };
+  if (typeof MutationObserver !== 'undefined') new MutationObserver(reset).observe(document.documentElement, { attributes: true });
+  if (typeof matchMedia === 'function') matchMedia('(prefers-color-scheme: dark)').addEventListener('change', reset);
+}
+
+/** Changes whenever resolved tints may have: part of a redraw key. */
+export function tintVersion(): number {
+  watch();
+  return version;
+}
 
 /**
  * A tint as rgba. Plain colors parse directly; custom properties and
  * currentColor are resolved against the element, where they're defined.
  */
 export function resolveTint(el: HTMLElement, css: string): [number, number, number, number] {
+  watch();
   const parsed = parseColor(css);
   if (parsed) return parsed;
   let cache = tintCache.get(el);

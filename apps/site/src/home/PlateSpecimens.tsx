@@ -1,5 +1,5 @@
 import { Glass, GlassIndicator } from 'meniscus';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
 import { CodeBlock, Plate } from '../shared/chrome';
 import { Icon, type IconName } from '../shared/Icon';
 import { plateSrc, useTheme } from '../shared/theme';
@@ -15,7 +15,7 @@ const TRANSPORT = `<Glass radius="capsule" className="transport">
 const TABS = `const [selected, setSelected] = useState<HTMLElement | null>(null);
 
 <Glass as="nav" radius="capsule" aria-label="Sections">
-  <GlassIndicator target={selected} tint="rgb(255 74 28 / 0.12)" />
+  <GlassIndicator target={selected} tint="var(--glass-spot)" />
   {tabs.map((tab, i) => (
     <button
       key={tab.label}
@@ -64,16 +64,114 @@ function Specimen({ id, fig, title, code, children, className }: { id: string; f
   );
 }
 
+/**
+ * Tabs whose glass selection can be carried: press anywhere on the bar and
+ * slide, and the drop lifts and follows the pointer, stretching as it goes;
+ * let go and it settles on the tab underneath. A plain click still selects.
+ */
+function SlideTabs({ tint, lensTint }: { tint: string; lensTint: string }) {
+  const nav = useRef<HTMLElement>(null);
+  const buttons = useRef<Array<HTMLButtonElement | null>>([]);
+  const press = useRef<{ id: number; x0: number; moved: boolean } | null>(null);
+  const [tab, setTab] = useState(0);
+  const [tabEl, setTabEl] = useState<HTMLElement | null>(null);
+  const [drag, setDrag] = useState<{ x: number; over: number } | null>(null);
+  useLayoutEffect(() => setTabEl(buttons.current[tab] ?? null), [tab]);
+
+  // The tab whose box holds x (nav px), or the nearest one.
+  const tabAt = (x: number) => {
+    let best = 0;
+    let dist = Infinity;
+    buttons.current.forEach((b, i) => {
+      if (!b) return;
+      const d = x < b.offsetLeft ? b.offsetLeft - x : x > b.offsetLeft + b.offsetWidth ? x - b.offsetLeft - b.offsetWidth : 0;
+      if (d < dist) {
+        dist = d;
+        best = i;
+      }
+    });
+    return best;
+  };
+
+  const onPointerDown = (e: PointerEvent<HTMLElement>) => {
+    if (e.button === 0) press.current = { id: e.pointerId, x0: e.clientX, moved: false };
+  };
+  const onPointerMove = (e: PointerEvent<HTMLElement>) => {
+    const p = press.current;
+    const n = nav.current;
+    if (!p || p.id !== e.pointerId || !n) return;
+    if (!p.moved) {
+      if (Math.abs(e.clientX - p.x0) < 4) return;
+      // From here it's a drag: the bar keeps the pointer, so no tab gets a click.
+      p.moved = true;
+      n.setPointerCapture(e.pointerId);
+    }
+    const x = e.clientX - n.getBoundingClientRect().left - n.clientLeft;
+    setDrag({ x, over: tabAt(x) });
+  };
+  const onPointerEnd = (e: PointerEvent<HTMLElement>) => {
+    const p = press.current;
+    if (!p || p.id !== e.pointerId) return;
+    press.current = null;
+    if (p.moved && drag && e.type === 'pointerup') setTab(drag.over);
+    setDrag(null);
+  };
+
+  // While dragging, the drop is a box centred on the pointer, as wide as the
+  // tab beneath it and kept within the bar.
+  let target: HTMLElement | { x: number; y: number; width: number; height: number } | null = tabEl;
+  const under = drag ? buttons.current[drag.over] : null;
+  const first = buttons.current[0];
+  const last = buttons.current[tabs.length - 1];
+  if (drag && under && first && last) {
+    const w = under.offsetWidth;
+    const x = Math.min(Math.max(drag.x - w / 2, first.offsetLeft), last.offsetLeft + last.offsetWidth - w);
+    target = { x, y: under.offsetTop, width: w, height: under.offsetHeight };
+  }
+  const shown = drag ? drag.over : tab;
+
+  return (
+    <Glass
+      as="nav"
+      ref={nav}
+      radius="capsule"
+      className="tabs"
+      tint={tint}
+      aria-label="Specimen tabs"
+      data-dragging={drag ? '' : undefined}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+    >
+      <GlassIndicator target={target} className="tabs__lens" tint={lensTint} refraction={1.2} />
+      {tabs.map((t, i) => (
+        <button
+          key={t.label}
+          ref={(el) => {
+            buttons.current[i] = el;
+          }}
+          type="button"
+          className="tabs__tab"
+          aria-current={i === tab ? 'page' : undefined}
+          data-shown={i === shown ? '' : undefined}
+          onClick={() => setTab(i)}
+        >
+          <Icon name={t.icon} />
+          <span>{t.label}</span>
+        </button>
+      ))}
+    </Glass>
+  );
+}
+
 export function PlateSpecimens() {
   const theme = useTheme();
   const [playing, setPlaying] = useState(false);
-  const [tab, setTab] = useState(0);
-  const [tabEl, setTabEl] = useState<HTMLElement | null>(null);
   const [dismissed, setDismissed] = useState(false);
   // The card materializes when it comes back, not on first load.
   const [revived, setRevived] = useState(false);
-  const lantern = theme === 'lantern';
-  const tint = lantern ? 'rgba(12, 24, 34, 0.3)' : 'rgba(255, 255, 255, 0.2)';
+  const tint = 'var(--glass-wash)';
 
   return (
     <Plate folio="Plate IV" className="specimens" label="Specimens">
@@ -100,7 +198,7 @@ export function PlateSpecimens() {
               aria-label={playing ? 'Pause' : 'Play'}
               aria-pressed={playing}
               onClick={() => setPlaying((p) => !p)}
-              tint={lantern ? 'rgba(255, 100, 58, 0.24)' : 'rgba(255, 74, 28, 0.14)'}
+              tint="var(--glass-spot-strong)"
               refraction={1.3}
             >
               <Icon name={playing ? 'pause' : 'play'} />
@@ -114,23 +212,14 @@ export function PlateSpecimens() {
           </Glass>
         </Specimen>
 
-        <Specimen id="fig4b" fig="Fig. 4b." title="A tab bar. A drop of spot-tinted glass flows to the current tab." code={TABS} className="specimen--tabs">
-          <Glass as="nav" radius="capsule" className="tabs" tint={tint} aria-label="Specimen tabs">
-            <GlassIndicator target={tabEl} tint={lantern ? 'rgba(255, 100, 58, 0.2)' : 'rgba(255, 74, 28, 0.12)'} refraction={1.2} />
-            {tabs.map((t, i) => (
-              <button
-                key={t.label}
-                ref={i === tab ? setTabEl : undefined}
-                type="button"
-                className="tabs__tab"
-                aria-current={i === tab ? 'page' : undefined}
-                onClick={() => setTab(i)}
-              >
-                <Icon name={t.icon} />
-                <span>{t.label}</span>
-              </button>
-            ))}
-          </Glass>
+        <Specimen
+          id="fig4b"
+          fig="Fig. 4b."
+          title="A tab bar. A drop of spot-tinted glass flows to the current tab; press and slide along the bar to carry it."
+          code={TABS}
+          className="specimen--tabs"
+        >
+          <SlideTabs tint={tint} lensTint="var(--glass-spot)" />
         </Specimen>
 
         <Specimen id="fig4c" fig="Fig. 4c." title="A search field in regular glass, frosted for legibility." code={SEARCH} className="specimen--search">

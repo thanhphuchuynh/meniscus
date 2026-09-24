@@ -16,6 +16,7 @@ import {
   type UnionInput,
 } from '../src/core';
 import { fitRect } from '../src/webgl/media';
+import { resolveTint, tintVersion } from '../src/webgl/color';
 
 function mockSize(width: number, height: number) {
   Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, get: () => width });
@@ -269,5 +270,24 @@ describe('backdrop fallbacks', () => {
       await new Promise((r) => setTimeout(r, 20));
     });
     expect(group.dataset.meniscusGroup).toBe('frost');
+  });
+});
+
+describe('resolveTint', () => {
+  it('resolves a custom-property tint again after a theme switch', async () => {
+    const el = document.createElement('div');
+    document.body.append(el);
+    const probe = vi.spyOn(window, 'getComputedStyle');
+    resolveTint(el, 'var(--wash)');
+    resolveTint(el, 'var(--wash)');
+    expect(probe).toHaveBeenCalledTimes(1); // cached
+    const before = tintVersion();
+    document.documentElement.dataset.theme = 'dark';
+    await new Promise((r) => setTimeout(r, 0));
+    expect(tintVersion()).toBeGreaterThan(before);
+    resolveTint(el, 'var(--wash)');
+    expect(probe).toHaveBeenCalledTimes(2); // resolved against the new theme
+    probe.mockRestore();
+    delete document.documentElement.dataset.theme;
   });
 });

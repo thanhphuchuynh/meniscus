@@ -488,7 +488,10 @@ sup {
 }
 .colophon nav {
   display: flex;
+  flex-wrap: wrap;
+  max-width: 36rem;
   gap: 20px;
+  justify-content: flex-end;
   font-weight: 600;
   font-size: var(--fs-ui);
   line-height: 1;
@@ -504,6 +507,9 @@ sup {
   }
   .colophon {
     grid-template-columns: 1fr;
+  }
+  .colophon nav {
+    justify-content: flex-start;
   }
 }
 
@@ -725,6 +731,9 @@ sup {
   .wordmark svg {
     width: 22px;
     height: 22px;
+  }
+  .wordmark {
+    font-size: 0;
   }
   .masthead nav {
     gap: 0;

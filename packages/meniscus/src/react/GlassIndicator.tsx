@@ -5,9 +5,20 @@ import { useMergedRef } from './refs';
 import { useIsomorphicLayoutEffect, useMediaQuery } from './hooks';
 import { DEV } from './dev';
 
+/** A box in the indicator's offset-parent coordinates, px: for following a finger rather than an element. */
+export interface IndicatorBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface GlassIndicatorProps extends Omit<GlassProps<'span'>, 'as' | 'interactive'> {
-  /** The element to sit under, such as the selected tab. It must share the indicator's offset parent. */
-  target: HTMLElement | null;
+  /**
+   * The element to sit under, such as the selected tab, sharing the
+   * indicator's offset parent; or a box, to follow a pointer while dragging.
+   */
+  target: HTMLElement | IndicatorBox | null;
   /** Space between the target's box and the indicator, px. Negative values grow past the target. */
   inset?: number;
   /** How liquid the move is. 0 slides rigidly; 1 lets the leading edge run ahead and the trailing edge catch up. */
@@ -36,7 +47,8 @@ function settled(e: Edge): boolean {
 }
 
 /** The target's box in its offset parent's coordinates, unaffected by transforms. */
-function boxOf(target: HTMLElement, host: HTMLElement): { x: number; y: number; w: number; h: number } | null {
+function boxOf(target: HTMLElement | IndicatorBox, host: HTMLElement): { x: number; y: number; w: number; h: number } | null {
+  if (!(target instanceof HTMLElement)) return { x: target.x, y: target.y, w: target.width, h: target.height };
   const parent = host.offsetParent as HTMLElement | null;
   if (target.offsetParent === parent) {
     return { x: target.offsetLeft, y: target.offsetTop, w: target.offsetWidth, h: target.offsetHeight };
@@ -159,7 +171,7 @@ function GlassIndicatorImpl({ target, inset = 0, stretch = 1, style, radius = 'c
   }, [moveTo]);
 
   useEffect(() => {
-    if (!DEV || warnedStatic || !target || typeof getComputedStyle !== 'function') return;
+    if (!DEV || warnedStatic || !(target instanceof HTMLElement) || typeof getComputedStyle !== 'function') return;
     if (getComputedStyle(target).position === 'static') {
       warnedStatic = true;
       console.warn('meniscus: <GlassIndicator> is positioned, so it paints over static targets. Give the targets `position: relative` to keep their content above the glass.');
@@ -168,7 +180,7 @@ function GlassIndicatorImpl({ target, inset = 0, stretch = 1, style, radius = 'c
 
   // Follow the target through layout changes.
   useEffect(() => {
-    if (!node || !target || typeof ResizeObserver === 'undefined') return;
+    if (!node || !(target instanceof HTMLElement) || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => moveTo());
     ro.observe(target);
     if (node.offsetParent) ro.observe(node.offsetParent);

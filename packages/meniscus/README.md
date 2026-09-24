@@ -31,6 +31,36 @@ export function Toolbar() {
 
 `Glass` renders one element (a `div` unless you pass `as`) with the glass behind its children. Every prop that element accepts passes through, and refs reach the DOM node.
 
+## Ready-to-use components
+
+`GlassButton` is a native button with interactive glass and a `type="button"` default. `GlassPanel` is a padded container. `GlassTabs` combines a tab list, keyboard navigation, panels, and a moving glass indicator. They use the same `Glass` options and need no stylesheet.
+
+```tsx
+import { GlassButton, GlassPanel, GlassTabs } from 'meniscus';
+
+<GlassButton onClick={save}>Save</GlassButton>
+<GlassPanel role="region" aria-label="Summary">Ready</GlassPanel>
+<GlassTabs label="Views" items={[
+  { value: 'all', label: 'All', content: <AllItems /> },
+  { value: 'saved', label: 'Saved', content: <SavedItems /> },
+]} />
+```
+
+`GlassTabs` accepts `value` and `onValueChange` for controlled selection, or `defaultValue` for local selection. Each item needs a unique `value`, a `label`, and panel `content`; optional `disabled` items are skipped by arrow keys. Give the tab list a descriptive `label`.
+
+`GlassTextField`, `GlassSelect`, and `GlassCheckbox` place native form controls on glass. Each needs a visible `label`, passes through the underlying input or select props, and forwards its ref to that native control. Form names, values, validation, disabled states, and keyboard behavior work as they do in HTML.
+
+```tsx
+import { GlassCheckbox, GlassSelect, GlassTextField } from 'meniscus';
+
+<GlassTextField label="Project name" name="project" required />
+<GlassSelect label="Material" name="material" defaultValue="glass">
+  <option value="glass">Glass</option>
+  <option value="water">Water</option>
+</GlassSelect>
+<GlassCheckbox label="Send alerts" name="alerts" value="yes" />
+```
+
 ```tsx
 <Glass as="nav" radius="capsule" aria-label="Sections">…</Glass>
 <Glass as="button" type="button" radius="capsule" interactive onClick={play}>Play</Glass>

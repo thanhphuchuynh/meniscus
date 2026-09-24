@@ -1,0 +1,12 @@
+Privacy note for the meniscus demo site
+
+The site stores your light or dark theme choice in your browser's localStorage
+under the key "meniscus-theme". You can remove it using your browser's site-data
+controls. The preference is not sent to the site by its application code.
+
+The current site source does not include analytics, advertising trackers,
+accounts, or forms that submit personal information. When you load the site,
+your browser requests pages, fonts, and images from the hosting service. That
+service may keep standard request logs under its own configuration. The site
+owner should review the hosting provider's logging and retention settings
+before deployment and update this note if those settings or the site change.

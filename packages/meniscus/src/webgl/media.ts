@@ -1,3 +1,6 @@
+/** The shadow under merged glass: strength, then drop and blur in CSS px. */
+export const MERGED_SHADOW = { strength: 0.22, drop: 9, blur: 16.5 };
+
 /** Media the WebGL renderer can draw from. */
 export type Media = HTMLImageElement | HTMLVideoElement | HTMLCanvasElement;
 
