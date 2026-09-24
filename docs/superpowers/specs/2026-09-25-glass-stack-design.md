@@ -83,7 +83,12 @@ export class GlassPhysics {
   dispose(): void;
 }
 export function staggerDelay(rank: number, physics?: SpringInput, stagger?: number): number; // ms = rank × stagger × period
+export function presenceOpacity(presence: number): number; // 1 down to presence 0.5, 0 by 0.15
 ```
+
+- **Presence floor:** presence has an inelastic floor at 0, so a leaving glass never bounces back into view. Entrances may overshoot above 1 on a bouncy spring.
+- **Presence opacity:** a glass's opacity follows `presenceOpacity`, not presence itself. Faint frost vanishes to the eye long before dark text does, so the fade finishes in the fast part of the spring, before its slow tail.
+- **Listener errors:** a listener that throws is dropped and its error reported, and a failing instance leaves the shared loop, which keeps running for every other instance.
 
 - **Frame loop:** one shared `requestAnimationFrame` loop steps every active instance and stops when all have settled. With `scheduler: 'manual'`, or where `requestAnimationFrame` doesn't exist, nothing runs by itself.
 - **Delays:** `to(…, { delay })` holds the new targets until the physics clock passes the delay. A newer `to` for the same channel replaces a pending one.
@@ -107,7 +112,7 @@ export function useGlassPhysics(options?: GlassPhysicsOptions): GlassPhysics;
 
 | Channel | Live SVG path | Frost path | WebGL path |
 |---|---|---|---|
-| presence | `opacity`; `--meniscus-presence` | same | pane coverage × presence |
+| presence | `opacity` from `--meniscus-opacity` (`presenceOpacity`), also rendered into the first markup; `--meniscus-presence` raw, for app CSS | same | lower panes: coverage × `presenceOpacity`; a layer's own canvas keeps only the bend, since the element's opacity fades it |
 | refraction | every `feDisplacementMap` `scale` = its `data-scale` × refraction × presence | none | displacement × refraction × presence |
 | highlight | `--meniscus-hx` / `--meniscus-hy` move a specular spot in the light layer; the rim image stays at its angle | same | the light vector rotates toward the offset |
 | tint | `background-color: color-mix(in srgb, tint calc(var(--meniscus-tint) * 100%), transparent)` | same | tint alpha × tint |
@@ -142,7 +147,7 @@ export const Glass: typeof GlassBase & { Stack: typeof GlassStack; Layer: typeof
 ```
 
 **Stack:**
-- It renders one container with `position: relative` and `isolation: isolate`. That scopes the layers' `z-index` without creating a backdrop root, so layers still refract page content behind the stack.
+- It renders one container with `isolation: isolate`. That scopes the layers' `z-index` without creating a backdrop root, so layers still refract page content behind the stack. It sets `position: relative` only when the container would otherwise be static, so an app's own absolute, fixed or sticky, from a class, wins.
 - Layers register depth, physics, element, optics and kind.
 - `z-index` = `depth`, or the layer's registration index when `depth` is unset.
 

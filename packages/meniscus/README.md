@@ -251,7 +251,7 @@ export function Workspace({ open }: { open: boolean }) {
 | Any page content | Live refraction; each layer bends the layers beneath it, text included | Frosted; blur and tint stack |
 | An image, video or canvas in the context layer | Live refraction | WebGL: each layer draws the media and every layer beneath it, back to front |
 
-`renderer="css"` never uses WebGL; `renderer="webgl"` uses it over media in every browser. When several layers change `present` in one render, nearer layers lead and deeper ones follow, each waiting its rank × `stagger` × its spring's period; a negative `stagger` reverses the order. With `appear`, layers shown on mount enter the same way. Absent layers stay in the page but are `inert` and hidden from assistive technology. Layers move in with your CSS through `--meniscus-presence`.
+`renderer="css"` never uses WebGL; `renderer="webgl"` uses it over media in every browser. When several layers change `present` in one render, nearer layers lead and deeper ones follow, each waiting its rank × `stagger` × its spring's period; a negative `stagger` reverses the order. With `appear`, layers shown on mount enter the same way. Absent layers stay in the page but are `inert` and hidden from assistive technology, from the first server-rendered paint. A glass fades out before its presence spring's slow tail (fully opaque down to presence 0.5, gone by 0.15), and a leaving glass never bounces back into view. Layers move in with your CSS through `--meniscus-presence`, which may pass 1 briefly on a bouncy spring. To keep text from outliving its glass, fade layer content ahead of it: `.card > * { opacity: clamp(0, calc((var(--meniscus-presence, 1) - 0.55) / 0.4), 1) }`.
 
 ## Physics
 
