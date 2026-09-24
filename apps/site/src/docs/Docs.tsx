@@ -1,6 +1,7 @@
 import { Glass, GlassIndicator, GlassProvider } from 'meniscus';
 import { glassProfile, resolveGlass } from 'meniscus/core';
 import { useEffect, useState, type ReactNode } from 'react';
+import packageJson from '../../../../packages/meniscus/package.json';
 import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
 import { useEngine } from '../shared/engine';
 import { RayDiagram } from '../shared/RayDiagram';
@@ -24,6 +25,7 @@ const SECTIONS = [
   ['core', 'meniscus/core'],
   ['support', 'Browser support'],
   ['limits', 'Limits'],
+  ['releases', 'Versions and releases'],
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number][0];
@@ -474,6 +476,18 @@ export function Docs() {
                 or highlights; wrap them in a <code>Glass</code> instead.
               </li>
             </ul>
+          </Section>
+
+          <Section id="releases" n={16} title="Versions and releases">
+            <p>
+              The package version is <code>{packageJson.version}</code>. Meniscus follows Semantic Versioning; before 1.0, a minor release may change
+              the public API. Git tags use the matching <code>v</code> prefix.
+            </p>
+            <p>
+              Read the <a href="https://github.com/thanhphuchuynh/meniscus/blob/main/CHANGELOG.md">changelog</a> for changes by version and{' '}
+              <a href="https://github.com/thanhphuchuynh/meniscus/releases">GitHub Releases</a> for tagged source and package tarballs. A GitHub
+              Release does not publish the package to npm.
+            </p>
           </Section>
         </main>
       </div>
