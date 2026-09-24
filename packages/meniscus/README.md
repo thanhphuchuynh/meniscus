@@ -114,7 +114,8 @@ Where the `regular` and `clear` variants differ, defaults read regular / clear.
 | `lightAngle` | `number` | `-45` | Where the light comes from, degrees clockwise from the top |
 | `lightElevation` | `number` | `18` | Light height above the surface, degrees |
 | `mode` | `'auto' \| 'refract' \| 'frost' \| 'none'` | `'auto'` | Rendering path |
-| `interactive` | `boolean` | `false` | Lift on hover; swell on press with light blooming from the touch point; stretch toward the pointer |
+| `interactive` | `boolean` | `false` | Lift on hover; swell on press with light blooming from the touch point; stretch toward the pointer; squash along its path while it moves |
+| `ripple` | `boolean` | `false` | A liquid surface: taps ring it, a finger drawn across leaves a trail, moving the glass sloshes it. Needs WebGL (see Motion) |
 | `appear` | `boolean` | `false` | Materialize on mount: fade in, swell into place, and let the lens gather its bend |
 | `backdrop` | `HTMLElement \| RefObject` | none | What lies behind the glass, for browsers without live refraction (see Rendering paths) |
 | `shadow` | `string \| false` | soft two-layer shadow | Box shadow under the glass |
@@ -145,6 +146,10 @@ import { GlassLoader } from 'meniscus';
 ## Motion
 
 **Press and hover.** With `interactive`, glass lifts a little under the pointer and its rim brightens. Pressed, it swells, light blooms from the point of contact, and it stretches toward the pointer; released, it wobbles back on a spring. Space and Enter press it too. Motion goes through the `scale` and `translate` properties and gives your own values back once it settles.
+
+**Wobble.** An `interactive` glass that moves, dragged or flung by your code, squashes along its path and jiggles as it stops. It is tracked from a press until it comes to rest, so glass that doesn't move is untouched. The squash is an area-preserving `transform`, applied only when the element has no `transform` of its own, and removed at rest.
+
+**Ripples.** With `ripple`, the surface is liquid: a tap drops a bead and a ring spreads out, a finger drawn across the glass leaves a trail, and when the glass starts or stops the liquid sloshes against the rim. Space and Enter drop a bead at the center. Waves bend what is behind the glass by slope × thickness × (1 − 1/n), catch the light on their crests, bounce off the rim and die out in about two seconds. The simulation sleeps when the surface is calm, so resting glass costs nothing. Waves are drawn in WebGL: give the glass an image, video or canvas `backdrop` (it then draws in WebGL in every browser, Chromium included), or use a `GlassPane` in a `GlassStage`.
 
 **Materialize.** With `appear`, glass fades in and swells into place as it mounts, and the lens gathers its bend a beat later, so the backdrop visibly curves into place.
 
@@ -234,7 +239,7 @@ traceRay({ bezel: 32, thickness: 32, ior: 1.5 }, 6); // one ray, 6 px in from th
 
 - Semantics come from `as` and your markup. The filter, highlight and glow layers are hidden from assistive technology.
 - Under `prefers-reduced-transparency`, glass turns nearly opaque and stops refracting.
-- Under `prefers-reduced-motion`, interactive glass keeps its glow but stops swelling, stretching and blooming; indicators jump with a short fade; `appear` fades.
+- Under `prefers-reduced-motion`, interactive glass keeps its glow but stops swelling, stretching, squashing and blooming; `ripple` is off; indicators jump with a short fade; `appear` fades.
 - `GlassIndicator` is hidden from assistive technology. Mark the selection itself with `aria-current`, `aria-selected` or a checked radio.
 - Text on glass needs contrast against the busiest thing behind it; regular glass frosts and tints for that.
 
@@ -243,6 +248,7 @@ traceRay({ bezel: 32, thickness: 32, ior: 1.5 }, 6); // one ray, 6 px in from th
 - Rounded rectangles and capsules only.
 - A backdrop filter sees only what is painted inside its nearest ancestor with a `filter`, `opacity` below 1, `mask`, `clip-path`, `mix-blend-mode` or its own `backdrop-filter`. Glass inside such an ancestor, including glass inside glass, shows that ancestor's content. Fade glass through its own opacity, not a parent's.
 - Sharp corners don't refract: the bezel is capped at the corner radius.
+- Ripples need WebGL: over plain page content in Chromium, where live SVG refraction draws the glass, `ripple` does nothing (a development warning says so). Inside a `GlassStage` or `GlassGroup`, the drawn glass follows the element's bounding box, so a diagonal squash is approximated.
 - Maps are cached per profile function. Define a custom `profile` once, outside your components, or every render builds new maps.
 - `as` must be an element that can hold children. Void elements (`input`, `img`) render frosted, without refraction or highlights; wrap them in a `Glass` instead.
 - A `GlassGroup` shares one glass across its members and rebuilds its maps while they move, in a worker where possible. Under a content security policy without `blob:` in `worker-src`, that work runs on the main thread (about 4 ms a frame for a toolbar). Keep groups to a handful of controls.

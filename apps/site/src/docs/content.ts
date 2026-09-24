@@ -25,8 +25,9 @@ export const GLASS_PROPS: PropRow[] = [
   { name: 'lightAngle', type: 'number', default: '-45', body: 'Where the light comes from, in degrees clockwise from the top. -45 (or 315) is the top left.' },
   { name: 'lightElevation', type: 'number', default: '18', body: 'Height of the light above the surface, in degrees. Lower lights push highlights toward the outline.' },
   { name: 'mode', type: "'auto' | 'refract' | 'frost' | 'none'", default: "'auto'", body: 'Rendering path. Auto refracts where the browser can. None draws only shape, shadow and interaction.' },
-  { name: 'interactive', type: 'boolean', default: 'false', body: 'Lift on hover, swell on press with light blooming from the touch point, stretch toward the pointer, glow where it touches. Keyboard presses animate too.' },
+  { name: 'interactive', type: 'boolean', default: 'false', body: 'Lift on hover, swell on press with light blooming from the touch point, stretch toward the pointer, glow where it touches. When the glass itself moves, it squashes along its path and wobbles as it stops. Keyboard presses animate too.' },
   { name: 'appear', type: 'boolean', default: 'false', body: 'Materialize on mount: fade in, swell into place on a spring, and let the lens gather its bend. A plain fade under reduced motion.' },
+  { name: 'ripple', type: 'boolean', default: 'false', body: 'A liquid surface: a tap rings it, a finger drawn across leaves a trail, and moving the glass sloshes it. Waves bend what is behind and catch the light, then die out. Drawn in WebGL: glass over an image, video or canvas backdrop (every browser, Chromium included), or a GlassPane in a GlassStage. Off under reduced motion.' },
   { name: 'shadow', type: 'string | false', default: 'a soft two-layer shadow', body: 'The box shadow under the glass, or false for none.' },
   { name: 'backdrop', type: 'HTMLElement | RefObject', default: '—', body: 'What lies behind the glass, for browsers that can’t refract the live page: media is refracted in WebGL, any other element as a live copy in Firefox. Must not contain the glass.' },
 ];
