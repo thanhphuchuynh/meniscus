@@ -143,7 +143,7 @@ Placement measures the host with its own `transform` (the squash) divided out, a
 - **Docs:**
   - Manual (`docs/content.ts`): document the `ripple` prop and the wobble on `interactive`.
   - Package README: Motion section.
-  - Component catalog: Glass props table and a demo toggle.
+  - Component catalog: a `ripple` row in the Glass props table. The catalog's Glass sample has no media backdrop, so the hero and the depth plate are the live demos.
   - `CHANGELOG.md`: add the changes under "Unreleased".
 
 ## Non-goals
