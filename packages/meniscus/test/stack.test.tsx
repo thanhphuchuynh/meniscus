@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
-import { useContext, useState } from 'react';
+import { StrictMode, useContext, useState } from 'react';
 import { Glass, GlassButton } from '../src';
 import { overrideRefractionSupport, overrideWebGL2, springPeriod, staggerDelay } from '../src/core';
 import { LayerContext } from '../src/react/stack';
@@ -170,6 +170,39 @@ describe('<Glass.Stack>', () => {
       </Glass.Stack>,
     );
     expect(presence(getByTestId('c'))).toBe(0);
+    await act(async () => {});
+    act(() => frame(120));
+    expect(presence(getByTestId('c'))).toBe(1);
+  });
+
+  it('finishes entering under StrictMode’s doubled effects', async () => {
+    const { getByTestId } = render(
+      <StrictMode>
+        <Glass.Stack appear stagger={0.5}>
+          <Glass.Layer depth={1} data-testid="side">
+            S
+          </Glass.Layer>
+          <Glass.Layer depth={2} data-testid="card">
+            C
+          </Glass.Layer>
+        </Glass.Stack>
+      </StrictMode>,
+    );
+    await act(async () => {});
+    act(() => frame(200));
+    expect(presence(getByTestId('card'))).toBe(1);
+    expect(presence(getByTestId('side'))).toBe(1);
+  });
+
+  it('enters on mount over a context image, which re-renders the stack', async () => {
+    const { getByTestId } = render(
+      <Glass.Stack appear>
+        <Glass.Layer kind="context">
+          <img alt="" src={GIF} />
+        </Glass.Layer>
+        <Glass.Layer data-testid="c">C</Glass.Layer>
+      </Glass.Stack>,
+    );
     await act(async () => {});
     act(() => frame(120));
     expect(presence(getByTestId('c'))).toBe(1);

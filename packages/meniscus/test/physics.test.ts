@@ -118,6 +118,23 @@ describe('GlassPhysics', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  it('pauses without losing its place, and resumes', () => {
+    const queue: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (f: FrameRequestCallback) => queue.push(f));
+    const p = new GlassPhysics();
+    created.push(p);
+    p.to({ presence: 0 }, { delay: 50 });
+    p.pause();
+    let now = 0;
+    for (let i = 0; i < 10 && queue.length; i++) queue.shift()!((now += 16));
+    expect(queue.length).toBe(0);
+    expect(p.state.presence).toBe(1);
+    p.resume();
+    expect(queue.length).toBe(1);
+    for (let i = 0; i < 400 && queue.length; i++) queue.shift()!((now += 16));
+    expect(p.state.presence).toBe(0);
+  });
+
   it('stops everything on dispose', () => {
     const p = make();
     const seen: number[] = [];

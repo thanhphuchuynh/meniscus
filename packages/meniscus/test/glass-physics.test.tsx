@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { StrictMode, useLayoutEffect, useRef } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Glass, useGlassPhysics } from '../src';
 import { GlassPhysics, overrideRefractionSupport } from '../src/core';
@@ -52,9 +53,9 @@ const still = (initial: ConstructorParameters<typeof GlassPhysics>[0] extends in
   new GlassPhysics({ scheduler: 'manual', initial });
 
 describe('useGlassPhysics', () => {
-  it('keeps one instance, reconfigures it, and stops it on unmount', () => {
+  it('keeps one instance, reconfigures it, and pauses it on unmount', () => {
     const seen: GlassPhysics[] = [];
-    const dispose = vi.spyOn(GlassPhysics.prototype, 'dispose');
+    const pause = vi.spyOn(GlassPhysics.prototype, 'pause');
     function Probe({ physics }: { physics: 'snappy' | 'gentle' }) {
       seen.push(useGlassPhysics({ physics }));
       return null;
@@ -65,7 +66,30 @@ describe('useGlassPhysics', () => {
     expect(seen[1]).toBe(seen[0]);
     expect(configure).toHaveBeenCalledWith(expect.objectContaining({ physics: 'gentle' }));
     unmount();
-    expect(dispose).toHaveBeenCalled();
+    expect(pause).toHaveBeenCalled();
+  });
+
+  it('keeps a once-started transition through StrictMode’s doubled effects', () => {
+    let physics: GlassPhysics | null = null;
+    function Probe() {
+      const p = useGlassPhysics({ initial: { presence: 0 } });
+      physics = p;
+      const once = useRef(false);
+      // Like a layer's entrance: started once, in the layout phase.
+      useLayoutEffect(() => {
+        if (once.current) return;
+        once.current = true;
+        p.to({ presence: 1 }, { delay: 50 });
+      }, [p]);
+      return null;
+    }
+    render(
+      <StrictMode>
+        <Probe />
+      </StrictMode>,
+    );
+    act(() => frame(200));
+    expect(physics!.state.presence).toBe(1);
   });
 
   it('follows reduced motion', () => {

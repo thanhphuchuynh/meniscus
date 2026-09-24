@@ -199,6 +199,16 @@ export class GlassPhysics {
     };
   }
 
+  /** Stops stepping on the frame loop, keeping targets, pending changes and listeners. `resume()`, `to()` or `impulse()` continues. */
+  pause(): void {
+    moving.delete(this);
+  }
+
+  /** Continues on the frame loop if anything is still moving or waiting. */
+  resume(): void {
+    if (!this.settled) this.wake();
+  }
+
   /** Stops motion and drops pending targets and listeners. A later `to()` starts it again. */
   dispose(): void {
     moving.delete(this);

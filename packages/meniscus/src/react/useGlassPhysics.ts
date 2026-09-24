@@ -5,7 +5,7 @@ import { useIsomorphicLayoutEffect, useMediaQuery } from './hooks';
 
 /**
  * A `GlassPhysics` owned by this component: one instance for its whole life,
- * reconfigured as options change and stopped on unmount. Give it to a glass
+ * reconfigured as options change and paused on unmount. Give it to a glass
  * as `optics`, then move it with `to()` and `impulse()`. It follows the
  * reduced-motion setting unless `reducedMotion` is passed.
  */
@@ -20,6 +20,12 @@ export function useGlassPhysics(options: GlassPhysicsOptions = {}): GlassPhysics
     physics.configure({ physics: options.physics, response: options.response, reducedMotion });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [physics, physicsKey, responseKey, reducedMotion]);
-  useEffect(() => () => physics.dispose(), [physics]);
+  // Pause, not dispose: StrictMode unmounts and remounts effects in development,
+  // and a transition started once at mount must survive that. A real unmount
+  // leaves a paused instance for the garbage collector.
+  useEffect(() => {
+    physics.resume();
+    return () => physics.pause();
+  }, [physics]);
   return physics;
 }

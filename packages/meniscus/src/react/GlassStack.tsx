@@ -143,46 +143,50 @@ function GlassStackImpl({ physics, stagger = 0.12, renderer = 'auto', appear = f
     });
   }, [depthOf]);
 
+  // Stable methods: the context value changes only for data, so layers never
+  // re-register (and lose a queued transition) when the scene's source appears.
+  const setSource = useCallback((media: ContextMedia | null) => setSourceState((prev) => (prev === media ? prev : media)), []);
+  const register = useCallback((record: LayerRecord) => {
+    records.current.set(record.el, record);
+    return () => {
+      if (records.current.get(record.el) === record) records.current.delete(record.el);
+    };
+  }, []);
+  const update = useCallback((el: HTMLElement, patch: Partial<LayerRecord>) => {
+    const record = records.current.get(el);
+    if (record) Object.assign(record, patch);
+  }, []);
+  const present = useCallback(
+    (el: HTMLElement, shown: boolean) => {
+      queue.current = queue.current.filter((q) => q.el !== el);
+      queue.current.push({ el, present: shown });
+      if (scheduled.current) return;
+      scheduled.current = true;
+      // Every layer's layout effect in one commit runs before this microtask: one batch per commit.
+      queueMicrotask(flush);
+    },
+    [flush],
+  );
+  const below = useCallback(
+    (el: HTMLElement): StackPane[] => {
+      const mine = depthOf(el);
+      const out: Array<StackPane & { depth: number }> = [];
+      for (const record of records.current.values()) {
+        if (record.el === el || record.kind !== 'control' || !record.optics || !record.glass) continue;
+        const glass = record.glass();
+        const depth = depthOf(record.el);
+        if (glass && depth < mine) out.push({ el: record.el, glass, optics: record.optics, depth });
+      }
+      return out.sort((a, b) => a.depth - b.depth).map(({ el: e, glass, optics }) => ({ el: e, glass, optics }));
+    },
+    [depthOf],
+  );
+
+  const physicsKey = JSON.stringify(physics ?? null);
   const value = useMemo<StackValue>(
-    () => ({
-      physics,
-      renderer,
-      appear,
-      source,
-      setSource: (media) => setSourceState((prev) => (prev === media ? prev : media)),
-      register(record) {
-        records.current.set(record.el, record);
-        return () => {
-          records.current.delete(record.el);
-          queue.current = queue.current.filter((q) => q.el !== record.el);
-        };
-      },
-      update(el, patch) {
-        const record = records.current.get(el);
-        if (record) Object.assign(record, patch);
-      },
-      present(el, present) {
-        queue.current = queue.current.filter((q) => q.el !== el);
-        queue.current.push({ el, present });
-        if (scheduled.current) return;
-        scheduled.current = true;
-        // Every layer's layout effect in one commit runs before this microtask: one batch per commit.
-        queueMicrotask(flush);
-      },
-      below(el) {
-        const mine = depthOf(el);
-        const out: Array<StackPane & { depth: number }> = [];
-        for (const record of records.current.values()) {
-          if (record.el === el || record.kind !== 'control' || !record.optics || !record.glass) continue;
-          const glass = record.glass();
-          const depth = depthOf(record.el);
-          if (glass && depth < mine) out.push({ el: record.el, glass, optics: record.optics, depth });
-        }
-        return out.sort((a, b) => a.depth - b.depth).map(({ el: e, glass, optics }) => ({ el: e, glass, optics }));
-      },
-    }),
+    () => ({ physics, renderer, appear, source, setSource, register, update, present, below }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(physics ?? null), renderer, appear, source, flush, depthOf],
+    [physicsKey, renderer, appear, source, setSource, register, update, present, below],
   );
 
   return createElement(
