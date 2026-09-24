@@ -22,6 +22,7 @@ import { GlassFilter } from './GlassFilter';
 import { useGlassDefaults } from './context';
 import { useElementSize, useGlassMode, useIsomorphicLayoutEffect, useMediaQuery, usePixelRatio } from './hooks';
 import { useLiquidInteraction, type InteractionHandlers } from './interaction';
+import { useLiquidMotion } from './liquid';
 import { useAppear } from './appear';
 import { useElementCopy, useFallback, type Backdrop } from './backdrop';
 import { MediaLayer, type MediaFrame } from './MediaLayer';
@@ -155,6 +156,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   // A disabled control doesn't answer the pointer, so its glass doesn't either.
   const disabled = !!rest.disabled || rest['aria-disabled'] === true || rest['aria-disabled'] === 'true';
   const handlers = useLiquidInteraction(ref, interactive && !disabled, reducedMotion);
+  useLiquidMotion(node, { squash: interactive && !disabled, ripple: null, reducedMotion });
 
   const bare = mode === 'none';
   const g = size && size.width > 0 && size.height > 0 ? resolveGlass(options, size.width, size.height) : null;

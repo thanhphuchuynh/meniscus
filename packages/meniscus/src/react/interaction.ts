@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, type KeyboardEvent, type Point
 import { useIsomorphicLayoutEffect } from './hooks';
 
 /** A damped spring, integrated per frame. Underdamped: one overshoot, then it settles. */
-class Spring {
+export class Spring {
   value: number;
   velocity = 0;
   target: number;
