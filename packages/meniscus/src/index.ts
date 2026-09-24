@@ -10,7 +10,7 @@ export { GlassFilter, type GlassFilterProps } from './react/GlassFilter';
 export { GlassIndicator, type GlassIndicatorProps, type IndicatorBox } from './react/GlassIndicator';
 export { GlassGroup, useGlassGroup, type GlassGroupProps } from './react/GlassGroup';
 export { useGlassMode, useElementSize } from './react/hooks';
-export type { GlassOptions, GlassVariant, GlassAppearance, ResolvedGlass } from './core/glass';
+export type { GlassOptions, GlassVariant, GlassAppearance, GlassIntensity, ResolvedGlass } from './core/glass';
 export type { Profile, ProfileName, ProfileFn } from './core/profiles';
 export type { Radius } from './core/shape';
 export type { RenderMode, RenderModePreference } from './core/support';

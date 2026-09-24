@@ -4,6 +4,7 @@ import type { GlassOptions } from './glass';
 export const GLASS_OPTION_KEYS = [
   'variant',
   'appearance',
+  'intensity',
   'radius',
   'bezel',
   'refraction',

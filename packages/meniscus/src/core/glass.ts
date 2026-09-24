@@ -6,10 +6,18 @@ import { resolveRadius, type Radius } from './shape';
 
 export type GlassVariant = 'regular' | 'clear';
 export type GlassAppearance = 'auto' | 'light' | 'dark';
+/** Semantic strength: a named step, or a number from 0 (subtle) through 0.5 (regular) to 1 (strong). */
+export type GlassIntensity = 'subtle' | 'regular' | 'strong' | number;
 
 export interface GlassOptions {
   /** `regular` frosts and tints for legibility; `clear` stays transparent over media. */
   variant?: GlassVariant;
+  /**
+   * How strongly the glass bends and lights: `'subtle'`, `'regular'` (the
+   * default) or `'strong'`, or a number from 0 (subtle) through 0.5 (regular)
+   * to 1 (strong). Explicit `refraction`, `specular` and `aberration` win.
+   */
+  intensity?: GlassIntensity;
   /**
    * Light glass (a pale wash) or dark glass (a smoky one). `auto` follows the
    * page's color scheme, including a site's own theme switch, through CSS
@@ -107,12 +115,28 @@ export interface ResolvedGlass {
 
 const q = (v: number, step: number) => Math.round(v / step) * step;
 
+const INTENSITY_STEP: Readonly<Record<'subtle' | 'regular' | 'strong', number>> = { subtle: 0, regular: 0.5, strong: 1 };
+const SUBTLE = { refraction: 0.6, specular: 0.6, aberration: 0 };
+const STRONG = { refraction: 1.5, specular: 1, aberration: 0.15 };
+
+/** Refraction, specular and aberration for an intensity. Regular is the variant's own defaults, unchanged. */
+export function intensityOptics(intensity: GlassIntensity | undefined, variant: GlassVariant | undefined): { refraction: number; specular: number; aberration: number } {
+  const v = VARIANTS[variant ?? 'regular'] ?? VARIANTS.regular;
+  const regular = { refraction: DEFAULTS.refraction, specular: v.specular, aberration: DEFAULTS.aberration };
+  const t = typeof intensity === 'number' ? (Number.isFinite(intensity) ? Math.max(0, Math.min(1, intensity)) : 0.5) : (INTENSITY_STEP[intensity ?? 'regular'] ?? 0.5);
+  if (t === 0.5) return regular;
+  const [from, to, k] = t < 0.5 ? [SUBTLE, regular, t / 0.5] : [regular, STRONG, (t - 0.5) / 0.5];
+  const mix = (a: number, b: number) => a + (b - a) * k;
+  return { refraction: mix(from.refraction, to.refraction), specular: mix(from.specular, to.specular), aberration: mix(from.aberration, to.aberration) };
+}
+
 /** Fills defaults, caps the geometry to the element, and quantizes values that key the map caches. */
 export function resolveGlass(options: GlassOptions, width: number, height: number): ResolvedGlass {
   const variant = VARIANTS[options.variant ?? 'regular'] ?? VARIANTS.regular;
   const radius = q(resolveRadius(options.radius ?? DEFAULTS.radius, width, height), 0.5);
   const bezel = q(Math.min(radius, Math.max(0, options.bezel ?? Math.min(radius, DEFAULTS.maxAutoBezel))), 0.5);
-  const refraction = Math.max(0, options.refraction ?? DEFAULTS.refraction);
+  const tone = intensityOptics(options.intensity, options.variant);
+  const refraction = Math.max(0, options.refraction ?? tone.refraction);
   return {
     width,
     height,
@@ -125,8 +149,8 @@ export function resolveGlass(options: GlassOptions, width: number, height: numbe
     blur: Math.max(0, options.blur ?? variant.blur),
     saturation: Math.max(0, options.saturation ?? variant.saturation),
     tint: options.tint ?? defaultTint(options.variant, options.appearance),
-    aberration: Math.max(0, Math.min(1, options.aberration ?? DEFAULTS.aberration)),
-    specular: q(Math.max(0, Math.min(1, options.specular ?? variant.specular)), 0.01),
+    aberration: Math.max(0, Math.min(1, options.aberration ?? tone.aberration)),
+    specular: q(Math.max(0, Math.min(1, options.specular ?? tone.specular)), 0.01),
     rim: q(Math.max(0, Math.min(1, options.rim ?? variant.rim)), 0.01),
     shade: q(Math.max(0, Math.min(1, options.shade ?? variant.shade)), 0.01),
     lightAngle: q(options.lightAngle ?? DEFAULTS.lightAngle, 1),
