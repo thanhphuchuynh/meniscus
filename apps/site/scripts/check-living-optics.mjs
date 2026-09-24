@@ -21,8 +21,9 @@ try {
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width / 2 - 55, box.y + box.height / 2 + 45, { steps: 5 });
-  const release = await lens.evaluate(el => ({ x: parseFloat(el.style.left), y: parseFloat(el.style.top) }));
+  // Release right after the last move: the lens counts a throw only within 100 ms of it.
   await page.mouse.up();
+  const release = await lens.evaluate(el => ({ x: parseFloat(el.style.left), y: parseFloat(el.style.top) }));
   await page.waitForTimeout(120);
   const carried = await lens.evaluate(el => ({ x: parseFloat(el.style.left), y: parseFloat(el.style.top) }));
   assert.match(await lens.evaluate(el => el.style.transform), /^matrix\(/, 'a flung lens squashes');
