@@ -64,7 +64,7 @@
   - `class Spring(value = 0, config: SpringInput = 'snappy')` with `value`, `velocity`, `target`, `config`, `step(dt)`, `settled` and `snap()`
 - `interaction.ts` keeps exporting `Spring(rest, stiffness = 420, damping = 24)` with `rest`, `atRest` and `reset()`, now as a subclass. `liquid.ts` is unchanged.
 
-- [ ] **Step 1: Write the failing tests** — `packages/meniscus/test/spring.test.ts`
+- [x] **Step 1: Write the failing tests** — `packages/meniscus/test/spring.test.ts`
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -148,12 +148,12 @@ describe('Spring', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `pnpm --filter meniscus exec vitest run test/spring.test.ts`
 Expected: FAIL, "Cannot find module '../src/core/spring'".
 
-- [ ] **Step 3: Implement** — `packages/meniscus/src/core/spring.ts`
+- [x] **Step 3: Implement** — `packages/meniscus/src/core/spring.ts`
 
 ```ts
 /** Mass, stiffness and damping of a spring. Omitted values come from the `snappy` preset. */
@@ -288,12 +288,12 @@ s += "\nexport { Spring, SPRINGS, resolveSpring, springPeriod, dampingRatio, typ
 open(p, 'w').write(s)
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass, then the whole suite and typecheck**
+- [x] **Step 4: Run the tests to verify they pass, then the whole suite and typecheck**
 
 Run: `pnpm --filter meniscus exec vitest run test/spring.test.ts && pnpm --filter meniscus test && pnpm --filter meniscus typecheck`
 Expected: all pass. The interaction and indicator suites guard the subclass switch.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/meniscus/src/core/spring.ts packages/meniscus/src/core/index.ts packages/meniscus/src/react/interaction.ts packages/meniscus/test/spring.test.ts
@@ -319,7 +319,7 @@ git commit -m "feat(core): add a portable spring solver"
   - `class GlassPhysics` with `state`, `settled`, `configure()`, `to(target, {delay})`, `impulse(vx, vy)`, `step(dt)`, `subscribe(fn) → unsubscribe` (it calls the listener at once) and `dispose()` (not permanent: a later `to` wakes it)
   - `staggerDelay(rank, physics?, stagger = 0.12) → ms`
 
-- [ ] **Step 1: Write the failing tests** — `packages/meniscus/test/physics.test.ts`
+- [x] **Step 1: Write the failing tests** — `packages/meniscus/test/physics.test.ts`
 
 ```ts
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -475,12 +475,12 @@ describe('staggerDelay', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `pnpm --filter meniscus exec vitest run test/physics.test.ts`
 Expected: FAIL, "Cannot find module '../src/core/physics'".
 
-- [ ] **Step 3: Implement** — `packages/meniscus/src/core/physics.ts`
+- [x] **Step 3: Implement** — `packages/meniscus/src/core/physics.ts`
 
 ```ts
 import { Spring, resolveSpring, springPeriod, type SpringConfig, type SpringInput } from './spring';
@@ -732,12 +732,12 @@ Append to `packages/meniscus/src/core/index.ts`:
 export { GlassPhysics, OPTICAL_REST, RESPONSE, staggerDelay, type OpticalChannel, type OpticalState, type GlassPhysicsOptions, type TransitionOptions } from './physics';
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `pnpm --filter meniscus exec vitest run test/physics.test.ts && pnpm --filter meniscus typecheck`
 Expected: all pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/meniscus/src/core/physics.ts packages/meniscus/src/core/index.ts packages/meniscus/test/physics.test.ts
@@ -760,7 +760,7 @@ git commit -m "feat(core): drive glass optics on independent springs"
   - `GlassOptions.intensity?`
   - `intensityOptics(intensity, variant) → { refraction, specular, aberration }`
 
-- [ ] **Step 1: Write the failing tests** — `packages/meniscus/test/intensity.test.ts`
+- [x] **Step 1: Write the failing tests** — `packages/meniscus/test/intensity.test.ts`
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -799,12 +799,12 @@ describe('intensity', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `pnpm --filter meniscus exec vitest run test/intensity.test.ts`
 Expected: FAIL, "intensityOptics is not a function" (or a missing export).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 p = 'packages/meniscus/src/core/glass.ts'
@@ -870,12 +870,12 @@ s = s.replace("export type { GlassOptions, GlassVariant, GlassAppearance, Resolv
 open(p, 'w').write(s)
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `pnpm --filter meniscus test && pnpm --filter meniscus typecheck`
 Expected: all pass. The existing optics suite is unchanged, because the default intensity is exactly the regular defaults.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/meniscus/src/core/glass.ts packages/meniscus/src/core/constants.ts packages/meniscus/src/core/index.ts packages/meniscus/src/index.ts packages/meniscus/test/intensity.test.ts
@@ -902,7 +902,7 @@ git commit -m "feat: add semantic intensity to glass options"
   - `LiquidMotionOptions.optics?: GlassPhysics | null`
   - `useOptics(node, optics, filterKey)`
 
-- [ ] **Step 1: Write the failing tests** — `packages/meniscus/test/glass-physics.test.tsx`
+- [x] **Step 1: Write the failing tests** — `packages/meniscus/test/glass-physics.test.tsx`
 
 ```tsx
 // @vitest-environment jsdom
@@ -1081,12 +1081,12 @@ describe('<Glass optics>', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `pnpm --filter meniscus exec vitest run test/glass-physics.test.tsx`
 Expected: FAIL, "useGlassPhysics is not exported" (or undefined).
 
-- [ ] **Step 3: Implement the hook and the optics writer**
+- [x] **Step 3: Implement the hook and the optics writer**
 
 `packages/meniscus/src/react/useGlassPhysics.ts`:
 
@@ -1186,7 +1186,7 @@ export function useOptics(node: HTMLElement | null, optics: GlassPhysics | undef
 }
 ```
 
-- [ ] **Step 4: Wire `Glass` and the gesture**
+- [x] **Step 4: Wire `Glass` and the gesture**
 
 ```python
 def edit(p, pairs):
@@ -1261,12 +1261,12 @@ edit('packages/meniscus/src/index.ts', [
 ])
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `pnpm --filter meniscus exec vitest run test/glass-physics.test.tsx && pnpm --filter meniscus test && pnpm --filter meniscus typecheck`
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/meniscus/src/react/useGlassPhysics.ts packages/meniscus/src/react/optics.ts packages/meniscus/src/react/Glass.tsx packages/meniscus/src/react/liquid.ts packages/meniscus/src/index.ts packages/meniscus/test/glass-physics.test.tsx
@@ -1296,7 +1296,7 @@ git commit -m "feat: drive glass optics from useGlassPhysics"
   - `StackPane { el; glass: ResolvedGlass; optics: GlassPhysics }`
   - `LayerContext` and `InsideLayerContext`
 
-- [ ] **Step 1: Write the failing tests** — `packages/meniscus/test/stack.test.tsx`
+- [x] **Step 1: Write the failing tests** — `packages/meniscus/test/stack.test.tsx`
 
 ```tsx
 // @vitest-environment jsdom
@@ -1528,12 +1528,12 @@ describe('<Glass.Stack>', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `pnpm --filter meniscus exec vitest run test/stack.test.tsx`
 Expected: FAIL, "Cannot read properties of undefined (reading 'Stack')" or similar.
 
-- [ ] **Step 3: Implement the contexts** — `packages/meniscus/src/react/stack.ts`
+- [x] **Step 3: Implement the contexts** — `packages/meniscus/src/react/stack.ts`
 
 ```ts
 import { createContext } from 'react';
@@ -1564,7 +1564,7 @@ export const LayerContext = createContext<LayerHandle | null>(null);
 export const InsideLayerContext = createContext(false);
 ```
 
-- [ ] **Step 4: Implement the stack** — `packages/meniscus/src/react/GlassStack.tsx`
+- [x] **Step 4: Implement the stack** — `packages/meniscus/src/react/GlassStack.tsx`
 
 ```tsx
 import {
@@ -1878,7 +1878,7 @@ GlassLayer.displayName = 'Glass.Layer';
 export type { GlassOptions };
 ```
 
-- [ ] **Step 5: Teach `Glass` the layer handle, and attach the statics**
+- [x] **Step 5: Teach `Glass` the layer handle, and attach the statics**
 
 ```python
 def edit(p, pairs):
@@ -1905,12 +1905,12 @@ edit('packages/meniscus/src/index.ts', [
 ])
 ```
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 Run: `pnpm --filter meniscus exec vitest run test/stack.test.tsx && pnpm --filter meniscus test && pnpm --filter meniscus typecheck`
 Expected: all pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/meniscus/src/react/stack.ts packages/meniscus/src/react/GlassStack.tsx packages/meniscus/src/react/Glass.tsx packages/meniscus/src/index.ts packages/meniscus/test/stack.test.tsx
@@ -1937,7 +1937,7 @@ git commit -m "feat: add Glass.Stack and Glass.Layer with depth-staggered physic
   - `MediaPane.optics?`
   - `hostOrigin(el) → { left, top, sx, sy }`
 
-- [ ] **Step 1: Write the failing GPU checks**
+- [x] **Step 1: Write the failing GPU checks**
 
 In `check-living-optics.mjs`'s GPU block, after the waves checks and before `canvas.width = 240`, add:
 
@@ -1963,12 +1963,12 @@ Add `opticsCheck` to the returned object, and after the waves asserts add:
   assert.equal(gpu.opticsCheck.clipError, 0);
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `MENISCUS_TEST_URL=http://localhost:5199/ node apps/site/scripts/check-living-optics.mjs`
 Expected: FAIL on `presence 0 removes a pane`, since optics are ignored.
 
-- [ ] **Step 3: Implement the renderer and the shader**
+- [x] **Step 3: Implement the renderer and the shader**
 
 ```python
 def edit(p, pairs):
@@ -2046,7 +2046,7 @@ edit('packages/meniscus/src/webgl/shaders.ts', [
 ])
 ```
 
-- [ ] **Step 4: Media layer and `Glass` frame**
+- [x] **Step 4: Media layer and `Glass` frame**
 
 ```python
 def edit(p, pairs):
@@ -2138,12 +2138,12 @@ edit('packages/meniscus/src/react/Glass.tsx', [
 
 `layer` must be declared before `layerRef`. Task 5 declares `const layer = useContext(LayerContext);` just before the fallback line, and `gRef` comes later in the component, so the order holds. Keep it that way.
 
-- [ ] **Step 5: Run the checks**
+- [x] **Step 5: Run the checks**
 
 Run: `pnpm --filter meniscus test && pnpm typecheck && MENISCUS_TEST_URL=http://localhost:5199/ node apps/site/scripts/check-living-optics.mjs`
 Expected: unit tests and typecheck pass. The browser script prints `PASS` with `opticsCheck.rest === 0`, `absent === 0`, `outside === 0` and `inside > 200`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/meniscus/src/webgl packages/meniscus/src/react/MediaLayer.tsx packages/meniscus/src/react/Glass.tsx apps/site/scripts/check-living-optics.mjs
@@ -2164,7 +2164,7 @@ git commit -m "feat(webgl): compound stacked glass and animate optics in the ren
 **Interfaces:**
 - Consumes: `Glass.Stack`, `Glass.Layer`, `SPRINGS` and `SpringPreset` (Tasks 1, 5); the site's `Plate`, `Scale`, `plateSrc` and `useTheme`.
 
-- [ ] **Step 1: Write the failing browser check** — `apps/site/scripts/check-stack.mjs`
+- [x] **Step 1: Write the failing browser check** — `apps/site/scripts/check-stack.mjs`
 
 ```js
 import assert from 'node:assert/strict';
@@ -2239,12 +2239,12 @@ for (const name of engines) {
 
 Add `"test:stack": "node scripts/check-stack.mjs"` to `apps/site/package.json` scripts.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `MENISCUS_TEST_URL=http://localhost:5199/ node apps/site/scripts/check-stack.mjs`
 Expected: FAIL: `.stack__stage` not found (a timeout on `scrollIntoViewIfNeeded`).
 
-- [ ] **Step 3: Implement the plate** — `apps/site/src/home/PlateStack.tsx`
+- [x] **Step 3: Implement the plate** — `apps/site/src/home/PlateStack.tsx`
 
 ```tsx
 import { Glass, SPRINGS, type SpringPreset } from 'meniscus';
@@ -2361,7 +2361,7 @@ Append to `experiments.css`:
 }
 ```
 
-- [ ] **Step 4: Run the browser checks, then look**
+- [x] **Step 4: Run the browser checks, then look**
 
 Run: `MENISCUS_TEST_URL=http://localhost:5199/ node apps/site/scripts/check-stack.mjs && MENISCUS_TEST_URL=http://localhost:5199/ node apps/site/scripts/check-living-optics.mjs`
 Expected: `PASS` for Chromium and WebKit, with the measured stagger within 70 ms of the expected ~218 ms. The living-optics check still passes, including the 320 px no-overflow check.
@@ -2370,7 +2370,7 @@ Then run a scratchpad Playwright script (not committed) and view the frames:
 - the plate after Open at +60 / +160 / +400 ms, in Chromium and WebKit
 - the card dragged over the sidebar
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/site/src/home/PlateStack.tsx apps/site/src/home/Home.tsx apps/site/src/home/experiments.css apps/site/scripts/check-stack.mjs apps/site/package.json
@@ -2388,18 +2388,44 @@ git commit -m "feat(site): add the glass-on-glass plate"
 - Modify: `apps/site/src/components/Components.tsx` (`intensity` and `optics` rows in the glass props)
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: README**
+- [x] **Step 1: README**
   - Props table: `intensity` (`'subtle' | 'regular' | 'strong' | number`, default `'regular'`) and `optics` (`GlassPhysics`).
   - New `## Stacked glass` section: a sidebar and card example, the capability matrix from spec §1, the `stagger` rule, `present` and `appear`, and entrance motion through `--meniscus-presence`.
   - New `## Physics` section: `useGlassPhysics`, the portable `GlassPhysics` loop with `scheduler: 'manual'`, the `SPRINGS` presets, the channel speeds, and emergent momentum.
   - Limits: in Safari and Firefox over media, a WebGL layer covers lower layers' text instead of refracting it.
-- [ ] **Step 2: Manual and catalog**
+- [x] **Step 2: Manual and catalog**
   - `content.ts`: add `STACK_PROPS` and `LAYER_PROPS` rows matching the JSDoc in `GlassStack.tsx`, plus `CODE.stack` (the plate's markup, trimmed), and the `intensity` and `optics` rows in `GLASS_PROPS`.
   - `Docs.tsx`: a `Section id="stack"` titled "Stacked glass", with two paragraphs, the code block and both props tables. Renumber the `n=` of the sections after it.
   - Catalog: add the two glass rows.
-- [ ] **Step 3: CHANGELOG**, under `## [Unreleased]`:
+- [x] **Step 3: CHANGELOG**, under `## [Unreleased]`:
   - Added: `Glass.Stack`/`Glass.Layer`, `useGlassPhysics`/`GlassPhysics`/`SPRINGS`, `optics`, `intensity`.
   - Changed: one spring solver drives press and squash.
-- [ ] **Step 4: Verify.** Run `pnpm test && pnpm typecheck && pnpm build && node apps/site/scripts/check-living-optics.mjs && node apps/site/scripts/check-stack.mjs` (both browser scripts with `MENISCUS_TEST_URL` set). All must pass.
-- [ ] **Step 5: Commit.** `git commit -m "docs: document stacked glass and layer physics"`
-- [ ] **Step 6: Final review.** Dispatch one fresh reviewer on the most capable model over the whole branch, with this plan, the spec and the Review Focus list. Fix Critical and Important findings with a RED→GREEN test each, then commit.
+- [x] **Step 4: Verify.** Run `pnpm test && pnpm typecheck && pnpm build && node apps/site/scripts/check-living-optics.mjs && node apps/site/scripts/check-stack.mjs` (both browser scripts with `MENISCUS_TEST_URL` set). All must pass.
+- [x] **Step 5: Commit.** `git commit -m "docs: document stacked glass and layer physics"`
+- [x] **Step 6: Final review.** Dispatch one fresh reviewer on the most capable model over the whole branch, with this plan, the spec and the Review Focus list. Fix Critical and Important findings with a RED→GREEN test each, then commit.
+
+## Decisions and progress
+
+- Executed inline on `feat/glass-stack` (cut from the merged liquid-physics work).
+- **Plan-code corrections** (ledger rulings):
+  - React 19 `act()` returns a thenable, so the stagger tests capture their value in a closure.
+  - The nested-glass test reads `LayerContext` directly.
+  - Two type annotations in the stacking code.
+- **The v0.2.0 flick check was flaky:** a position read sat between the last move and the release. It moved after the release; 5/5 runs pass.
+- **The demo surfaced two library bugs, both fixed test-first:**
+  - The hook disposed on StrictMode's fake unmount; it now pauses and resumes.
+  - The stack's methods changed identity when the scene appeared, which dropped queued entrances; they're stable now.
+- **The user's report surfaced two more, both fixed:**
+  - A bouncy exit rebounded into view; presence now has an inelastic floor at 0.
+  - Text outlived its glass on close; opacity follows `presenceOpacity`, and the demo fades content ahead of its glass.
+- **UX:**
+  - A new spring replays the entrance.
+  - The toggle loses `aria-pressed`.
+  - Sidebar links fit on one line at 390 px.
+- **Final review (fresh reviewer):**
+  - Five Important findings plus one re-graded Minor, all fixed with RED→GREEN tests: late-mounted layers now compound, lower resizes redraw, SSR hides absent layers, a class position wins, throwing listeners can't stop the loop, and a cancelled lift drops back.
+  - Eight minors are deferred (see the ledger).
+- **Verification:**
+  - Suite: 163 tests. Typecheck and build are clean.
+  - Browser checks pass in Chromium (live refraction) and WebKit (WebGL), with stagger measured within a frame of the expected 218 ms.
+
