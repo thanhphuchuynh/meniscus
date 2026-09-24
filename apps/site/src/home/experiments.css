@@ -40,3 +40,22 @@
 @media (prefers-reduced-motion: reduce) {
   .depth__pane { transition: none; }
 }
+
+.stack__stage { position: relative; height: 440px; overflow: hidden; border: var(--hair) solid var(--rule-faint); }
+.stack__scene { position: absolute; inset: 0; }
+.stack__scene img { width: 100%; height: 100%; object-fit: cover; object-position: center 70%; display: block; }
+.stack__sidebar { position: absolute; left: 22px; top: 22px; bottom: 22px; width: 200px; padding: 18px 16px; display: grid; align-content: start; gap: 4px; translate: calc((1 - var(--meniscus-presence, 1)) * -36px) 0; }
+.stack__sidebar a { color: var(--ink); text-decoration: none; padding: 8px 10px; border-radius: 12px; font: 600 var(--fs-ui) var(--font-display); }
+.stack__sidebar a:hover, .stack__sidebar a:focus-visible { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.stack__card { position: absolute; width: 300px; padding: 20px 22px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; translate: 0 calc((1 - var(--meniscus-presence, 1)) * 22px); }
+.stack__card:active { cursor: grabbing; }
+.stack__card h3 { margin: 0 0 6px; font: 700 var(--fs-h3, 1.2rem) var(--font-display); }
+.stack__card p { margin: 0; }
+.stack__controls { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: end; margin-top: 18px; }
+.stack__preset { display: grid; gap: 6px; font: 600 var(--fs-ui) var(--font-display); }
+.stack__preset select { font: inherit; padding: 6px 10px; border-radius: 10px; border: var(--hair) solid var(--rule-faint); background: transparent; color: var(--ink); }
+@media (max-width: 640px) {
+  .stack__stage { height: 380px; }
+  .stack__sidebar { width: 136px; }
+  .stack__card { width: 220px; }
+}

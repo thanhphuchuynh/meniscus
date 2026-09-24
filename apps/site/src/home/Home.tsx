@@ -5,6 +5,7 @@ import { OnlineExample } from '../shared/OnlineExample';
 import { Icon } from '../shared/Icon';
 import { sitePath } from '../shared/paths';
 import { PlateDepth } from './PlateDepth';
+import { PlateStack } from './PlateStack';
 import { PlateAnatomy } from './PlateAnatomy';
 import { PlateRenderers } from './PlateRenderers';
 import { PlateSpecimen } from './PlateSpecimen';
@@ -32,6 +33,7 @@ export function Home() {
       <main id="main" className="home">
         <PlateSpecimen />
         <PlateDepth />
+        <PlateStack />
         <PlateAnatomy sun={sun} onSun={setSun} />
         <PlateRenderers />
         <PlateSpecimens />
