@@ -4,7 +4,8 @@ import { defineConfig } from 'vite';
 
 const lib = (p: string) => fileURLToPath(new URL(`../../packages/meniscus/src/${p}`, import.meta.url));
 
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
+  base: command === 'build' || isPreview ? '/meniscus/' : '/',
   plugins: [react()],
   resolve: {
     // Develop against the library source so edits hot-reload without a rebuild.
@@ -24,4 +25,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

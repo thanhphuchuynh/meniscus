@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type Poin
 import { Install, Plate } from '../shared/chrome';
 import { useEngine } from '../shared/engine';
 import { Icon } from '../shared/Icon';
+import { sitePath } from '../shared/paths';
 import { RayDiagram } from '../shared/RayDiagram';
 import { plateSrc, useTheme } from '../shared/theme';
 
@@ -141,11 +142,11 @@ export function PlateSpecimen() {
         <div className="plate-one__actions">
           <Install />
           <div className="actions-row">
-            <a className="action action--primary" href="/playground/">
+            <a className="action action--primary" href={sitePath('/playground/')}>
               Open the playground
               <Icon name="arrow" />
             </a>
-            <a className="action action--quiet" href="/docs/">
+            <a className="action action--quiet" href={sitePath('/docs/')}>
               Read the manual
             </a>
           </div>

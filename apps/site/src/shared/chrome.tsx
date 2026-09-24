@@ -2,11 +2,17 @@ import { Glass, GlassIndicator } from 'meniscus';
 import { useEffect, useState, type FocusEvent, type ReactNode } from 'react';
 import { highlight } from 'sugar-high';
 import { Icon, MeniscusMark } from './Icon';
+import { sitePath } from './paths';
 import { setTheme, useTheme } from './theme';
 
 export type Page = 'home' | 'components' | 'playground' | 'docs';
 
-const HREF: Record<Page, string> = { home: '/', components: '/components/', playground: '/playground/', docs: '/docs/' };
+const HREF: Record<Page, string> = {
+  home: sitePath('/'),
+  components: sitePath('/components/'),
+  playground: sitePath('/playground/'),
+  docs: sitePath('/docs/'),
+};
 
 /** The page body behind the masthead. Firefox refracts a live copy of it; Chromium ignores it and refracts the page itself. */
 const PAGE_BODY = {
@@ -164,9 +170,9 @@ export function Colophon() {
         <a href={HREF.components}>Components</a>
         <a href={HREF.playground}>Playground</a>
         <a href={HREF.docs}>Manual</a>
-        <a href="/LICENSE.txt">License</a>
-        <a href="/THIRD_PARTY_NOTICES.txt">Third-party notices</a>
-        <a href="/PRIVACY.txt">Privacy</a>
+        <a href={sitePath('/LICENSE.txt')}>License</a>
+        <a href={sitePath('/THIRD_PARTY_NOTICES.txt')}>Third-party notices</a>
+        <a href={sitePath('/PRIVACY.txt')}>Privacy</a>
       </nav>
     </footer>
   );

@@ -2,6 +2,7 @@ import { GlassProvider } from 'meniscus';
 import { useState } from 'react';
 import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
 import { Icon } from '../shared/Icon';
+import { sitePath } from '../shared/paths';
 import { PlateAnatomy } from './PlateAnatomy';
 import { PlateRenderers } from './PlateRenderers';
 import { PlateSpecimen } from './PlateSpecimen';
@@ -43,11 +44,11 @@ export function Home() {
             <div className="closing__actions">
               <Install />
               <div className="actions-row">
-                <a className="action action--primary" href="/playground/">
+                <a className="action action--primary" href={sitePath('/playground/')}>
                   Open the playground
                   <Icon name="arrow" />
                 </a>
-                <a className="action action--quiet" href="/docs/">
+                <a className="action action--quiet" href={sitePath('/docs/')}>
                   Read the manual
                 </a>
               </div>

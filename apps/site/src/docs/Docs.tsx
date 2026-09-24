@@ -6,6 +6,7 @@ import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
 import { useEngine } from '../shared/engine';
 import { RayDiagram } from '../shared/RayDiagram';
 import { Scale } from '../shared/Scale';
+import { sitePath } from '../shared/paths';
 import { plateSrc, useTheme } from '../shared/theme';
 import { CODE, GLASS_PROPS, GROUP_PROPS, INDICATOR_PROPS, STAGE_PROPS, type PropRow } from './content';
 
@@ -157,7 +158,7 @@ export function Docs() {
               labels, input props, refs, and form behavior. <code>GlassLoader</code> is a loading indicator of three glass drops that fuse and part,
               inline or as a whole loading page with <code>page</code>; <code>GlassGlyph</code> turns an icon or shape inside glass into glass. They all ship
               from <code>meniscus</code> and need no stylesheet. See their{' '}
-              <a href="/components/">live examples</a>.
+              <a href={sitePath('/components/')}>live examples</a>.
             </p>
             <CodeBlock code={`import { GlassButton, GlassPanel, GlassTabs } from 'meniscus';
 
@@ -350,7 +351,7 @@ export function Docs() {
             <p>
               Every <code>Glass</code> inside a <code>GlassGroup</code> is drawn as one surface. Outlines closer than <code>spacing</code> grow a neck
               between them, the way two drops bridge; within twice that distance they lean toward each other; pulled apart, the neck thins and lets go. The
-              neck refracts and catches light like any other rim. <a href="/#surface-tension">Plate V</a> on the home page lets you drag one.
+              neck refracts and catches light like any other rim. <a href={sitePath('/#surface-tension')}>Plate V</a> on the home page lets you drag one.
             </p>
             <CodeBlock code={CODE.group} label="A toolbar and a drop that merge" />
             <p>

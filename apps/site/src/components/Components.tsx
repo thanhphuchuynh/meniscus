@@ -3,6 +3,7 @@ import { GlassPane, GlassStage } from 'meniscus/webgl';
 import { useEffect, useState, type ReactNode } from 'react';
 import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
 import { plateSrc, useTheme } from '../shared/theme';
+import { sitePath } from '../shared/paths';
 
 const ITEMS = [
   { id: 'button', name: 'GlassButton', role: 'A native action with glass response' },
@@ -386,7 +387,7 @@ function Entry({
           <h2 id={`${id}-title`}>{title}</h2>
           <p>{description}</p>
         </div>
-        <a href={`/docs/#${['button', 'tabs', 'panel', 'text-field', 'select', 'checkbox', 'loader'].includes(id) ? 'components' : id}`}>
+        <a href={sitePath(`/docs/#${['button', 'tabs', 'panel', 'text-field', 'select', 'checkbox', 'loader'].includes(id) ? 'components' : id}`)}>
           API &amp; guidance <span aria-hidden="true">↗</span>
         </a>
       </div>
@@ -531,7 +532,7 @@ export function Components() {
           </p>
           <div className="catalog__intro-actions">
             <Install />
-            <a href="/docs/#install">Read the installation guide <span aria-hidden="true">↗</span></a>
+            <a href={sitePath('/docs/#install')}>Read the installation guide <span aria-hidden="true">↗</span></a>
           </div>
         </header>
 

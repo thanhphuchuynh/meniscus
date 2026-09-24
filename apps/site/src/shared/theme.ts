@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { sitePath } from './paths';
 
 export type Theme = 'print' | 'lantern';
 
@@ -55,5 +56,5 @@ export function useTheme(): Theme {
 
 /** The engraving variant for the current ink: print (ink on stock) or lantern (light on dark). */
 export function plateSrc(name: 'opticks-plate-2' | 'opticks-plate-4', theme: Theme): string {
-  return `/plates/${name}${theme === 'lantern' ? '-lantern' : ''}.webp`;
+  return sitePath(`/plates/${name}${theme === 'lantern' ? '-lantern' : ''}.webp`);
 }

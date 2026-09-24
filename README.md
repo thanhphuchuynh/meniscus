@@ -8,6 +8,8 @@ Liquid glass for React, refracted by optics. The library lives in [`packages/men
 
 [Changelog](CHANGELOG.md) · [Release process](RELEASING.md)
 
+[Live site and manual](https://thanhphuchuynh.github.io/meniscus/) · [Manual](https://thanhphuchuynh.github.io/meniscus/docs/)
+
 ```sh
 pnpm install
 pnpm dev        # demo site at http://localhost:5173
