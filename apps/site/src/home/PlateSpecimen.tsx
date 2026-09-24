@@ -114,6 +114,7 @@ export function PlateSpecimen() {
             ref={lens}
             {...lensOptions}
             interactive
+            ripple
             // Where live refraction isn't available, the lens refracts the engraving in WebGL.
             backdrop={engraving}
             className="plate-one__lens"
@@ -138,7 +139,7 @@ export function PlateSpecimen() {
           {sound.unavailable ? 'Sound unavailable' : `Glass sound: ${sound.enabled ? 'on' : 'off'}`}
         </button>
         <p className="caption">
-          <b>Fig. 1.</b> A meniscus bends the page. Flick the lens and let it settle. Change the index to bend the engraving’s lines; the section follows your pointer. Rim {g.bezel.toFixed(0)} px wide,{' '}
+          <b>Fig. 1.</b> A meniscus bends the page. Flick the lens and it wobbles as it lands; tap it and ripples run across the glass, bending the engraving’s lines. Change the index to bend them further; the section follows your pointer. Rim {g.bezel.toFixed(0)} px wide,{' '}
           {g.thickness.toFixed(0)} px thick, <span className="var">n</span> = {g.ior.toFixed(2)}; the largest shift is{' '}
           <span className="num">{profile.maxDisplacement.toFixed(1)}</span> px.
         </p>

@@ -16,7 +16,7 @@ export function PlateDepth() {
     <Plate folio="Experiment" id="depth" className="depth" label="Through three surfaces">
       <div className="interfaces__text">
         <h2>Through three surfaces.</h2>
-        <p>Move across the plate to separate three curved panes. Each bends the image, glass and soft shadows beneath it. Different indices, one beam of light.</p>
+        <p>Move across the plate to separate three curved panes. Each bends the image, glass and soft shadows beneath it. Different indices, one beam of light. Tap a pane to ring it.</p>
       </div>
       <GlassStage source={plateSrc('opticks-plate-4', theme)} layered maxPixelRatio={1.5} onStatus={setStatus}
         className="depth__stage" tabIndex={0} role="group" aria-label="Layered glass experiment" aria-describedby="depth-help"
@@ -33,7 +33,7 @@ export function PlateDepth() {
           if (e.key === 'Home') { e.preventDefault(); move(0, 0); }
         }}>
         {[1.33, 1.52, 1.62].map((ior, index) => (
-          <GlassPane key={ior} className="depth__pane" radius={32} bezel={30} ior={ior} refraction={1.2}
+          <GlassPane key={ior} className="depth__pane" ripple radius={32} bezel={30} ior={ior} refraction={1.2}
             aberration={0.1} blur={0.5} variant="clear" lightAngle={-40 + tilt.x * 18}
             style={{ left: `${15 + index * 15}%`, top: `${16 + index * 13}%`,
               transform: `translate(${tilt.x * depth * (index + 1)}px, ${tilt.y * depth * (index + 1)}px)` }} />

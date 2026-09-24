@@ -12,6 +12,7 @@ try {
   await page.goto(process.env.MENISCUS_TEST_URL ?? 'http://127.0.0.1:5173/');
   await page.locator('.splash').waitFor({ state: 'detached' });
   const lens = page.locator('.plate-one__lens');
+  assert.equal(await lens.getAttribute('data-meniscus'), 'webgl', 'a rippling lens over the engraving draws in WebGL');
   await lens.focus();
   const beforeKey = await lens.evaluate(el => parseFloat(el.style.left));
   await page.keyboard.press('ArrowRight');
@@ -24,13 +25,23 @@ try {
   await page.mouse.up();
   await page.waitForTimeout(120);
   const carried = await lens.evaluate(el => ({ x: parseFloat(el.style.left), y: parseFloat(el.style.top) }));
+  assert.match(await lens.evaluate(el => el.style.transform), /^matrix\(/, 'a flung lens squashes');
   assert.ok(Math.hypot(carried.x - release.x, carried.y - release.y) > 1, 'flick must continue after release');
-  await page.waitForTimeout(1800);
+  await page.waitForTimeout(2400);
   const settled = await lens.getAttribute('style');
   await page.waitForTimeout(200);
   assert.equal(await lens.getAttribute('style'), settled, 'lens must stop scheduling positional motion');
+  assert.equal(await lens.evaluate(el => el.style.transform), '', 'squash gives the transform back');
   await page.getByLabel('Refractive index n', { exact: true }).fill('2.42');
   assert.match(await page.locator('.plate-one__figure').innerText(), /2\.42/);
+  // A tap rings the lens: frames change, then the surface settles.
+  const tapBox = await lens.boundingBox();
+  await page.mouse.click(tapBox.x + tapBox.width * 0.62, tapBox.y + tapBox.height * 0.4);
+  const ring1 = await lens.screenshot(); await page.waitForTimeout(90); const ring2 = await lens.screenshot();
+  assert.ok(!ring1.equals(ring2), 'waves move across the lens');
+  await page.waitForTimeout(3300);
+  const rest1 = await lens.screenshot(); await page.waitForTimeout(300); const rest2 = await lens.screenshot();
+  assert.ok(rest1.equals(rest2), 'the surface settles');
   if (process.env.MENISCUS_CAPTURE) await page.screenshot({ path: join(tmpdir(), 'meniscus-living-desktop.png') });
   const depth = page.locator('.depth__stage');
   await depth.scrollIntoViewIfNeeded();
@@ -143,6 +154,7 @@ try {
   await page.mouse.move(reducedBox.x + reducedBox.width / 2, reducedBox.y + reducedBox.height / 2); await page.mouse.down();
   await page.mouse.move(reducedBox.x + reducedBox.width / 2 + 30, reducedBox.y + reducedBox.height / 2 + 30, { steps: 4 }); await page.mouse.up();
   const reducedPos = await lens.evaluate(el => `${el.style.left}/${el.style.top}`);
+  assert.equal(await lens.evaluate(el => el.style.transform), '', 'no squash under reduced motion');
   await page.waitForTimeout(200);
   assert.equal(await lens.evaluate(el => `${el.style.left}/${el.style.top}`), reducedPos);
   await page.setViewportSize({ width: 390, height: 844 });

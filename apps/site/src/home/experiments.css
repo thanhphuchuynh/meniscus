@@ -1,7 +1,7 @@
 .depth { display: grid; gap: 28px; padding: var(--plate-pad); }
 .depth h2 { font-size: clamp(2.2rem, 4.6vw, 3.7rem); line-height: 0.98; letter-spacing: -0.024em; }
 .depth__stage { height: clamp(320px, 42vw, 560px); border: var(--hair) solid var(--rule-faint); }
-.depth__pane { position: absolute; width: 40%; height: 46%; pointer-events: none; transition: transform 160ms var(--ease-out); }
+.depth__pane { position: absolute; width: 40%; height: 46%; transition: transform 160ms var(--ease-out); }
 .depth__legend { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
 .depth__legend .caption { max-width: 58ch; }
 .plate-one__figure > .action { justify-self: start; }
