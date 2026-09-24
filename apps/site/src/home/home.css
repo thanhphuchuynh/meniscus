@@ -696,6 +696,12 @@
   gap: 10px;
   align-content: start;
 }
+/* A figure never grows past its column: an open code block scrolls inside it instead. */
+.exhibit,
+.specimen {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
 .exhibit--nav {
   grid-column: 1 / -1;
 }
