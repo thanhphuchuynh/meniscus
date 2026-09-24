@@ -79,3 +79,4 @@ export {
 export { buildUnionInWorker, overrideUnionWorker, type UnionURLs } from './unionWorker';
 export type { RippleField } from './ripple';
 export { Spring, SPRINGS, resolveSpring, springPeriod, dampingRatio, type SpringConfig, type SpringInput, type SpringPreset } from './spring';
+export { GlassPhysics, OPTICAL_REST, RESPONSE, staggerDelay, type OpticalChannel, type OpticalState, type GlassPhysicsOptions, type TransitionOptions } from './physics';
