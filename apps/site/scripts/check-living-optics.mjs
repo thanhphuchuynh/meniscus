@@ -46,6 +46,7 @@ try {
   const gpu = await page.evaluate(async (root) => {
     const { GlassRenderer } = await import(`/@fs${root}packages/meniscus/src/webgl/renderer.ts`);
     const { resolveGlass } = await import(`/@fs${root}packages/meniscus/src/core/glass.ts`);
+    const { RippleField } = await import(`/@fs${root}packages/meniscus/src/core/ripple.ts`);
     const canvas = document.createElement('canvas'); canvas.width = 160; canvas.height = 120;
     const source = document.createElement('canvas'); source.width = 160; source.height = 120;
     const ctx = source.getContext('2d');
@@ -71,17 +72,48 @@ try {
     renderer.render(noShadows, 'fill', 1, { layered: true }); const absentShadows = pixels();
     let shadowDifference = 0;
     for (let i = 0; i < disabledShadows.length; i++) shadowDifference += Math.abs(disabledShadows[i] - absentShadows[i]);
+    // Waves: a calm field draws nothing extra, an excited one bends the image,
+    // and once it sleeps the glass is exactly as before.
+    const diff = (p, q) => { let d = 0; for (let i = 0; i < p.length; i++) d += Math.abs(p[i] - q[i]); return d; };
+    const field = new RippleField(); field.resize(75, 72, 25);
+    const rippled = panes.map((p, i) => ({ ...p, ripple: i === 0 ? field : null }));
+    renderer.render(panes, 'fill', 1); const plain = pixels();
+    renderer.render(rippled, 'fill', 1); const calm = pixels();
+    field.drop(37, 36); for (let t = 0; t <= 96; t += 16) field.advance(t);
+    renderer.render(rippled, 'fill', 1); const wavy = pixels();
+    const waveError = gl.getError();
+    for (let t = 112; t <= 5000; t += 16) field.advance(t);
+    renderer.render(rippled, 'fill', 1); const slept = pixels();
+    const asleep = !field.active;
+    // A glass resized mid-life gets a fresh, smaller grid; its upload must stay in bounds.
+    field.resize(60, 50, 20); field.drop(30, 25);
+    for (let t = 5016; t <= 5100; t += 16) field.advance(t);
+    const resizedPanes = rippled.map((p, i) => (i === 0 ? { ...p, glass: resolveGlass({ radius: 20, bezel: 18, ior: 1.33, refraction: 1.5, blur: 0, tint: 'transparent' }, 60, 50) } : p));
+    renderer.render(resizedPanes, 'fill', 1); const resizedError = gl.getError();
+    const waves = { calm: diff(plain, calm), wavy: diff(plain, wavy), slept: diff(plain, slept), asleep, waveError, resizedError, resizedCols: field.cols };
+    // Simulation cost: a full 128 × 128 grid, 60 frames of an active surface.
+    const big = new RippleField(); big.resize(320, 320, 0); big.drop(160, 160);
+    const costs = []; let clock = 0; big.advance(clock);
+    for (let k = 0; k < 60; k++) { const s = performance.now(); big.advance((clock += 1000 / 60)); costs.push(performance.now() - s); }
+    costs.sort((x, y) => x - y);
+    const simMs = costs[30];
     canvas.width = 240; canvas.height = 180;
     renderer.render(panes, 'fill', 1.5, { layered: true, shadow });
     const resizeError = gl.getError();
     renderer.render(panes, 'fill', 1.5); const defaultError = gl.getError();
     renderer.dispose();
-    return { difference, shadowDifference, bottom, top, resizeError, defaultError };
+    return { difference, shadowDifference, bottom, top, resizeError, defaultError, waves, simMs };
   }, fileURLToPath(new URL('../../../', import.meta.url)));
   assert.equal(gpu.shadowDifference, 0, 'shadow=false must disable layered shadows');
   assert.ok(gpu.difference > 10000, JSON.stringify(gpu));
   assert.ok(gpu.bottom[2] > 240 && gpu.top[0] > 240, 'framebuffer orientation');
   assert.equal(gpu.resizeError, 0); assert.equal(gpu.defaultError, 0);
+  assert.equal(gpu.waves.calm, 0, 'a calm field must not change the glass');
+  assert.ok(gpu.waves.wavy > 2000, `waves must bend the image: ${JSON.stringify(gpu.waves)}`);
+  assert.equal(gpu.waves.slept, 0, 'a sleeping field must leave the glass exactly as before');
+  assert.ok(gpu.waves.asleep); assert.equal(gpu.waves.waveError, 0);
+  assert.equal(gpu.waves.resizedError, 0, 'a resized field uploads within its layer'); assert.equal(gpu.waves.resizedCols, 24);
+  assert.ok(gpu.simMs < 0.5, `ripple simulation budget: ${gpu.simMs} ms`);
 
   const handle = page.getByRole('slider', { name: 'Navigation', exact: true });
   await handle.focus(); await page.keyboard.press('End');

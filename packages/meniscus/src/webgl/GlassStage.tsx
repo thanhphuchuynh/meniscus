@@ -23,6 +23,7 @@ import { Glass, type GlassProps } from '../react/Glass';
 import { useMergedRef } from '../react/refs';
 import { optionsKey, useGlassDefaults } from '../react/context';
 import { useIsomorphicLayoutEffect } from '../react/hooks';
+import { rippleOf } from '../react/liquid';
 import { GlassRenderer, type Fit, type PaneFrame } from './renderer';
 import { resolveTint, tintVersion } from './color';
 import { MERGED_SHADOW, isVideo, sourceReady, sourceSize } from './media';
@@ -192,7 +193,7 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
       initial.addEventListener('loadeddata', reupload);
     }
 
-    const loop = () => {
+    const loop = (now: number) => {
       if (!running) return;
       frame = requestAnimationFrame(loop);
       if (!visible) return;
@@ -231,8 +232,10 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
         const glass = resolveGlass(options, width, height);
         const x = (r.left - box.left) / scaleX - stage.clientLeft;
         const y = (r.top - box.top) / scaleY - stage.clientTop;
-        frames.push({ x, y, glass, tint: resolveTint(el, glass.tint), shadow: options.shadow === undefined });
-        signature += `|${x.toFixed(2)},${y.toFixed(2)},${width.toFixed(2)},${height.toFixed(2)},${optionsKey(options)}`;
+        const ripple = rippleOf(el) ?? null;
+        ripple?.advance(now);
+        frames.push({ x, y, glass, tint: resolveTint(el, glass.tint), shadow: options.shadow === undefined, ripple });
+        signature += `|${x.toFixed(2)},${y.toFixed(2)},${width.toFixed(2)},${height.toFixed(2)},${optionsKey(options)}${ripple ? `~${ripple.version}` : ''}`;
       }
 
       if (!live && !dirty.current && signature === lastSignature) return;

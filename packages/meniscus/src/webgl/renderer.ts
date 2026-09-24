@@ -2,6 +2,7 @@ import { glassProfile, lightingProfile, type ResolvedGlass } from '../core/glass
 import { ABERRATION_SPREAD } from '../core/filter';
 import { lightVector } from '../core/maps';
 import { profileKey } from '../core/profiles';
+import { RIPPLE_MAX, type RippleField } from '../core/ripple';
 import { FRAGMENT, LUT_SAMPLES, MAX_PANES, VERTEX } from './shaders';
 
 export type Fit = 'cover' | 'contain' | 'fill';
@@ -34,6 +35,8 @@ export interface PaneFrame {
   glass: ResolvedGlass;
   /** Tint as linear 0..1 rgba. */
   tint: [number, number, number, number];
+  /** A liquid surface over this pane, drawn while it moves. */
+  ripple?: RippleField | null;
 }
 
 const MAX_SLOPE = 1e4;
@@ -64,6 +67,10 @@ export class GlassRenderer {
   private targetSize = '';
   private sourceTex: WebGLTexture;
   private lutTex: WebGLTexture;
+  private waveTex: WebGLTexture;
+  private waveReady = false;
+  private waveBroken = false;
+  private waveUploads = Array.from({ length: MAX_PANES }, () => ({ field: null as RippleField | null, version: -1 }));
   private vao: WebGLVertexArrayObject;
   private buffer: WebGLBuffer;
   private maxTexture: number;
@@ -79,6 +86,7 @@ export class GlassRenderer {
     tint: new Float32Array(MAX_PANES * 4),
     light: new Float32Array(MAX_PANES * 4),
     misc: new Float32Array(MAX_PANES * 4),
+    wave: new Float32Array(MAX_PANES * 4),
   };
 
   constructor(readonly canvas: HTMLCanvasElement) {
@@ -95,7 +103,7 @@ export class GlassRenderer {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(`meniscus: program failed to link: ${gl.getProgramInfoLog(program)}`);
     this.program = program;
 
-    for (const name of ['u_layer', 'u_screenSource', 'u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_panesOnly', 'u_shadow', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc']) {
+    for (const name of ['u_layer', 'u_screenSource', 'u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_panesOnly', 'u_shadow', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc', 'u_waves', 'u_wave']) {
       this.uniforms[name] = gl.getUniformLocation(program, name);
     }
 
@@ -130,6 +138,20 @@ export class GlassRenderer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG16F, LUT_SAMPLES, MAX_PANES, 0, gl.RG, gl.FLOAT, null);
+
+    // Wave heights, one layer per pane. A 1 × 1 placeholder keeps the sampler
+    // valid; the full array is allocated the first time something ripples.
+    const waveTex = gl.createTexture();
+    if (!waveTex) throw new Error('meniscus: could not create textures');
+    this.waveTex = waveTex;
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, waveTex);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.R16F, 1, 1, 1, 0, gl.RED, gl.FLOAT, null);
+    gl.activeTexture(gl.TEXTURE0);
   }
 
   /**
@@ -192,6 +214,31 @@ export class GlassRenderer {
     this.lutKeys[row] = key;
   }
 
+  /** Allocates the wave layers once. False if the GPU refused; glass then draws without waves. */
+  private waves(): boolean {
+    if (this.waveReady || this.waveBroken) return this.waveReady;
+    const gl = this.gl;
+    gl.getError();
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.waveTex);
+    gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.R16F, RIPPLE_MAX, RIPPLE_MAX, MAX_PANES, 0, gl.RED, gl.FLOAT, null);
+    gl.activeTexture(gl.TEXTURE0);
+    this.waveReady = gl.getError() === gl.NO_ERROR;
+    this.waveBroken = !this.waveReady;
+    return this.waveReady;
+  }
+
+  private uploadWave(layer: number, field: RippleField): void {
+    const gl = this.gl;
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.waveTex);
+    // Typed-array uploads to 3D textures require both flags off.
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, field.cols, field.rows, 1, gl.RED, gl.FLOAT, field.heights);
+    gl.activeTexture(gl.TEXTURE0);
+  }
+
   /**
    * Draws one frame. Canvas size must already be set in device px. `fit`
    * scales the source to the canvas like object-fit, or a rect places it.
@@ -241,6 +288,19 @@ export class GlassRenderer {
       a.light.set([lx, ly, lz, g.specular], o);
       a.misc.set([g.rim, g.saturation, g.shade, pixelRatio], o);
       this.uploadProfile(i, g, `${profileKey(g.profile)}|${g.bezel}|${g.thickness}|${g.ior}|${g.caustics}|${g.radius}`);
+      const field = p.ripple;
+      if (field && field.active && field.cols > 0 && this.waves()) {
+        const slot = this.waveUploads[i]!;
+        if (slot.field !== field || slot.version !== field.version) {
+          this.uploadWave(i, field);
+          slot.field = field;
+          slot.version = field.version;
+        }
+        // Small-angle refraction: a surface tilted by slope s shifts the view s·T·(1 − 1/n).
+        a.wave.set([g.thickness * (1 - 1 / g.ior) * pixelRatio, field.cols, field.rows, 1], o);
+      } else {
+        a.wave.set([0, 0, 0, 0], o);
+      }
     }
 
     gl.useProgram(this.program);
@@ -268,6 +328,11 @@ export class GlassRenderer {
     gl.uniform4fv(u.u_tint!, a.tint);
     gl.uniform4fv(u.u_light!, a.light);
     gl.uniform4fv(u.u_misc!, a.misc);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.waveTex);
+    gl.uniform1i(u.u_waves!, 2);
+    gl.uniform4fv(u.u_wave!, a.wave);
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindVertexArray(this.vao);
     if (layered && merge <= 0 && !panesOnly && count > 0) {
       this.ensureTargets(cw, ch);
@@ -342,6 +407,7 @@ export class GlassRenderer {
     this.targets = [];
     gl.deleteTexture(this.sourceTex);
     gl.deleteTexture(this.lutTex);
+    gl.deleteTexture(this.waveTex);
     gl.deleteProgram(this.program);
     gl.deleteVertexArray(this.vao);
     gl.deleteBuffer(this.buffer);

@@ -3,6 +3,7 @@ import type { ResolvedGlass } from '../core/glass';
 import { resolveTint, tintVersion } from '../webgl/color';
 import { MERGED_SHADOW, isVideo, mediaRect, sourceReady, sourceSize, type Media } from '../webgl/media';
 import type { GlassRenderer, PaneFrame } from '../webgl/renderer';
+import { rippleOf } from './liquid';
 
 /** One pane of glass, in the host's layout px. */
 export interface MediaPane {
@@ -73,7 +74,7 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
       uploaded = false;
     };
 
-    const loop = () => {
+    const loop = (now: number) => {
       if (!running || !renderer) return;
       raf = requestAnimationFrame(loop);
       if (!visible || !sourceReady(media)) return;
@@ -99,8 +100,15 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
       }
 
       const hostRect = host.getBoundingClientRect();
-      const sx = host.offsetWidth ? hostRect.width / host.offsetWidth : 1;
-      const sy = host.offsetHeight ? hostRect.height / host.offsetHeight : 1;
+      // Divide out the glass's own squash (a centered matrix, area kept) so only
+      // ancestor scale remains, and anchor at the center, which it never moves.
+      const [ma, mb, mc, md] = ownMatrix(host);
+      const w = host.offsetWidth;
+      const h = host.offsetHeight;
+      const sx = w ? hostRect.width / (Math.abs(ma) * w + Math.abs(mc) * h) : 1;
+      const sy = h ? hostRect.height / (Math.abs(mb) * w + Math.abs(md) * h) : 1;
+      const left = hostRect.left + (hostRect.width - w * sx) / 2;
+      const top = hostRect.top + (hostRect.height - h * sy) / 2;
       const pr = Math.min(maxPixelRatio, window.devicePixelRatio || 1);
       const { box } = f;
       const cw = Math.max(1, Math.round(box.width * pr));
@@ -108,12 +116,19 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
       // The media's drawn rect, from viewport px into the canvas's layout px.
       const m = mediaRect(media);
       const placement = {
-        x: (m.x - hostRect.left) / sx - host.clientLeft - box.x,
-        y: (m.y - hostRect.top) / sy - host.clientTop - box.y,
+        x: (m.x - left) / sx - host.clientLeft - box.x,
+        y: (m.y - top) / sy - host.clientTop - box.y,
         width: m.width / sx,
         height: m.height / sy,
       };
-      const key = `${f.key}|${tintVersion()}|${box.x.toFixed(2)},${box.y.toFixed(2)},${cw}x${ch}|${placement.x.toFixed(2)},${placement.y.toFixed(2)},${placement.width.toFixed(2)},${placement.height.toFixed(2)}`;
+      let waves = '';
+      for (const p of f.panes) {
+        const ripple = rippleOf(p.el);
+        if (!ripple) continue;
+        ripple.advance(now);
+        waves += `~${ripple.version}`;
+      }
+      const key = `${f.key}|${tintVersion()}|${waves}|${box.x.toFixed(2)},${box.y.toFixed(2)},${cw}x${ch}|${placement.x.toFixed(2)},${placement.y.toFixed(2)},${placement.width.toFixed(2)},${placement.height.toFixed(2)}`;
       if (!live && key === last) return;
       last = key;
 
@@ -123,7 +138,7 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
       }
       Object.assign(canvas.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.width}px`, height: `${box.height}px`, visibility: 'visible' });
       panes.length = 0;
-      for (const p of f.panes) panes.push({ x: p.x - box.x, y: p.y - box.y, glass: p.glass, tint: resolveTint(p.el, p.glass.tint) });
+      for (const p of f.panes) panes.push({ x: p.x - box.x, y: p.y - box.y, glass: p.glass, tint: resolveTint(p.el, p.glass.tint), ripple: rippleOf(p.el) ?? null });
       renderer.render(panes, placement, pr, { merge: f.merge, panesOnly: true, shadow: f.shadow ? MERGED_SHADOW : null });
     };
 
@@ -170,4 +185,11 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
   }, [host, media, maxPixelRatio]);
 
   return <canvas ref={canvasRef} aria-hidden="true" data-meniscus-layer="webgl" style={{ ...CANVAS, ...style }} />;
+}
+
+/** The host's own inline matrix (the squash) as [a, b, c, d]; identity for anything else. */
+function ownMatrix(el: HTMLElement): [number, number, number, number] {
+  const m = /^matrix\(([^)]*)\)$/.exec(el.style.transform);
+  const v = m ? m[1]!.split(',').map(Number) : [];
+  return v.length === 6 && v.every(Number.isFinite) ? [v[0]!, v[1]!, v[2]!, v[3]!] : [1, 0, 0, 1];
 }

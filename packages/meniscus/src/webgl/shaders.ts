@@ -1,5 +1,6 @@
 import { DEFAULT_SHININESS, RIM_BACK, RIM_FLOOR, RIM_POWER, SHADE_COLOR, SHADE_FLOOR, SHADE_POWER } from '../core/maps';
 import { NORMAL_FLOOR } from '../core/union';
+import { RIPPLE_MAX } from '../core/ripple';
 
 const glsl = (v: number) => (Number.isInteger(v) ? `${v}.0` : `${v}`);
 
@@ -47,6 +48,8 @@ uniform vec4 u_shape[MAX_PANES];  // radius, bezel, blur, aberration spread (px 
 uniform vec4 u_tint[MAX_PANES];   // rgb, alpha
 uniform vec4 u_light[MAX_PANES];  // light vector xyz, specular strength
 uniform vec4 u_misc[MAX_PANES];   // rim strength, saturation, shade strength, displacement scale
+uniform mediump sampler2DArray u_waves; // liquid surface heights (layout px), one layer per pane
+uniform vec4 u_wave[MAX_PANES];         // shift per unit slope (canvas px), cols, rows, on
 
 in vec2 v_px;
 out vec4 outColor;
@@ -138,6 +141,26 @@ float glassField(vec2 p) {
   return d;
 }
 
+// Slope of pane i's liquid surface here, from central differences of its layer.
+vec2 waveSlope(int i) {
+  vec4 w = u_wave[i];
+  if (w.w < 0.5) return vec2(0.0);
+  vec4 rect = u_rect[i];
+  vec2 cells = w.yz;
+  vec2 at = (v_px - rect.xy) / rect.zw * cells;
+  vec2 lo = vec2(0.5);
+  vec2 hi = cells - 0.5;
+  float layer = float(i);
+  const float SIZE = ${glsl(RIPPLE_MAX)};
+  float l = textureLod(u_waves, vec3(clamp(at - vec2(1.0, 0.0), lo, hi) / SIZE, layer), 0.0).r;
+  float r = textureLod(u_waves, vec3(clamp(at + vec2(1.0, 0.0), lo, hi) / SIZE, layer), 0.0).r;
+  float t = textureLod(u_waves, vec3(clamp(at - vec2(0.0, 1.0), lo, hi) / SIZE, layer), 0.0).r;
+  float b = textureLod(u_waves, vec3(clamp(at + vec2(0.0, 1.0), lo, hi) / SIZE, layer), 0.0).r;
+  // One cell in layout px: the rect is in canvas px and misc.w is the pixel ratio.
+  vec2 cell = rect.zw / (cells * u_misc[i].w);
+  return vec2(r - l, b - t) / (2.0 * cell);
+}
+
 // Everything that shades one point of glass, so merged panes can blend it.
 struct Material {
   float shift;      // displacement along -n, canvas px
@@ -149,18 +172,20 @@ struct Material {
   vec4 light;       // light vector xyz, specular strength
   float rim;
   float shade;
+  vec2 wave;        // liquid surface slope
+  float waveDepth;  // shift per unit slope, canvas px
 };
 
 Material paneMaterial(int i, float d) {
   float bezel = max(u_shape[i].y, 1e-3);
   float t = clamp(-d / bezel, 0.0, 1.0);
   vec2 table = texture(u_lut, vec2((t * (LUT_SAMPLES - 1.0) + 0.5) / LUT_SAMPLES, (float(i) + 0.5) / float(MAX_PANES))).rg;
-  return Material(table.r * u_misc[i].w, table.g, u_shape[i].z, u_shape[i].w, u_misc[i].y, u_tint[i], u_light[i], u_misc[i].x, u_misc[i].z);
+  return Material(table.r * u_misc[i].w, table.g, u_shape[i].z, u_shape[i].w, u_misc[i].y, u_tint[i], u_light[i], u_misc[i].x, u_misc[i].z, waveSlope(i), u_wave[i].x);
 }
 
 // The glass color for material m with outward normal n (premultiplied, before coverage).
 vec4 glassColor(Material m, vec2 n) {
-  vec2 offset = -n * m.shift;
+  vec2 offset = -n * m.shift + m.wave * m.waveDepth;
   vec4 glass;
   if (m.spread > 0.0) {
     vec4 cr = blurred(v_px + offset * (1.0 + m.spread), m.blur);
@@ -177,7 +202,7 @@ vec4 glassColor(Material m, vec2 n) {
   glass.a = mix(glass.a, 1.0, m.tint.a);
 
   // Lighting, matching shadeSurface() in core/maps.ts.
-  vec3 N = normalize(vec3(n * m.slope, 1.0));
+  vec3 N = normalize(vec3(n * m.slope - m.wave, 1.0));
   vec3 L = m.light.xyz;
   float hLen = length(vec3(L.xy, L.z + 1.0));
   const float shininess = ${glsl(DEFAULT_SHININESS)};
@@ -234,7 +259,7 @@ void main() {
       w[i] = 1.0 - h;
     }
     if (u_count > 0 && d <= 1.0) {
-      Material m = Material(0.0, 0.0, 0.0, 0.0, 0.0, vec4(0.0), vec4(0.0), 0.0, 0.0);
+      Material m = Material(0.0, 0.0, 0.0, 0.0, 0.0, vec4(0.0), vec4(0.0), 0.0, 0.0, vec2(0.0), 0.0);
       for (int i = 0; i < MAX_PANES; i++) {
         if (i >= u_count) break;
         if (w[i] < 1e-3) continue;
@@ -248,6 +273,8 @@ void main() {
         m.light += w[i] * p.light;
         m.rim += w[i] * p.rim;
         m.shade += w[i] * p.shade;
+        m.wave += w[i] * p.wave;
+        m.waveDepth += w[i] * p.waveDepth;
       }
       m.light.xyz = normalize(m.light.xyz);
       // Normals that nearly cancel (the waist of a neck) stay short.
