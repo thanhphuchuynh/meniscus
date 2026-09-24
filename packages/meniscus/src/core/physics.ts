@@ -32,6 +32,20 @@ export const OPTICAL_REST: Readonly<OpticalState> = { presence: 1, refraction: 1
  */
 export const RESPONSE: Readonly<Record<OpticalChannel, number>> = { presence: 1, refraction: 1, highlight: 2.5, tint: 0.8, shadow: 0.55 };
 
+/** Presence where a leaving glass is fully gone, and where it starts to fade. */
+const FADE_OUT = 0.15;
+const FADE_IN = 0.5;
+
+/**
+ * How opaque a glass is at a presence: fully opaque down to 0.5, gone by
+ * 0.15. Faint frost vanishes to the eye long before the dark text on it, so
+ * a long fade leaves text floating without its glass; this one finishes in
+ * the fast part of the spring, before its slow tail.
+ */
+export function presenceOpacity(presence: number): number {
+  return Math.max(0, Math.min(1, (presence - FADE_OUT) / (FADE_IN - FADE_OUT)));
+}
+
 /** Options for a `GlassPhysics`. */
 export interface GlassPhysicsOptions {
   /** The base spring: a preset name, or mass, stiffness and damping. Default `'snappy'`. */
@@ -183,6 +197,12 @@ export class GlassPhysics {
       }
     }
     for (const key of KEYS) this.springs[key].step(d);
+    // Presence has an inelastic floor: a glass that has left never bounces back into view.
+    const presence = this.springs.presence;
+    if (presence.value < 0) {
+      presence.value = 0;
+      if (presence.velocity < 0) presence.velocity = 0;
+    }
     if (this.settled) {
       for (const key of KEYS) this.springs[key].snap();
       moving.delete(this);

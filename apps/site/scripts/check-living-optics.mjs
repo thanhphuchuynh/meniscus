@@ -117,7 +117,9 @@ try {
     renderer.render([panes[0], { ...panes[1], optics: { ...REST, presence: 0 } }], 'fill', 1); const absent = pixels();
     renderer.render(panes, 'fill', 1, { layered: true, clip: 1, panesOnly: true }); const clipped = pixels();
     const alphaAt = (p, x, y) => p[((119 - y) * 160 + x) * 4 + 3];
-    const opticsCheck = { rest: diff(plain, restful), absent: diff(onlyFirst, absent), outside: alphaAt(clipped, 4, 4), inside: alphaAt(clipped, 95, 66), clipError: gl.getError() };
+    // Presence 0.5 is still fully opaque; with refraction 2 its bend is 1, so it matches rest exactly.
+    renderer.render([panes[0], { ...panes[1], optics: { ...REST, presence: 0.5, refraction: 2 } }], 'fill', 1); const half = pixels();
+    const opticsCheck = { rest: diff(plain, restful), half: diff(plain, half), absent: diff(onlyFirst, absent), outside: alphaAt(clipped, 4, 4), inside: alphaAt(clipped, 95, 66), clipError: gl.getError() };
     canvas.width = 240; canvas.height = 180;
     renderer.render(panes, 'fill', 1.5, { layered: true, shadow });
     const resizeError = gl.getError();
@@ -137,6 +139,7 @@ try {
   assert.ok(gpu.simMs < 0.5, `ripple simulation budget: ${gpu.simMs} ms`);
   assert.equal(gpu.opticsCheck.rest, 0, 'optics at rest must not change the glass');
   assert.equal(gpu.opticsCheck.absent, 0, 'presence 0 removes a pane');
+  assert.equal(gpu.opticsCheck.half, 0, 'presence fades over its lower half only');
   assert.equal(gpu.opticsCheck.outside, 0, 'a clipped render is transparent outside its pane');
   assert.ok(gpu.opticsCheck.inside > 200, `a clipped render draws its pane: ${JSON.stringify(gpu.opticsCheck)}`);
   assert.equal(gpu.opticsCheck.clipError, 0);

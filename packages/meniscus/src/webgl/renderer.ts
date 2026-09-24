@@ -2,7 +2,7 @@ import { glassProfile, lightingProfile, type ResolvedGlass } from '../core/glass
 import { ABERRATION_SPREAD } from '../core/filter';
 import { lightVector } from '../core/maps';
 import { profileKey } from '../core/profiles';
-import type { OpticalState } from '../core/physics';
+import { presenceOpacity, type OpticalState } from '../core/physics';
 import { RIPPLE_MAX, type RippleField } from '../core/ripple';
 import { FRAGMENT, LUT_SAMPLES, MAX_PANES, VERTEX } from './shaders';
 
@@ -290,8 +290,9 @@ export class GlassRenderer {
       a.rect.set([p.x * pixelRatio, p.y * pixelRatio, g.width * pixelRatio, g.height * pixelRatio], o);
       a.shape.set([g.radius * pixelRatio, g.bezel * pixelRatio, g.blur * pixelRatio, g.aberration * ABERRATION_SPREAD], o);
       const optics = p.optics;
-      const presence = optics ? Math.max(0, Math.min(1, optics.presence)) : 1;
+      const presence = optics ? Math.max(0, optics.presence) : 1;
       const bend = optics ? Math.max(0, optics.refraction) * presence : 1;
+      const coverage = optics ? presenceOpacity(presence) : 1;
       a.tint.set([p.tint[0], p.tint[1], p.tint[2], optics ? p.tint[3] * Math.max(0, Math.min(1, optics.tint)) : p.tint[3]], o);
       let [lx, ly, lz] = lightVector(g.lightAngle, g.lightElevation);
       if (optics && (optics.highlightX || optics.highlightY)) {
@@ -302,7 +303,7 @@ export class GlassRenderer {
         [lx, ly, lz] = [tx / len, ty / len, lz / len];
       }
       a.light.set([lx, ly, lz, g.specular], o);
-      a.optic.set([presence, bend, optics ? Math.max(0, optics.shadow) * presence : 1, 0], o);
+      a.optic.set([coverage, bend, optics ? Math.max(0, optics.shadow) * coverage : 1, 0], o);
       a.misc.set([g.rim, g.saturation, g.shade, pixelRatio], o);
       this.uploadProfile(i, g, `${profileKey(g.profile)}|${g.bezel}|${g.thickness}|${g.ior}|${g.caustics}|${g.radius}`);
       const field = p.ripple;

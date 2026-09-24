@@ -113,6 +113,7 @@ describe('<Glass optics>', () => {
     const { container } = render(<Glass optics={optics}>x</Glass>);
     const el = container.firstElementChild as HTMLElement;
     expect(el.style.getPropertyValue('--meniscus-presence')).toBe('0.5');
+    expect(el.style.getPropertyValue('--meniscus-opacity')).toBe('1');
     expect(el.style.getPropertyValue('--meniscus-tint')).toBe('0.4');
     expect(el.style.getPropertyValue('--meniscus-shadow')).toBe('0.2');
     expect(el.style.getPropertyValue('--meniscus-hx')).toBe('0.3');
@@ -125,10 +126,20 @@ describe('<Glass optics>', () => {
   it('reads presence, tint and lift in its styles, and leaves glass without optics untouched', () => {
     const optics = still({});
     const html = renderToString(<Glass optics={optics}>x</Glass>);
-    expect(html).toContain('opacity:var(--meniscus-presence, 1)');
+    expect(html).toContain('opacity:var(--meniscus-opacity, 1)');
     expect(html).toContain('var(--meniscus-tint, 1)');
     expect(html).toContain('var(--meniscus-shadow, 1)');
     expect(renderToString(<Glass>x</Glass>)).not.toContain('--meniscus');
+  });
+
+  it('fades text and glass together over the lower half of presence, so no text floats without its glass', () => {
+    overrideRefractionSupport(true);
+    mockSize(200, 80);
+    const optics = still({ presence: 0.3 });
+    const { container } = render(<Glass optics={optics}>x</Glass>);
+    const el = container.firstElementChild as HTMLElement;
+    expect(el.style.getPropertyValue('--meniscus-opacity')).toBe('0.4286');
+    expect(el.style.getPropertyValue('--meniscus-presence')).toBe('0.3');
   });
 
   it('keeps a custom shadow', () => {
@@ -146,7 +157,7 @@ describe('<Glass optics>', () => {
         x
       </Glass>,
     );
-    expect(html).toContain('opacity:calc(var(--meniscus-presence, 1) * 0.5)');
+    expect(html).toContain('opacity:calc(var(--meniscus-opacity, 1) * 0.5)');
   });
 
   it('lifts on press and rings with the release', () => {

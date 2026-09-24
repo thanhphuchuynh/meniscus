@@ -236,7 +236,8 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     const box = { x: -node.clientLeft, y: -node.clientTop, width: node.offsetWidth, height: node.offsetHeight };
     const own = opticsRef.current?.state ?? null;
     const key = `${box.width}x${box.height}|${optionsKey(optionsRef.current)}|${opticsKey(own)}`;
-    const self = { x: box.x, y: box.y, glass, el: node, optics: own };
+    // Its own canvas sits inside the element, whose opacity already fades it: keep only the bend.
+    const self = { x: box.x, y: box.y, glass, el: node, optics: own ? { ...own, presence: 1, refraction: own.refraction * Math.max(0, own.presence) } : null };
     const below = layerRef.current?.below() ?? [];
     if (!below.length) return { panes: [self], box, merge: 0, shadow: false, key };
     // Stacked: draw the glass beneath, back to front, and keep only this one.

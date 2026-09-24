@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { GlassPhysics, staggerDelay, type GlassPhysicsOptions } from '../src/core/physics';
+import { GlassPhysics, presenceOpacity, staggerDelay, type GlassPhysicsOptions } from '../src/core/physics';
 import { springPeriod } from '../src/core/spring';
 
 const created: GlassPhysics[] = [];
@@ -135,6 +135,30 @@ describe('GlassPhysics', () => {
     expect(p.state.presence).toBe(0);
   });
 
+  it('never bounces back into view once it has left, even on a bouncy spring', () => {
+    const p = make({ physics: 'bouncy' });
+    p.to({ presence: 0 });
+    let gone = false;
+    for (let i = 0; i < 180; i++) {
+      p.step(1 / 60);
+      if (p.state.presence <= 0) gone = true;
+      else if (gone) throw new Error(`came back to ${p.state.presence} after leaving`);
+      expect(p.state.presence).toBeGreaterThanOrEqual(0);
+    }
+    expect(gone).toBe(true);
+  });
+
+  it('still overshoots on the way in with a bouncy spring', () => {
+    const p = make({ physics: 'bouncy', initial: { presence: 0 } });
+    p.to({ presence: 1 });
+    let peak = 0;
+    for (let i = 0; i < 120; i++) {
+      p.step(1 / 60);
+      peak = Math.max(peak, p.state.presence);
+    }
+    expect(peak).toBeGreaterThan(1.05);
+  });
+
   it('stops everything on dispose', () => {
     const p = make();
     const seen: number[] = [];
@@ -155,6 +179,30 @@ describe('GlassPhysics', () => {
     expect(p.state.presence).toBe(mid);
     p.step(1 / 60);
     expect(p.state.presence).toBeLessThan(mid);
+  });
+});
+
+describe('presenceOpacity', () => {
+  it('stays opaque down to presence 0.5 and is gone by 0.15, before the spring’s slow tail', () => {
+    expect(presenceOpacity(1)).toBe(1);
+    expect(presenceOpacity(1.2)).toBe(1);
+    expect(presenceOpacity(0.5)).toBe(1);
+    expect(presenceOpacity(0.325)).toBeCloseTo(0.5, 9);
+    expect(presenceOpacity(0.15)).toBe(0);
+    expect(presenceOpacity(0)).toBe(0);
+    expect(presenceOpacity(-0.1)).toBe(0);
+  });
+
+  it('spends under 50 ms half-faded when a snappy glass leaves', () => {
+    const p = make();
+    p.to({ presence: 0 });
+    let ghost = 0;
+    for (let i = 0; i < 120; i++) {
+      p.step(1 / 240);
+      const o = presenceOpacity(p.state.presence);
+      if (o > 0.05 && o < 0.5) ghost += 1000 / 240;
+    }
+    expect(ghost).toBeLessThan(50);
   });
 });
 

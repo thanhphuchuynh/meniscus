@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { GlassPhysics, OpticalState } from '../core/physics';
+import { presenceOpacity, type GlassPhysics, type OpticalState } from '../core/physics';
 import { useIsomorphicLayoutEffect } from './hooks';
 
 const lift = 'var(--meniscus-shadow, 1)';
@@ -12,9 +12,9 @@ export function opticTint(tint: string): string {
   return `color-mix(in srgb, ${tint} calc(var(--meniscus-tint, 1) * 100%), transparent)`;
 }
 
-/** Opacity that follows presence, composed with the app's own. */
+/** Opacity that follows presence (see `presenceOpacity`), composed with the app's own. */
 export function opticOpacity(own: CSSProperties['opacity']): string {
-  return own === undefined ? 'var(--meniscus-presence, 1)' : `calc(var(--meniscus-presence, 1) * ${own})`;
+  return own === undefined ? 'var(--meniscus-opacity, 1)' : `calc(var(--meniscus-opacity, 1) * ${own})`;
 }
 
 /** A soft specular spot that follows the highlight channel. Invisible at rest. */
@@ -30,7 +30,7 @@ export const SPOT: CSSProperties = {
   mixBlendMode: 'screen',
 };
 
-const PROPS = ['presence', 'tint', 'shadow', 'hx', 'hy'] as const;
+const PROPS = ['presence', 'opacity', 'tint', 'shadow', 'hx', 'hy'] as const;
 const n = (x: number) => String(Math.round(x * 1e4) / 1e4);
 const maps = (node: HTMLElement) => node.querySelectorAll<SVGElement>(':scope > svg feDisplacementMap[data-scale]');
 
@@ -44,8 +44,10 @@ export function useOptics(node: HTMLElement | null, optics: GlassPhysics | undef
   useIsomorphicLayoutEffect(() => {
     if (!node || !optics) return;
     const apply = (s: OpticalState) => {
-      const presence = Math.max(0, Math.min(1, s.presence));
+      // Presence may pass 1 briefly on a bouncy spring: entrances overshoot, opacity doesn't.
+      const presence = Math.max(0, s.presence);
       node.style.setProperty('--meniscus-presence', n(presence));
+      node.style.setProperty('--meniscus-opacity', n(presenceOpacity(presence)));
       node.style.setProperty('--meniscus-tint', n(Math.max(0, s.tint)));
       node.style.setProperty('--meniscus-shadow', n(Math.max(0, s.shadow)));
       node.style.setProperty('--meniscus-hx', n(s.highlightX));

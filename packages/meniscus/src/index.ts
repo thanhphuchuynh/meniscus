@@ -17,7 +17,7 @@ export { GlassIndicator, type GlassIndicatorProps, type IndicatorBox } from './r
 export { GlassGroup, useGlassGroup, type GlassGroupProps } from './react/GlassGroup';
 export { useGlassMode, useElementSize } from './react/hooks';
 export { useGlassPhysics } from './react/useGlassPhysics';
-export { GlassPhysics, OPTICAL_REST, staggerDelay, type OpticalChannel, type OpticalState, type GlassPhysicsOptions, type TransitionOptions } from './core/physics';
+export { GlassPhysics, OPTICAL_REST, presenceOpacity, staggerDelay, type OpticalChannel, type OpticalState, type GlassPhysicsOptions, type TransitionOptions } from './core/physics';
 export { SPRINGS, type SpringConfig, type SpringInput, type SpringPreset } from './core/spring';
 export type { GlassOptions, GlassVariant, GlassAppearance, GlassIntensity, ResolvedGlass } from './core/glass';
 export type { Profile, ProfileName, ProfileFn } from './core/profiles';
