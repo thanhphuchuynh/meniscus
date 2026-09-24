@@ -39,6 +39,7 @@
   --gutter: clamp(16px, 3.6vw, 44px); /* Side gutter of the page. */
   --plate-pad: clamp(16px, 3vw, 40px); /* Padding inside a plate frame. */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* The page's one easing curve. Glass moves on the library's springs instead. */
+  --meniscus-focus-ring: 2px solid var(--spot); /* The focus ring meniscus draws on a whole glass field or tick box: the page's spot ink. */
 }
 
 @media (prefers-color-scheme: dark) {

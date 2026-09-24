@@ -152,7 +152,9 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   const reducedMotion = useMediaQuery(REDUCED_MOTION);
   const pixelRatio = usePixelRatio();
   const filterId = `meniscus-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-  const handlers = useLiquidInteraction(ref, interactive, reducedMotion);
+  // A disabled control doesn't answer the pointer, so its glass doesn't either.
+  const disabled = !!rest.disabled || rest['aria-disabled'] === true || rest['aria-disabled'] === 'true';
+  const handlers = useLiquidInteraction(ref, interactive && !disabled, reducedMotion);
 
   const bare = mode === 'none';
   const g = size && size.width > 0 && size.height > 0 ? resolveGlass(options, size.width, size.height) : null;
@@ -256,7 +258,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     ) : null,
     webgl && node && fallback.element ? <MediaLayer host={node} media={fallback.element as Media} frame={mediaFrame} onFail={fallback.fail} style={{ zIndex: -1 }} /> : null,
     highlight && g ? <span aria-hidden="true" data-meniscus-layer="highlight" style={highlightStyle(highlight, g.radius)} /> : null,
-    interactive ? (
+    interactive && !disabled ? (
       <span aria-hidden="true" data-meniscus-layer="light" style={LIGHT}>
         <span data-meniscus-layer="glow" style={GLOW} />
       </span>

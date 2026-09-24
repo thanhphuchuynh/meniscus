@@ -2,6 +2,7 @@ import { Glass, GlassGroup } from 'meniscus';
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent, type PointerEvent } from 'react';
 import { CodeBlock, Plate } from '../shared/chrome';
 import { useEngine } from '../shared/engine';
+import { GlassIcon } from '../shared/GlassIcon';
 import { Icon } from '../shared/Icon';
 import { Scale, Segmented } from '../shared/Scale';
 import { plateSrc, useTheme } from '../shared/theme';
@@ -282,9 +283,9 @@ export function PlateTension() {
           tint="var(--glass-wash-clear)"
         >
           <Glass ref={capsule} className="tension__capsule" radius="capsule" aria-hidden="true">
-            <Icon name="eye" />
-            <Icon name="bookmark" />
-            <Icon name="share" />
+            <GlassIcon name="eye" />
+            <GlassIcon name="bookmark" />
+            <GlassIcon name="share" />
           </Glass>
           <Glass
             ref={drop}
@@ -303,7 +304,7 @@ export function PlateTension() {
             onPointerCancel={() => (grab.current = null)}
             onKeyDown={onKeyDown}
           >
-            <Icon name="search" />
+            <GlassIcon name="search" />
           </Glass>
         </GlassGroup>
         <span id={hintId} className="visually-hidden">

@@ -7,6 +7,7 @@ import { Icon } from '../shared/Icon';
 import { RayDiagram } from '../shared/RayDiagram';
 import { plateSrc, useTheme } from '../shared/theme';
 
+// A round magnifier: the bezel runs to the middle, so the whole lens is a dome.
 const LENS: GlassOptions = { radius: 'capsule', variant: 'clear', refraction: 1, ior: 1.5, bezel: 999 };
 
 interface Point {
@@ -30,12 +31,12 @@ export function PlateSpecimen() {
   const engine = useEngine();
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
-  const field = useRef<HTMLDivElement>(null);
-  const headline = useRef<HTMLHeadingElement>(null);
+  const plate = useRef<HTMLElement>(null);
+  const engraving = useRef<HTMLImageElement>(null);
   const lens = useRef<HTMLButtonElement>(null);
   const drag = useRef<{ id: number; dx: number; dy: number } | null>(null);
   const [pos, setPos] = useState<Point | null>(null);
-  const [size, setSize] = useState({ w: 360, h: 120 });
+  const [size, setSize] = useState({ w: 220, h: 220 });
   const [probe, setProbe] = useState<number | null>(null);
   const [sweep, setSweep] = useState(0.22);
   const idleUntil = useRef(0);
@@ -49,46 +50,9 @@ export function PlateSpecimen() {
     return () => ro.disconnect();
   }, []);
 
-  // Start the lens over the headline's last line so the bend is the first thing
-  // seen. On narrow screens it would cover most of the headline, so it starts
-  // over the engraving's eye instead.
-  useEffect(() => {
-    const place = () => {
-      const f = field.current;
-      const h = headline.current;
-      const l = lens.current;
-      if (!f || !h || !l) return;
-      const fr = f.getBoundingClientRect();
-      if (fr.width < 640) {
-        const img = f.querySelector('.plate-one__engraving img');
-        const ir = img?.getBoundingClientRect();
-        if (ir) {
-          setPos({ x: (fr.width - l.offsetWidth) / 2, y: ir.top - fr.top + ir.height * 0.16 - l.offsetHeight / 2 });
-          return;
-        }
-      }
-      // Measure the word "page." itself: the headline block is as wide as its
-      // longest line, so its box would leave most of the lens over blank stock.
-      const range = document.createRange();
-      const text = [...h.childNodes].find((n): n is Text => n.nodeType === Node.TEXT_NODE && n.textContent!.includes('page.'));
-      let target = h.getBoundingClientRect();
-      if (text) {
-        const at = text.textContent!.lastIndexOf('page.');
-        range.setStart(text, at);
-        range.setEnd(text, at + 'page.'.length);
-        target = range.getBoundingClientRect();
-      }
-      const x = Math.min(fr.width - l.offsetWidth - 8, Math.max(8, target.left + target.width / 2 - fr.left - l.offsetWidth / 2));
-      // Center the lens on the word, so the whole word bends and the lede below stays readable.
-      const y = Math.max(8, target.top - fr.top + target.height / 2 - l.offsetHeight / 2);
-      setPos({ x, y });
-    };
-    place();
-    document.fonts?.ready.then(place);
-  }, []);
-
+  // Keep the lens on the engraving: mostly inside it, never lost off an edge.
   const clamp = useCallback((p: Point): Point => {
-    const f = field.current;
+    const f = plate.current;
     const l = lens.current;
     if (!f || !l) return p;
     return {
@@ -96,6 +60,22 @@ export function PlateSpecimen() {
       y: Math.min(Math.max(-l.offsetHeight * 0.25, p.y), f.clientHeight - l.offsetHeight * 0.75),
     };
   }, []);
+
+  // Start over the eye of Fig. 8, where the engraving's lines are densest.
+  // The image covers its box from the top, scaled to the box's width.
+  useEffect(() => {
+    const place = () => {
+      const f = plate.current;
+      const l = lens.current;
+      if (!f || !l) return;
+      const k = f.clientWidth / 1200;
+      setPos(clamp({ x: 800 * k - l.offsetWidth / 2, y: 334 * k - l.offsetHeight / 2 }));
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    if (plate.current) ro.observe(plate.current);
+    return () => ro.disconnect();
+  }, [clamp]);
 
   const g = resolveGlass(LENS, size.w, size.h);
   const profile = glassProfile(g);
@@ -126,14 +106,14 @@ export function PlateSpecimen() {
   const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
     if (!pos) return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    const fr = field.current!.getBoundingClientRect();
+    const fr = plate.current!.getBoundingClientRect();
     drag.current = { id: e.pointerId, dx: e.clientX - fr.left - pos.x, dy: e.clientY - fr.top - pos.y };
   };
   const onPointerMove = (e: PointerEvent<HTMLButtonElement>) => {
     probeFrom(e);
     const d = drag.current;
     if (!d || d.id !== e.pointerId) return;
-    const fr = field.current!.getBoundingClientRect();
+    const fr = plate.current!.getBoundingClientRect();
     setPos(clamp({ x: e.clientX - fr.left - d.dx, y: e.clientY - fr.top - d.dy }));
   };
   const onPointerUp = (e: PointerEvent<HTMLButtonElement>) => {
@@ -152,8 +132,8 @@ export function PlateSpecimen() {
 
   return (
     <Plate folio="Plate I" className="plate-one" label="Glass that bends the page">
-      <div className="plate-one__field" ref={field}>
-        <h1 ref={headline}>Glass that bends the page.</h1>
+      <div className="plate-one__field">
+        <h1>Glass that bends the page.</h1>
         <p className="plate-one__lede">
           meniscus is liquid glass for React. Each edge refracts what lies behind it the way real glass does: traced through a curved bezel with Snell’s law,
           then lit by a single sun.
@@ -178,42 +158,44 @@ export function PlateSpecimen() {
             Isaac Newton, <cite>Opticks</cite>, 1704
           </footer>
         </blockquote>
-        <figure className="plate-one__engraving">
+        <figure className="plate-one__engraving" ref={plate}>
           <img
+            ref={engraving}
             src={plateSrc('opticks-plate-2', theme)}
             alt="Newton’s Opticks, Book I, Plate II: rays through the eye’s lens, a prism, and a lens casting candlelight on a grid."
             width="1200"
             height="2191"
           />
+          <Glass
+            as="button"
+            type="button"
+            ref={lens}
+            {...LENS}
+            interactive
+            // Where live refraction isn't available, the lens refracts the engraving in WebGL.
+            backdrop={engraving}
+            className="plate-one__lens"
+            style={pos ? { left: pos.x, top: pos.y } : { visibility: 'hidden' }}
+            aria-label="Glass lens. Drag it, or use the arrow keys, to move it across the engraving."
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            onPointerLeave={() => {
+              setProbe(null);
+              idleUntil.current = performance.now() + 1200;
+            }}
+            onKeyDown={onKeyDown}
+          >
+            <Icon name="grip" className="plate-one__grip" />
+          </Glass>
         </figure>
-
-        <Glass
-          as="button"
-          type="button"
-          ref={lens}
-          {...LENS}
-          interactive
-          className="plate-one__lens"
-          style={pos ? { left: pos.x, top: pos.y } : { visibility: 'hidden' }}
-          aria-label="Glass specimen. Drag it, or use the arrow keys, to move it across the page."
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          onPointerLeave={() => {
-            setProbe(null);
-            idleUntil.current = performance.now() + 1200;
-          }}
-          onKeyDown={onKeyDown}
-        >
-          <Icon name="grip" className="plate-one__grip" />
-        </Glass>
       </div>
 
       <div className="plate-one__figure">
         <RayDiagram {...optics} probe={shown} />
         <p className="caption">
-          <b>Fig. 1.</b> A meniscus bends the page. Drag the glass across the specimen; the section follows your pointer. Rim {g.bezel.toFixed(0)} px wide,{' '}
+          <b>Fig. 1.</b> A meniscus bends the page. Drag the lens across the engraving and watch its lines bend; the section follows your pointer. Rim {g.bezel.toFixed(0)} px wide,{' '}
           {g.thickness.toFixed(0)} px thick, <span className="var">n</span> = {g.ior.toFixed(2)}; the largest shift is{' '}
           <span className="num">{profile.maxDisplacement.toFixed(1)}</span> px.
         </p>

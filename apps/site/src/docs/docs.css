@@ -301,3 +301,9 @@
   outline: 2px solid var(--spot);
   outline-offset: 2px;
 }
+
+@media (max-width: 480px) {
+  .manual__tabs button {
+    padding: 10px 11px;
+  }
+}

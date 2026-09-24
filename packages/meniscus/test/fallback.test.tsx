@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import { Glass, GlassGroup } from '../src';
 import {
@@ -266,10 +266,7 @@ describe('backdrop fallbacks', () => {
     expect(group.dataset.meniscusGroup).toBe('webgl');
     expect(group.querySelector('canvas[data-meniscus-layer="webgl"]')).not.toBeNull();
     // jsdom has no WebGL context: the renderer throws and the group frosts.
-    await act(async () => {
-      await new Promise((r) => setTimeout(r, 20));
-    });
-    expect(group.dataset.meniscusGroup).toBe('frost');
+    await waitFor(() => expect(group.dataset.meniscusGroup).toBe('frost'));
   });
 });
 

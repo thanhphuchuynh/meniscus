@@ -10,7 +10,7 @@
   border-bottom: var(--hair) solid var(--rule);
 }
 .catalog__intro h1 {
-  font-size: clamp(3.2rem, 7vw, 6rem);
+  font-size: clamp(2.4rem, 11vw, 6rem);
   letter-spacing: -0.035em;
 }
 .catalog__intro > p {
@@ -262,6 +262,110 @@
 .catalog__note {
   font-size: var(--fs-ui);
   color: var(--ink-soft);
+}
+
+/* Controls that drive a demo. */
+.catalog__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+}
+.catalog__control {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: var(--fs-ui);
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.catalog__control input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--spot);
+}
+.catalog__control input[type='range'] {
+  width: min(52vw, 220px);
+  accent-color: var(--spot);
+}
+.catalog__control output {
+  min-width: 4ch;
+  color: var(--ink-soft);
+}
+
+/* Props: the table scrolls on its own on narrow screens, never the page. */
+.catalog__props-wrap {
+  overflow-x: auto;
+}
+.catalog__props {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: var(--fs-ui);
+  line-height: 1.45;
+}
+.catalog__props th,
+.catalog__props td {
+  padding: 10px 14px 10px 0;
+  vertical-align: top;
+  text-align: left;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.catalog__props thead th {
+  padding-top: 0;
+  border-bottom-color: var(--rule);
+  font-weight: 600;
+  font-size: var(--fs-label);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+}
+.catalog__props tbody th code {
+  font-weight: 600;
+  color: var(--ink);
+}
+.catalog__props td {
+  color: var(--ink-soft);
+}
+.catalog__props td code {
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+/* GlassTabs in a form. */
+.catalog__tabs-form {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(100%, 460px);
+  padding: 20px 12px;
+}
+.catalog__tabs-form .catalog__complete-tabs {
+  width: 100%;
+  padding: 0;
+}
+.catalog__tabs-form [role='tabpanel'] {
+  width: 100%;
+  background: none;
+  text-align: start;
+}
+.catalog__submit {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 650;
+}
+.catalog__status {
+  max-width: 40ch;
+  padding: 2px 8px;
+  background: var(--stock-raised);
+  font-size: var(--fs-ui);
+  text-align: center;
+  color: var(--ink);
+}
+.catalog__group-drop {
+  transition: translate 480ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .catalog__entry .code {
   margin: 0;

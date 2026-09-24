@@ -11,10 +11,13 @@ const DEFAULT_STYLE: CSSProperties = {
   cursor: 'pointer',
 };
 
+const DISABLED: CSSProperties = { opacity: 0.5, cursor: 'not-allowed' };
+
 /** A native button with meniscus's interactive glass response. */
 export const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(function GlassButton(
   { type = 'button', radius = 'capsule', interactive = true, style, ...props },
   ref,
 ) {
-  return <Glass as="button" ref={ref} type={type} radius={radius} interactive={interactive} style={{ ...DEFAULT_STYLE, ...style }} {...props} />;
+  const disabled = props.disabled ? DISABLED : null;
+  return <Glass as="button" ref={ref} type={type} radius={radius} interactive={interactive} style={{ ...DEFAULT_STYLE, ...disabled, ...style }} {...props} />;
 });

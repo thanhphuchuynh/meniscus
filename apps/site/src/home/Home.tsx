@@ -7,6 +7,7 @@ import { PlateRenderers } from './PlateRenderers';
 import { PlateSpecimen } from './PlateSpecimen';
 import { PlateSpecimens } from './PlateSpecimens';
 import { PlateTension } from './PlateTension';
+import { PlateInterfaces } from './PlateInterfaces';
 
 const QUICK_START = `import { Glass } from 'meniscus';
 
@@ -31,6 +32,7 @@ export function Home() {
         <PlateRenderers />
         <PlateSpecimens />
         <PlateTension />
+        <PlateInterfaces />
         <section className="closing" aria-labelledby="closing-title">
           <div className="closing__text">
             <h2 id="closing-title">Start with one component</h2>

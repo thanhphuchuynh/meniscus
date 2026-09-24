@@ -747,3 +747,19 @@ sup {
     height: 34px;
   }
 }
+
+/* Four controls must fit a 320px phone beside the mark. */
+@media (max-width: 380px) {
+  .masthead__bar {
+    gap: 4px;
+    padding-left: 10px;
+  }
+  .masthead nav a {
+    padding: 8px 5px;
+    font-size: 0.8125rem;
+  }
+  .icon-button {
+    width: 32px;
+    height: 32px;
+  }
+}

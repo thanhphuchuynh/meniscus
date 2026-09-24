@@ -1,6 +1,7 @@
 import { Glass, GlassIndicator } from 'meniscus';
 import { useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
 import { CodeBlock, Plate } from '../shared/chrome';
+import { GlassIcon } from '../shared/GlassIcon';
 import { Icon, type IconName } from '../shared/Icon';
 import { plateSrc, useTheme } from '../shared/theme';
 
@@ -157,7 +158,7 @@ function SlideTabs({ tint, lensTint }: { tint: string; lensTint: string }) {
           data-shown={i === shown ? '' : undefined}
           onClick={() => setTab(i)}
         >
-          <Icon name={t.icon} />
+          <GlassIcon name={t.icon} />
           <span>{t.label}</span>
         </button>
       ))}
@@ -187,7 +188,7 @@ export function PlateSpecimens() {
         <Specimen id="fig4a" fig="Fig. 4a." title="Transport controls: a capsule holding an interactive glass button." code={TRANSPORT} className="specimen--transport">
           <Glass radius="capsule" className="transport" tint={tint} blur={4}>
             <button type="button" className="transport__skip" aria-label="Previous plate">
-              <Icon name="back" />
+              <GlassIcon name="back" />
             </button>
             <Glass
               as="button"
@@ -201,10 +202,10 @@ export function PlateSpecimens() {
               tint="var(--glass-spot-strong)"
               refraction={1.3}
             >
-              <Icon name={playing ? 'pause' : 'play'} />
+              <GlassIcon name={playing ? 'pause' : 'play'} />
             </Glass>
             <button type="button" className="transport__skip" aria-label="Next plate">
-              <Icon name="forward" />
+              <GlassIcon name="forward" />
             </button>
             <span className="transport__title">
               <b>Opticks</b> Book I, Plate IV
@@ -224,7 +225,7 @@ export function PlateSpecimens() {
 
         <Specimen id="fig4c" fig="Fig. 4c." title="A search field in regular glass, frosted for legibility." code={SEARCH} className="specimen--search">
           <Glass as="label" radius="capsule" variant="regular" blur={10} className="search" tint={tint}>
-            <Icon name="search" />
+            <GlassIcon name="search" />
             <span className="visually-hidden">Search the plates</span>
             <input type="search" placeholder="Search the plates" />
           </Glass>
@@ -244,7 +245,7 @@ export function PlateSpecimens() {
             </button>
           ) : (
             <Glass as="aside" radius={28} className="notice" tint={tint} role="status" appear={revived}>
-              <Icon name="bell" className="notice__icon" />
+              <GlassIcon name="bell" className="notice__icon" />
               <div>
                 <h3>Plate IV is ready</h3>
                 <p>Six figures, refracted in place.</p>
