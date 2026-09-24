@@ -1,6 +1,6 @@
 # meniscus workspace
 
-Liquid glass for React, refracted by optics. The library lives in [`packages/meniscus`](packages/meniscus); the demo site, playground and manual live in [`apps/site`](apps/site). The package is prepared for npm publication as `meniscus`.
+Liquid glass for React, refracted by optics. The library lives in [`packages/meniscus`](packages/meniscus) and is [published on npm](https://www.npmjs.com/package/meniscus). The demo site, playground and manual live in [`apps/site`](apps/site).
 
 [![Watch the 30-second Meniscus demo](docs/media/meniscus-preview.gif)](docs/media/meniscus-demo.mp4)
 
