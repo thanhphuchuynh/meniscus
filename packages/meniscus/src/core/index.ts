@@ -77,3 +77,4 @@ export {
   type UnionPixels,
 } from './union';
 export { buildUnionInWorker, overrideUnionWorker, type UnionURLs } from './unionWorker';
+export type { RippleField } from './ripple';
