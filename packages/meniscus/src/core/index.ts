@@ -78,3 +78,4 @@ export {
 } from './union';
 export { buildUnionInWorker, overrideUnionWorker, type UnionURLs } from './unionWorker';
 export type { RippleField } from './ripple';
+export { Spring, SPRINGS, resolveSpring, springPeriod, dampingRatio, type SpringConfig, type SpringInput, type SpringPreset } from './spring';

@@ -1,29 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, type KeyboardEvent, type PointerEvent, type RefObject } from 'react';
+import { Spring as CoreSpring } from '../core/spring';
 import { useIsomorphicLayoutEffect } from './hooks';
 
-/** A damped spring, integrated per frame. Underdamped: one overshoot, then it settles. */
-export class Spring {
-  value: number;
-  velocity = 0;
-  target: number;
-  constructor(readonly rest: number, private stiffness = 420, private damping = 24) {
-    this.value = rest;
-    this.target = rest;
-  }
-  step(dt: number): void {
-    const force = -this.stiffness * (this.value - this.target) - this.damping * this.velocity;
-    this.velocity += force * dt;
-    this.value += this.velocity * dt;
-  }
-  get settled(): boolean {
-    return Math.abs(this.value - this.target) < 1e-4 && Math.abs(this.velocity) < 1e-3;
+/** A spring with a resting value it returns to on `reset()`. The motion is the core solver's. */
+export class Spring extends CoreSpring {
+  constructor(
+    readonly rest: number,
+    stiffness = 420,
+    damping = 24,
+  ) {
+    super(rest, { stiffness, damping });
   }
   get atRest(): boolean {
     return this.settled && Math.abs(this.target - this.rest) < 1e-9;
-  }
-  snap(): void {
-    this.value = this.target;
-    this.velocity = 0;
   }
   reset(): void {
     this.target = this.rest;
