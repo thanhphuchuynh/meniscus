@@ -28,7 +28,7 @@ import { useElementSize, useGlassMode, useIsomorphicLayoutEffect, useMediaQuery,
 import { useLiquidInteraction, type InteractionHandlers } from './interaction';
 import { registerRipple, useLiquidMotion, warnUndrawnRipple } from './liquid';
 import { useAppear } from './appear';
-import { OPTIC_SHADOW, SPOT, opticOpacity, opticTint, useOptics } from './optics';
+import { OPTIC_SHADOW, SPOT, opticOpacity, opticTint, opticVars, useOptics } from './optics';
 import { LayerContext } from './stack';
 import { backdropElement, useElementCopy, useFallback, type Backdrop } from './backdrop';
 import { MediaLayer, hostOrigin, type MediaFrame } from './MediaLayer';
@@ -87,6 +87,10 @@ const STACK_MARGIN = 48;
 
 const opticsKey = (s: { presence: number; refraction: number; highlightX: number; highlightY: number; tint: number; shadow: number } | null | undefined) =>
   s ? [s.presence, s.refraction, s.highlightX, s.highlightY, s.tint, s.shadow].map((v) => v.toFixed(3)).join(',') : '';
+
+/** Everything about a resolved glass that changes how it draws. */
+const glassKey = (g: { width: number; height: number; radius: number; bezel: number; thickness: number; ior: number; blur: number; saturation: number; tint: string; aberration: number; specular: number; rim: number; shade: number; lightAngle: number; lightElevation: number }) =>
+  [g.width, g.height, g.radius, g.bezel, g.thickness, g.ior, g.blur, g.saturation, g.tint, g.aberration, g.specular, g.rim, g.shade, g.lightAngle, g.lightElevation].join(',');
 
 /** Page around a copied backdrop, so its blur has something to draw from at the rim, px. */
 const COPY_MARGIN = 16;
@@ -249,7 +253,8 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     panes.push(self);
     const m = STACK_MARGIN;
     const wide = { x: box.x - m, y: box.y - m, width: box.width + 2 * m, height: box.height + 2 * m };
-    const stackKey = panes.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)},${opticsKey(p.optics)}`).join(';');
+    // Lower layers redraw this one when they move, animate, resize or change their glass.
+    const stackKey = panes.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)},${glassKey(p.glass)},${opticsKey(p.optics)}`).join(';');
     return { panes, box: wide, merge: 0, shadow: false, layered: true, clip: panes.length - 1, key: `${key}|${stackKey}` };
   }, [node]);
 
@@ -297,7 +302,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     // needs one so the pointer glow (z-index -1) stays above what's behind.
     ...(bare && interactive ? { isolation: 'isolate' as const } : null),
     ...style,
-    ...(optics ? { opacity: opticOpacity(style?.opacity) as unknown as number } : null),
+    ...(optics ? { ...opticVars(optics.state), opacity: opticOpacity(style?.opacity) as unknown as number } : null),
     ...(hidden ? { opacity: 0 } : null),
   };
 

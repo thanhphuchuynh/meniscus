@@ -60,6 +60,15 @@ for (const name of engines) {
     await page.waitForTimeout(400);
     const after = await overlap();
     assert.ok(!before.equals(after), `${name}: the card refracts the sidebar beneath it`);
+    // A lower layer that changes size without moving still redraws the glass above it:
+    // compare one fixed region, the card, as the sidebar's edge moves under it.
+    const cardBox = await card.boundingBox();
+    const cardShot = () => page.screenshot({ clip: { x: cardBox.x + 8, y: cardBox.y + 8, width: cardBox.width - 16, height: cardBox.height - 16 } });
+    const narrow = await cardShot();
+    await side.evaluate((el) => { el.style.width = '300px'; });
+    await page.waitForTimeout(400);
+    const wide = await cardShot();
+    assert.ok(!narrow.equals(wide), `${name}: the card redraws when the sidebar beneath it resizes`);
     assert.deepEqual(errors, [], `${name}: page errors`);
     console.log(JSON.stringify({ engine: name, result: 'PASS', stagger: Math.round(sideStart - cardStart), expected: Math.round(expected) }));
   } finally {

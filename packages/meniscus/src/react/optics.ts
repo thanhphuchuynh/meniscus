@@ -32,6 +32,12 @@ export const SPOT: CSSProperties = {
 
 const PROPS = ['presence', 'opacity', 'tint', 'shadow', 'hx', 'hy'] as const;
 const n = (x: number) => String(Math.round(x * 1e4) / 1e4);
+
+/** Presence and opacity for a glass's first render, before its springs run: server markup shows an absent glass hidden. */
+export function opticVars(s: OpticalState): CSSProperties {
+  const presence = Math.max(0, s.presence);
+  return { '--meniscus-presence': n(presence), '--meniscus-opacity': n(presenceOpacity(presence)) } as CSSProperties;
+}
 const maps = (node: HTMLElement) => node.querySelectorAll<SVGElement>(':scope > svg feDisplacementMap[data-scale]');
 
 /**

@@ -87,16 +87,27 @@ const moving = new Set<GlassPhysics>();
 let loopFrame = 0;
 let loopLast = 0;
 
+/** Surfaces an error without letting it stop the loop. */
+function report(error: unknown): void {
+  if (typeof reportError === 'function') reportError(error);
+  else console.error(error);
+}
+
 function loop(now: number): void {
   const dt = loopLast ? (now - loopLast) / 1000 : 1 / 60;
   loopLast = now;
-  for (const p of Array.from(moving)) p.step(dt);
-  if (moving.size && typeof requestAnimationFrame === 'function') {
-    loopFrame = requestAnimationFrame(loop);
-  } else {
-    loopFrame = 0;
-    loopLast = 0;
+  loopFrame = 0;
+  // One failing instance must not freeze every other glass on the page.
+  for (const p of Array.from(moving)) {
+    try {
+      p.step(dt);
+    } catch (error) {
+      moving.delete(p);
+      report(error);
+    }
   }
+  if (moving.size && typeof requestAnimationFrame === 'function') loopFrame = requestAnimationFrame(loop);
+  else loopLast = 0;
 }
 
 function channelSpring(base: Required<SpringConfig>, channel: OpticalChannel, multiplier: number): Required<SpringConfig> {
@@ -261,7 +272,16 @@ export class GlassPhysics {
 
   private sync(notify: boolean): void {
     for (const key of KEYS) this.state[key] = this.springs[key].value;
-    if (notify) for (const listener of Array.from(this.listeners)) listener(this.state);
+    if (!notify) return;
+    for (const listener of Array.from(this.listeners)) {
+      try {
+        listener(this.state);
+      } catch (error) {
+        // A listener that throws is dropped, and its error reported once.
+        this.listeners.delete(listener);
+        report(error);
+      }
+    }
   }
 }
 

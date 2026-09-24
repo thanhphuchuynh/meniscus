@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  version,
   type ElementType,
   type ForwardedRef,
   type HTMLAttributes,
@@ -96,6 +97,9 @@ interface StackValue {
 }
 
 const StackContext = createContext<StackValue | null>(null);
+
+/** `inert` is a boolean prop from React 19; React 18 passes attributes through as strings. */
+const INERT = (version.startsWith('18.') ? '' : true) as unknown as boolean;
 
 let warnedOutside = false;
 let warnedNested = false;
@@ -189,9 +193,27 @@ function GlassStackImpl({ physics, stagger = 0.12, renderer = 'auto', appear = f
     [physicsKey, renderer, appear, source, setSource, register, update, present, below],
   );
 
+  // Layers need a positioned stack, but an app's own absolute, fixed or sticky
+  // (from a class) must win: only a stack that would be static gets `relative`.
+  const [node, setNode] = useState<HTMLElement | null>(null);
+  const setRef = useMergedRef(ref, setNode);
+  const positioned = useRef(false);
+  const className = (rest as { className?: string }).className;
+  useIsomorphicLayoutEffect(() => {
+    if (!node || style?.position) return;
+    if (positioned.current) {
+      node.style.position = '';
+      positioned.current = false;
+    }
+    if (getComputedStyle(node).position === 'static') {
+      node.style.position = 'relative';
+      positioned.current = true;
+    }
+  }, [node, className, style?.position]);
+
   return createElement(
     as ?? 'div',
-    { ...rest, ref, 'data-meniscus-stack': '', style: { position: 'relative', isolation: 'isolate', ...style } },
+    { ...rest, ref: setRef, 'data-meniscus-stack': '', style: { isolation: 'isolate', ...style } },
     <StackContext.Provider value={value}>{children}</StackContext.Provider>,
   );
 }
@@ -229,10 +251,13 @@ function ControlLayer({ depth, physics, present = true, kind: _kind, source: _so
   const [el, setEl] = useState<HTMLElement | null>(null);
   const setRef = useMergedRef(ref, setEl);
   const physicsKey = JSON.stringify(physics ?? null);
+  // The glass binds its shape in its own layout effect, which runs before this
+  // layer registers; a ref makes the order irrelevant.
+  const glassRef = useRef<(() => ResolvedGlass | null) | null>(null);
 
   useIsomorphicLayoutEffect(() => {
     if (!stack || !el) return;
-    return stack.register({ el, kind: 'control', depth, physics, optics, glass: null });
+    return stack.register({ el, kind: 'control', depth, physics, optics, glass: () => glassRef.current?.() ?? null });
   }, [stack?.register, el, optics]);
   useIsomorphicLayoutEffect(() => {
     if (stack && el) stack.update(el, { depth, physics });
@@ -254,21 +279,15 @@ function ControlLayer({ depth, physics, present = true, kind: _kind, source: _so
     else optics.to({ presence: present ? 1 : 0, shadow: present ? 1 : 0 });
   }, [stack, el, present, optics]);
 
-  // An absent layer stays in the page but can't be reached.
-  useIsomorphicLayoutEffect(() => {
-    if (!el) return;
-    el.toggleAttribute('inert', !present);
-    if (present) el.removeAttribute('aria-hidden');
-    else el.setAttribute('aria-hidden', 'true');
-  }, [el, present]);
 
   const handle = useMemo<LayerHandle>(
     () => ({
       preferWebGL: stack?.renderer === 'webgl',
       bind: (glass) => {
-        if (!stack || !el) return () => {};
-        stack.update(el, { glass });
-        return () => stack.update(el, { glass: null });
+        glassRef.current = glass;
+        return () => {
+          if (glassRef.current === glass) glassRef.current = null;
+        };
       },
       below: () => (stack && el ? stack.below(el) : []),
     }),
@@ -282,6 +301,8 @@ function ControlLayer({ depth, physics, present = true, kind: _kind, source: _so
       <LayerContext.Provider value={handle}>
         <Pane
           {...glassProps}
+          // An absent layer stays in the page, rendered unreachable from the first paint.
+          {...(present ? null : { 'aria-hidden': true, inert: INERT })}
           ref={setRef}
           optics={optics}
           backdrop={backdrop}

@@ -159,6 +159,28 @@ describe('GlassPhysics', () => {
     expect(peak).toBeGreaterThan(1.05);
   });
 
+  it('keeps the shared loop running when a listener throws', () => {
+    const queue: FrameRequestCallback[] = [];
+    const reported: unknown[] = [];
+    vi.stubGlobal('requestAnimationFrame', (f: FrameRequestCallback) => queue.push(f));
+    vi.stubGlobal('reportError', (e: unknown) => reported.push(e));
+    const a = new GlassPhysics();
+    const b = new GlassPhysics();
+    created.push(a, b);
+    let calls = 0;
+    a.subscribe(() => {
+      if (calls++ > 0) throw new Error('draw failed');
+    });
+    a.to({ presence: 0 });
+    let now = 0;
+    for (let i = 0; i < 5 && queue.length; i++) queue.shift()!((now += 16));
+    b.to({ presence: 0 });
+    for (let i = 0; i < 400 && queue.length; i++) queue.shift()!((now += 16));
+    expect(b.state.presence).toBe(0);
+    expect(a.state.presence).toBe(0);
+    expect(reported.length).toBe(1);
+  });
+
   it('stops everything on dispose', () => {
     const p = make();
     const seen: number[] = [];

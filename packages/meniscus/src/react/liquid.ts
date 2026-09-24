@@ -208,6 +208,7 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
       if (e.pointerId !== pointerId) return;
       pointerId = null;
       trail = null;
+      optics?.to({ shadow: 1 });
       // The browser took the touch for a scroll or a zoom: stop following the glass.
       finish();
     };
@@ -228,6 +229,8 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
       node.removeEventListener('keydown', onKey);
       window.removeEventListener('pointerup', onUp, true);
       window.removeEventListener('pointercancel', onCancel, true);
+      // A press cut short by unmount or disable doesn't leave the glass lifted.
+      if (pointerId !== null) optics?.to({ shadow: 1 });
       finish();
     };
   }, [node, squash, ripple, reducedMotion, optics]);

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { StrictMode, useContext, useState } from 'react';
 import { Glass, GlassButton } from '../src';
 import { overrideRefractionSupport, overrideWebGL2, springPeriod, staggerDelay } from '../src/core';
@@ -206,6 +207,40 @@ describe('<Glass.Stack>', () => {
     await act(async () => {});
     act(() => frame(120));
     expect(presence(getByTestId('c'))).toBe(1);
+  });
+
+  it('renders an absent layer hidden and unreachable before hydration', () => {
+    const html = renderToString(
+      <Glass.Stack>
+        <Glass.Layer present={false}>C</Glass.Layer>
+      </Glass.Stack>,
+    );
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toMatch(/inert=""/);
+    expect(html).toMatch(/--meniscus-opacity:0[;"]/);
+  });
+
+  it('keeps a position the app sets with a class, and positions a static stack itself', () => {
+    const sheet = document.createElement('style');
+    sheet.textContent = '.pinned { position: fixed; }';
+    document.head.appendChild(sheet);
+    try {
+      const pinned = render(
+        <Glass.Stack className="pinned" data-testid="pinned">
+          <Glass.Layer>C</Glass.Layer>
+        </Glass.Stack>,
+      );
+      expect(getComputedStyle(pinned.getByTestId('pinned')).position).toBe('fixed');
+      pinned.unmount();
+      const plain = render(
+        <Glass.Stack data-testid="plain">
+          <Glass.Layer>C</Glass.Layer>
+        </Glass.Stack>,
+      );
+      expect(getComputedStyle(plain.getByTestId('plain')).position).toBe('relative');
+    } finally {
+      sheet.remove();
+    }
   });
 
   it('hides absent layers from the page', () => {

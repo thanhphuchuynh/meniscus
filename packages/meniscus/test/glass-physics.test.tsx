@@ -192,6 +192,28 @@ describe('<Glass optics>', () => {
     expect(peak).toBeGreaterThan(1.01);
   });
 
+  it('lowers the lift again when the browser cancels a press', () => {
+    overrideRefractionSupport(true);
+    mockSize(200, 80);
+    const optics = still({});
+    const { getByTestId } = render(
+      <Glass data-testid="g" optics={optics} interactive>
+        x
+      </Glass>,
+    );
+    const el = getByTestId('g');
+    movable(el);
+    act(() => {
+      fireEvent.pointerDown(el, { pointerId: 1, clientX: 150, clientY: 140 });
+      frame();
+    });
+    act(() => {
+      fireEvent.pointerCancel(el, { pointerId: 1 });
+    });
+    for (let i = 0; i < 180; i++) optics.step(1 / 60);
+    expect(optics.state.shadow).toBeCloseTo(1, 3);
+  });
+
   it('cleans up on unmount', () => {
     overrideRefractionSupport(true);
     mockSize(200, 80);
