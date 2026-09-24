@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type { GlassPhysics } from '../core/physics';
 import type { RippleField } from '../core/ripple';
 import { DEV } from './dev';
 import { Spring } from './interaction';
@@ -68,6 +69,8 @@ export interface LiquidMotionOptions {
   /** A surface to drop beads, draw trails and slosh on. */
   ripple: RippleField | null;
   reducedMotion: boolean;
+  /** Optics to lift on press and to set ringing with the release momentum. */
+  optics?: GlassPhysics | null;
 }
 
 /**
@@ -77,9 +80,9 @@ export interface LiquidMotionOptions {
  * slosh of its own acceleration. Glass that never moves is left alone, and
  * a glass the app transforms keeps its transform.
  */
-export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, reducedMotion }: LiquidMotionOptions): void {
+export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, reducedMotion, optics = null }: LiquidMotionOptions): void {
   useEffect(() => {
-    if (!node || reducedMotion || (!squash && !ripple)) return;
+    if (!node || reducedMotion || (!squash && !ripple && !optics)) return;
     const a = new Spring(0, 260, 14);
     const b = new Spring(0, 260, 14);
     let frame = 0;
@@ -171,6 +174,7 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0 || pointerId !== null) return;
       pointerId = e.pointerId;
+      optics?.to({ shadow: 1.25 });
       if (!frame) {
         // Decided once a gesture, before any squash of ours is on the element.
         owned = squash && !transformed(node);
@@ -197,6 +201,8 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
       pointerId = null;
       trail = null;
       releasedAt = performance.now();
+      optics?.to({ shadow: 1 });
+      optics?.impulse(vx, vy);
     };
     const onCancel = (e: PointerEvent) => {
       if (e.pointerId !== pointerId) return;
@@ -224,5 +230,5 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
       window.removeEventListener('pointercancel', onCancel, true);
       finish();
     };
-  }, [node, squash, ripple, reducedMotion]);
+  }, [node, squash, ripple, reducedMotion, optics]);
 }

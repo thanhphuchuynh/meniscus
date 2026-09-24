@@ -18,6 +18,7 @@ import {
 import { DEFAULT_SHADOW, GLASS_OPTION_KEYS } from '../core/constants';
 import { DEFAULTS, VARIANTS, defaultTint, glassHighlight, glassTiles, resolveGlass, type GlassOptions, type HighlightURL } from '../core/glass';
 import type { Radius } from '../core/shape';
+import type { GlassPhysics } from '../core/physics';
 import { RippleField } from '../core/ripple';
 import { REDUCED_MOTION, REDUCED_TRANSPARENCY, supportsWebGL2, type RenderModePreference } from '../core/support';
 import { GlassFilter } from './GlassFilter';
@@ -26,6 +27,7 @@ import { useElementSize, useGlassMode, useIsomorphicLayoutEffect, useMediaQuery,
 import { useLiquidInteraction, type InteractionHandlers } from './interaction';
 import { registerRipple, useLiquidMotion, warnUndrawnRipple } from './liquid';
 import { useAppear } from './appear';
+import { OPTIC_SHADOW, SPOT, opticOpacity, opticTint, useOptics } from './optics';
 import { backdropElement, useElementCopy, useFallback, type Backdrop } from './backdrop';
 import { MediaLayer, type MediaFrame } from './MediaLayer';
 import { optionsKey } from './context';
@@ -60,8 +62,15 @@ export interface GlassOwnProps extends GlassOptions {
    * contain the glass. Ignored where live refraction works.
    */
   backdrop?: Backdrop;
-  /** Drop shadow under the glass, or `false` for none. */
+  /** Drop shadow under the glass, or `false` for none. A custom shadow stays as it is under `optics`. */
   shadow?: string | false;
+  /**
+   * Springs for this glass's optics, from `useGlassPhysics`: presence,
+   * refraction, highlight, tint and lift follow it frame by frame without
+   * re-rendering. With `interactive`, a press lifts the glass and the release
+   * momentum sets it ringing.
+   */
+  optics?: GlassPhysics;
   children?: ReactNode;
 }
 
@@ -127,7 +136,7 @@ function chain(ours: AnyHandler, theirs: AnyHandler): AnyHandler {
 
 function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HTMLElement>) {
   const defaults = useGlassDefaults();
-  const { as, mode: modePreference, interactive = false, appear = false, ripple = false, backdrop, shadow, style, children, ...rest } = props as GlassProps<ElementType> & {
+  const { as, mode: modePreference, interactive = false, appear = false, ripple = false, backdrop, shadow, optics, style, children, ...rest } = props as GlassProps<ElementType> & {
     style?: CSSProperties;
   } & Record<string, unknown>;
 
@@ -187,7 +196,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     if (field && g) field.resize(g.width, g.height, g.radius);
   }, [field, g?.width, g?.height, g?.radius]);
   useIsomorphicLayoutEffect(() => (field && node ? registerRipple(node, field) : undefined), [field, node]);
-  useLiquidMotion(node, { squash: interactive && !disabled, ripple: disabled ? null : field, reducedMotion });
+  useLiquidMotion(node, { squash: interactive && !disabled, ripple: disabled ? null : field, reducedMotion, optics: interactive && !disabled ? (optics ?? null) : null });
   useEffect(() => {
     if (!ripple || reducedMotion || group || ownMode === 'none') return;
     // Judged from the inputs, not the fallback state, which settles a render later.
@@ -197,6 +206,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   });
   const tiles = g && (mode === 'refract' || copying) && !reducedTransparency && !childless ? glassTiles(g) : null;
   const highlight = g && !bare && !childless && !webgl ? glassHighlight(g, pixelRatio) : null;
+  useOptics(node, optics, tiles);
   // Refraction off (or unmeasured yet) leaves nothing to copy: plain frost.
   const copyActive = copying && !!tiles;
   const copy = useRef<HTMLSpanElement>(null);
@@ -246,16 +256,17 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
           { isolation: 'isolate' }
         : {
             // A copied backdrop carries the tint above itself.
-            backgroundColor: copyActive ? 'transparent' : reducedTransparency ? `color-mix(in srgb, Canvas 86%, ${tint})` : tint,
+            backgroundColor: copyActive ? 'transparent' : reducedTransparency ? `color-mix(in srgb, Canvas 86%, ${tint})` : optics ? opticTint(tint) : tint,
             backdropFilter: liveTiles ? `url(#${filterId}) ${frost}` : frost,
             ...(liveTiles ? null : { WebkitBackdropFilter: frost }),
             ...(copyActive ? { isolation: 'isolate' as const } : null),
           }),
-    boxShadow: shadow === false || (group && shadow === undefined) ? undefined : (shadow ?? DEFAULT_SHADOW),
+    boxShadow: shadow === false || (group && shadow === undefined) ? undefined : (shadow ?? (optics ? OPTIC_SHADOW : DEFAULT_SHADOW)),
     // Glass with a backdrop filter is already a stacking context; bare glass
     // needs one so the pointer glow (z-index -1) stays above what's behind.
     ...(bare && interactive ? { isolation: 'isolate' as const } : null),
     ...style,
+    ...(optics ? { opacity: opticOpacity(style?.opacity) as unknown as number } : null),
     ...(hidden ? { opacity: 0 } : null),
   };
 
@@ -280,11 +291,12 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
           ref={copy}
           style={{ position: 'absolute', left: -COPY_MARGIN, top: -COPY_MARGIN, width: `calc(100% + ${2 * COPY_MARGIN}px)`, height: `calc(100% + ${2 * COPY_MARGIN}px)`, filter: `url(#${filterId}) ${frost}` }}
         />
-        <span style={{ position: 'absolute', inset: 0, backgroundColor: reducedTransparency ? `color-mix(in srgb, Canvas 86%, ${tint})` : tint }} />
+        <span style={{ position: 'absolute', inset: 0, backgroundColor: reducedTransparency ? `color-mix(in srgb, Canvas 86%, ${tint})` : optics ? opticTint(tint) : tint }} />
       </span>
     ) : null,
     webgl && node && fallback.element ? <MediaLayer host={node} media={fallback.element as Media} frame={mediaFrame} onFail={fallback.fail} style={{ zIndex: -1 }} /> : null,
     highlight && g ? <span aria-hidden="true" data-meniscus-layer="highlight" style={highlightStyle(highlight, g.radius)} /> : null,
+    optics && !bare && !webgl && !childless ? <span aria-hidden="true" data-meniscus-layer="spot" style={SPOT} /> : null,
     interactive && !disabled ? (
       <span aria-hidden="true" data-meniscus-layer="light" style={LIGHT}>
         <span data-meniscus-layer="glow" style={GLOW} />
