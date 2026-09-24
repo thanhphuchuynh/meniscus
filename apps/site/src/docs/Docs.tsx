@@ -152,7 +152,9 @@ export function Docs() {
               <code>GlassButton</code> is a native button with an interactive lens and a safe <code>type="button"</code> default. <code>GlassPanel</code> is a
               padded glass container. <code>GlassTabs</code> provides the tab list, panels, keyboard navigation, and a flowing indicator together.
               <code>GlassTextField</code>, <code>GlassSelect</code>, and <code>GlassCheckbox</code> wrap native form controls in glass while retaining their
-              labels, input props, refs, and form behavior. They all ship from <code>meniscus</code> and need no stylesheet. See their{' '}
+              labels, input props, refs, and form behavior. <code>GlassLoader</code> is a loading indicator of three glass drops that fuse and part,
+              inline or as a whole loading page with <code>page</code>; <code>GlassGlyph</code> turns an icon or shape inside glass into glass. They all ship
+              from <code>meniscus</code> and need no stylesheet. See their{' '}
               <a href="/components/">live examples</a>.
             </p>
             <CodeBlock code={`import { GlassButton, GlassPanel, GlassTabs } from 'meniscus';

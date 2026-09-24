@@ -15,7 +15,7 @@ import {
   type SyntheticEvent,
 } from 'react';
 import { DEFAULT_SHADOW, GLASS_OPTION_KEYS } from '../core/constants';
-import { DEFAULTS, VARIANTS, glassHighlight, glassTiles, resolveGlass, type GlassOptions, type HighlightURL } from '../core/glass';
+import { DEFAULTS, VARIANTS, defaultTint, glassHighlight, glassTiles, resolveGlass, type GlassOptions, type HighlightURL } from '../core/glass';
 import type { Radius } from '../core/shape';
 import { REDUCED_MOTION, REDUCED_TRANSPARENCY, type RenderModePreference } from '../core/support';
 import { GlassFilter } from './GlassFilter';
@@ -188,7 +188,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   const variant = VARIANTS[options.variant ?? 'regular'] ?? VARIANTS.regular;
   const blur = g?.blur ?? options.blur ?? variant.blur;
   const saturation = g?.saturation ?? options.saturation ?? variant.saturation;
-  const tint = g?.tint ?? options.tint ?? variant.tint;
+  const tint = g?.tint ?? options.tint ?? defaultTint(options.variant, options.appearance);
   const frost = `blur(${blur}px) saturate(${saturation})`;
 
   // The layers inside need a positioned root. Setting `position: relative`

@@ -1,4 +1,4 @@
-import { Glass, GlassProvider, type GlassOptions, type ProfileName } from 'meniscus';
+import { Glass, GlassProvider, type GlassAppearance, type GlassOptions, type ProfileName } from 'meniscus';
 import { DEFAULTS, VARIANTS, glassProfile, resolveGlass, roundedRectSdf, type RenderModePreference } from 'meniscus/core';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { CodeBlock, Colophon, Masthead } from '../shared/chrome';
@@ -22,6 +22,9 @@ interface Bench {
   ior: number;
   caustics: boolean;
   variant: 'regular' | 'clear';
+  appearance: GlassAppearance;
+  /** The tint controls were touched: use them instead of the appearance's default. */
+  tintCustom: boolean;
   blur: number;
   saturation: number;
   tintHex: string;
@@ -47,6 +50,8 @@ const INITIAL: Bench = {
   ior: 1.5,
   caustics: false,
   variant: 'clear',
+  appearance: 'auto',
+  tintCustom: false,
   blur: VARIANTS.clear.blur,
   saturation: VARIANTS.clear.saturation,
   tintHex: '#ffffff',
@@ -75,11 +80,20 @@ function rgba(hex: string, alpha: number): string {
 
 const fmt = (digits: number) => (v: number) => v.toFixed(digits);
 
+/** The tint an appearance uses by default, as the color and opacity the tint controls show. */
+function defaultTintOf(b: Bench, lantern: boolean): { hex: string; alpha: number } {
+  const v = VARIANTS[b.variant];
+  const dark = b.appearance === 'dark' || (b.appearance === 'auto' && lantern);
+  const [r = 255, g = 255, bl = 255, a = 1] = (dark ? v.darkTint : v.tint).match(/[\d.]+/g)!.map(Number);
+  return { hex: `#${[r, g, bl].map((n) => n.toString(16).padStart(2, '0')).join('')}`, alpha: a };
+}
+
 /** JSX for the current bench, listing only what differs from the defaults. */
 function toJSX(b: Bench): string {
   const v = VARIANTS[b.variant];
   const props: string[] = [];
   if (b.variant !== 'regular') props.push(`variant="${b.variant}"`);
+  if (b.appearance !== 'auto') props.push(`appearance="${b.appearance}"`);
   props.push(b.capsule ? 'radius="capsule"' : `radius={${b.radius}}`);
   if (b.bezel !== Math.min(b.capsule ? b.height / 2 : b.radius, DEFAULTS.maxAutoBezel)) props.push(`bezel={${b.bezel}}`);
   if (b.profile !== 'squircle') props.push(`profile="${b.profile}"`);
@@ -88,8 +102,7 @@ function toJSX(b: Bench): string {
   if (b.caustics) props.push('caustics');
   if (b.blur !== v.blur) props.push(`blur={${b.blur}}`);
   if (b.saturation !== v.saturation) props.push(`saturation={${b.saturation}}`);
-  const tint = rgba(b.tintHex, b.tintAlpha);
-  if (tint.replace(/\s/g, '') !== v.tint.replace(/\s/g, '')) props.push(`tint="${tint}"`);
+  if (b.tintCustom) props.push(`tint="${rgba(b.tintHex, b.tintAlpha)}"`);
   if (b.aberration > 0) props.push(`aberration={${b.aberration}}`);
   if (b.specular !== v.specular) props.push(`specular={${b.specular}}`);
   if (b.rim !== v.rim) props.push(`rim={${b.rim}}`);
@@ -124,6 +137,7 @@ export function Playground() {
 
   const options: GlassOptions = {
     variant: b.variant,
+    appearance: b.appearance,
     radius: b.capsule ? 'capsule' : b.radius,
     bezel: b.bezel,
     profile: b.profile,
@@ -132,7 +146,7 @@ export function Playground() {
     caustics: b.caustics,
     blur: b.blur,
     saturation: b.saturation,
-    tint: rgba(b.tintHex, b.tintAlpha),
+    tint: b.tintCustom ? rgba(b.tintHex, b.tintAlpha) : undefined,
     aberration: b.aberration,
     specular: b.specular,
     rim: b.rim,
@@ -147,8 +161,12 @@ export function Playground() {
 
   const pickVariant = (variant: 'regular' | 'clear') => {
     const v = VARIANTS[variant];
-    setB((s) => ({ ...s, variant, blur: v.blur, saturation: v.saturation, specular: v.specular, rim: v.rim, shade: v.shade, tintHex: '#ffffff', tintAlpha: variant === 'clear' ? 0.03 : 0.12 }));
+    setB((s) => ({ ...s, variant, blur: v.blur, saturation: v.saturation, specular: v.specular, rim: v.rim, shade: v.shade, tintCustom: false }));
   };
+  // Until the tint is touched, the controls show the appearance's own tint.
+  const shownTint = b.tintCustom ? { hex: b.tintHex, alpha: b.tintAlpha } : defaultTintOf(b, theme === 'lantern');
+  const setTint = (patch: Partial<{ hex: string; alpha: number }>) =>
+    setB((s) => ({ ...s, tintCustom: true, tintHex: patch.hex ?? shownTint.hex, tintAlpha: patch.alpha ?? shownTint.alpha }));
 
   return (
     <GlassProvider mode={b.mode}>
@@ -281,14 +299,24 @@ export function Playground() {
 
             <Group title="Surface">
               <Segmented<'regular' | 'clear'> label="Variant" value={b.variant} onChange={pickVariant} options={[{ value: 'regular', label: 'Regular' }, { value: 'clear', label: 'Clear' }]} />
+              <Segmented<GlassAppearance>
+                label="Appearance"
+                value={b.appearance}
+                onChange={(appearance) => setB((s) => ({ ...s, appearance, tintCustom: false }))}
+                options={[
+                  { value: 'auto', label: 'Auto', title: 'Follow the page’s light or dark theme' },
+                  { value: 'light', label: 'Light' },
+                  { value: 'dark', label: 'Dark' },
+                ]}
+              />
               <Scale label="Blur" value={b.blur} min={0} max={24} step={0.5} onChange={set('blur')} format={fmt(1)} unit="px" />
               <Scale label="Saturation" value={b.saturation} min={0} max={2.5} step={0.05} onChange={set('saturation')} format={fmt(2)} />
               <div className="bench__tint">
                 <label className="scale__label" htmlFor="tint-color">
                   Tint
                 </label>
-                <input id="tint-color" type="color" value={b.tintHex} onChange={(e) => set('tintHex')(e.target.value)} />
-                <Scale label="Tint opacity" value={b.tintAlpha} min={0} max={0.9} step={0.01} onChange={set('tintAlpha')} format={fmt(2)} />
+                <input id="tint-color" type="color" value={shownTint.hex} onChange={(e) => setTint({ hex: e.target.value })} />
+                <Scale label="Tint opacity" value={shownTint.alpha} min={0} max={0.9} step={0.01} onChange={(alpha) => setTint({ alpha })} format={fmt(2)} />
               </div>
             </Group>
 

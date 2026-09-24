@@ -5,10 +5,17 @@ import { profileKey, type Profile } from './profiles';
 import { resolveRadius, type Radius } from './shape';
 
 export type GlassVariant = 'regular' | 'clear';
+export type GlassAppearance = 'auto' | 'light' | 'dark';
 
 export interface GlassOptions {
   /** `regular` frosts and tints for legibility; `clear` stays transparent over media. */
   variant?: GlassVariant;
+  /**
+   * Light glass (a pale wash) or dark glass (a smoky one). `auto` follows the
+   * page's color scheme, including a site's own theme switch, through CSS
+   * `light-dark()`. Only sets the default tint; an explicit `tint` wins.
+   */
+  appearance?: GlassAppearance;
   /** Corner radius in px, or `'capsule'` for fully rounded ends. */
   radius?: Radius;
   /** Width of the curved edge band in px. Capped at the corner radius. */
@@ -44,16 +51,27 @@ export interface GlassOptions {
 interface VariantDefaults {
   blur: number;
   saturation: number;
+  /** Tint of light glass. */
   tint: string;
+  /** Tint of dark glass. */
+  darkTint: string;
   specular: number;
   rim: number;
   shade: number;
 }
 
 export const VARIANTS: Readonly<Record<GlassVariant, VariantDefaults>> = {
-  regular: { blur: 5, saturation: 1.6, tint: 'rgba(255, 255, 255, 0.12)', specular: 0.8, rim: 0.7, shade: 0.35 },
-  clear: { blur: 0.5, saturation: 1.15, tint: 'rgba(255, 255, 255, 0.03)', specular: 0.9, rim: 0.8, shade: 0.3 },
+  regular: { blur: 5, saturation: 1.6, tint: 'rgba(255, 255, 255, 0.12)', darkTint: 'rgba(22, 26, 32, 0.34)', specular: 0.8, rim: 0.7, shade: 0.35 },
+  clear: { blur: 0.5, saturation: 1.15, tint: 'rgba(255, 255, 255, 0.03)', darkTint: 'rgba(8, 10, 14, 0.1)', specular: 0.9, rim: 0.8, shade: 0.3 },
 };
+
+/** The default tint of a variant in an appearance. */
+export function defaultTint(variant: GlassVariant | undefined, appearance: GlassAppearance = 'auto'): string {
+  const v = VARIANTS[variant ?? 'regular'] ?? VARIANTS.regular;
+  if (appearance === 'light') return v.tint;
+  if (appearance === 'dark') return v.darkTint;
+  return `light-dark(${v.tint}, ${v.darkTint})`;
+}
 
 export const DEFAULTS = {
   radius: 28 as Radius,
@@ -106,7 +124,7 @@ export function resolveGlass(options: GlassOptions, width: number, height: numbe
     caustics: options.caustics ?? DEFAULTS.caustics,
     blur: Math.max(0, options.blur ?? variant.blur),
     saturation: Math.max(0, options.saturation ?? variant.saturation),
-    tint: options.tint ?? variant.tint,
+    tint: options.tint ?? defaultTint(options.variant, options.appearance),
     aberration: Math.max(0, Math.min(1, options.aberration ?? DEFAULTS.aberration)),
     specular: q(Math.max(0, Math.min(1, options.specular ?? variant.specular)), 0.01),
     rim: q(Math.max(0, Math.min(1, options.rim ?? variant.rim)), 0.01),

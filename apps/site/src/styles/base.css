@@ -423,6 +423,8 @@ sup {
   border-radius: 12px;
   background: var(--stock-raised);
   overflow: hidden;
+  /* Take the width of the column, never the width of the longest line: long code scrolls. */
+  contain: inline-size;
 }
 .code pre {
   margin: 0;
@@ -762,4 +764,17 @@ sup {
     width: 32px;
     height: 32px;
   }
+}
+
+/* The loading page as the site opens. */
+.splash {
+  color: var(--ink);
+  font-weight: 650;
+  font-size: var(--fs-body);
+  font-family: var(--font-display);
+  transition: opacity 450ms var(--ease-out);
+}
+.splash[data-leaving] {
+  opacity: 0;
+  pointer-events: none;
 }

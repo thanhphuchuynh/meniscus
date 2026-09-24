@@ -97,6 +97,7 @@ Where the `regular` and `clear` variants differ, defaults read regular / clear.
 | --- | --- | --- | --- |
 | `as` | `ElementType` | `'div'` | Element or component to render |
 | `variant` | `'regular' \| 'clear'` | `'regular'` | Regular frosts for legibility; clear stays transparent over media |
+| `appearance` | `'auto' \| 'light' \| 'dark'` | `'auto'` | Light or dark glass; auto follows the page's color scheme via `light-dark()` |
 | `radius` | `number \| 'capsule'` | `28` | Corner radius in px, capped at half the short side |
 | `bezel` | `number` | `min(radius, 32)` | Width of the curved rim in px, capped at the radius |
 | `refraction` | `number` | `1` | Thickness as a multiple of the bezel width. `0` turns refraction off |
@@ -105,7 +106,7 @@ Where the `regular` and `clear` variants differ, defaults read regular / clear.
 | `caustics` | `boolean` | `false` | Let a steep rim fold the image into doubled lines, as thick glass does |
 | `blur` | `number` | `5` / `0.5` | Backdrop blur, px |
 | `saturation` | `number` | `1.6` / `1.15` | Backdrop saturation |
-| `tint` | `string` | white 12% / 3% | Any CSS color over the refracted backdrop |
+| `tint` | `string` | from `appearance` | Any CSS color over the refracted backdrop |
 | `aberration` | `number` | `0` | Chromatic aberration, 0 to 1. Costs two extra filter passes |
 | `specular` | `number` | `0.8` / `0.9` | Reflected highlight strength |
 | `rim` | `number` | `0.7` / `0.8` | Bright grazing-angle line along the outline |
@@ -128,6 +129,17 @@ import { GlassProvider } from 'meniscus';
 <GlassProvider lightAngle={300} tint="rgba(255, 255, 255, 0.18)">
   <App />
 </GlassProvider>
+```
+
+## Loading
+
+`GlassLoader` is three glass drops in one surface that orbit and breathe, fusing into a single drop and parting again. It is a polite `status` that announces its `label`; `animate={false}` rests the drops apart, and under reduced motion they fade instead of moving. `page` makes it a whole loading page: frosted glass over the viewport with the loader and its label.
+
+```tsx
+import { GlassLoader } from 'meniscus';
+
+<GlassLoader label="Loading plates" />
+{loading && <GlassLoader page label="Preparing your plates" />}
 ```
 
 ## Motion

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
-import { GlassButton, GlassCheckbox, GlassGlyph, GlassPanel, GlassProvider, GlassSelect, GlassTabs, GlassTextField } from '../src';
+import { GlassButton, GlassCheckbox, GlassGlyph, GlassLoader, GlassPanel, GlassProvider, GlassSelect, GlassTabs, GlassTextField } from '../src';
 
 afterEach(cleanup);
 
@@ -166,4 +166,28 @@ it('GlassGlyph turns its content into glass, and steps aside when glass is off',
   rerender(<GlassProvider mode="none"><GlassGlyph><svg data-testid="icon" /></GlassGlyph></GlassProvider>);
   expect(getByTestId('icon')).not.toBeNull();
   expect(container.querySelector('filter')).toBeNull();
+});
+
+describe('GlassLoader', () => {
+  afterEach(() => {
+    delete (HTMLElement.prototype as { animate?: unknown }).animate;
+  });
+
+  it('announces its label and moves only when asked', () => {
+    const animate = vi.fn(() => ({ cancel() {} }));
+    (HTMLElement.prototype as { animate?: unknown }).animate = animate;
+    const { getByRole, rerender } = render(<GlassLoader label="Loading plates" animate={false} />);
+    expect(getByRole('status').textContent).toBe('Loading plates');
+    expect(animate).not.toHaveBeenCalled();
+    rerender(<GlassLoader label="Loading plates" />);
+    // The wheel turns and each of the three drops breathes.
+    expect(animate).toHaveBeenCalledTimes(4);
+  });
+
+  it('covers the viewport as a loading page', () => {
+    const { getByRole } = render(<GlassLoader page label="Preparing your plates" animate={false} />);
+    const status = getByRole('status');
+    expect(status.style.position).toBe('fixed');
+    expect(status.textContent).toContain('Preparing your plates');
+  });
 });

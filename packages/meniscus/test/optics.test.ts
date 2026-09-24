@@ -200,3 +200,14 @@ describe('fold limiting', () => {
     expect(folds).toBe(true);
   });
 });
+
+describe('appearance', () => {
+  it('picks light or dark glass, or follows the color scheme', () => {
+    expect(resolveGlass({ appearance: 'light' }, 100, 40).tint).toBe('rgba(255, 255, 255, 0.12)');
+    expect(resolveGlass({ appearance: 'dark' }, 100, 40).tint).toBe('rgba(22, 26, 32, 0.34)');
+    expect(resolveGlass({}, 100, 40).tint).toBe('light-dark(rgba(255, 255, 255, 0.12), rgba(22, 26, 32, 0.34))');
+    expect(resolveGlass({ variant: 'clear', appearance: 'dark' }, 100, 40).tint).toBe('rgba(8, 10, 14, 0.1)');
+    // An explicit tint always wins.
+    expect(resolveGlass({ appearance: 'dark', tint: 'red' }, 100, 40).tint).toBe('red');
+  });
+});

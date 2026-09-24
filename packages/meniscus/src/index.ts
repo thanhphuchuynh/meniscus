@@ -2,6 +2,7 @@ export { Glass, DEFAULT_SHADOW, GLASS_OPTION_KEYS, type GlassProps, type GlassOw
 export { GlassButton, type GlassButtonProps } from './react/GlassButton';
 export { GlassPanel, type GlassPanelProps } from './react/GlassPanel';
 export { GlassGlyph, type GlassGlyphProps } from './react/GlassGlyph';
+export { GlassLoader, type GlassLoaderProps } from './react/GlassLoader';
 export { GlassTabs, type GlassTabsProps, type GlassTabItem } from './react/GlassTabs';
 export { GlassTextField, GlassSelect, GlassCheckbox, type GlassTextFieldProps, type GlassSelectProps, type GlassCheckboxProps } from './react/GlassFields';
 export { GlassProvider, useGlassDefaults, type GlassProviderProps, type GlassDefaults } from './react/context';
@@ -9,7 +10,7 @@ export { GlassFilter, type GlassFilterProps } from './react/GlassFilter';
 export { GlassIndicator, type GlassIndicatorProps, type IndicatorBox } from './react/GlassIndicator';
 export { GlassGroup, useGlassGroup, type GlassGroupProps } from './react/GlassGroup';
 export { useGlassMode, useElementSize } from './react/hooks';
-export type { GlassOptions, GlassVariant, ResolvedGlass } from './core/glass';
+export type { GlassOptions, GlassVariant, GlassAppearance, ResolvedGlass } from './core/glass';
 export type { Profile, ProfileName, ProfileFn } from './core/profiles';
 export type { Radius } from './core/shape';
 export type { RenderMode, RenderModePreference } from './core/support';

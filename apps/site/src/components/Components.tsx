@@ -1,6 +1,6 @@
-import { Glass, GlassButton, GlassCheckbox, GlassGroup, GlassIndicator, GlassPanel, GlassProvider, GlassSelect, GlassTabs, GlassTextField } from 'meniscus';
+import { Glass, GlassButton, GlassCheckbox, GlassGroup, GlassIndicator, GlassLoader, GlassPanel, GlassProvider, GlassSelect, GlassTabs, GlassTextField } from 'meniscus';
 import { GlassPane, GlassStage } from 'meniscus/webgl';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
 import { plateSrc, useTheme } from '../shared/theme';
 
@@ -11,6 +11,7 @@ const ITEMS = [
   { id: 'text-field', name: 'GlassTextField', role: 'A labelled native input' },
   { id: 'select', name: 'GlassSelect', role: 'A labelled native select' },
   { id: 'checkbox', name: 'GlassCheckbox', role: 'A native choice on glass' },
+  { id: 'loader', name: 'GlassLoader', role: 'Loading, in liquid glass' },
   { id: 'glass', name: 'Glass', role: 'A glass surface for any element' },
   { id: 'indicator', name: 'GlassIndicator', role: 'A selection that flows' },
   { id: 'group', name: 'GlassGroup', role: 'Surfaces that join' },
@@ -69,6 +70,13 @@ const PROPS: Record<string, PropRow[]> = {
     { name: 'checked, defaultChecked', type: 'boolean', body: 'Controlled or uncontrolled state, as on a native checkbox.' },
     { name: 'disabled', type: 'boolean', default: 'false', body: 'Native disabled; the glass dims and no longer swells on press.' },
     { name: '…input props', type: 'InputHTMLAttributes', body: 'name, value, onChange, required… pass to the native checkbox. A ref reaches it.' },
+  ],
+  loader: [
+    { name: 'label', type: 'string', default: "'Loading'", body: 'What is loading. Announced politely to assistive technology; shown as a caption on a loading page.' },
+    { name: 'animate', type: 'boolean', default: 'true', body: 'The drops orbit and breathe, fusing into one and parting. Off, they rest apart. Under reduced motion they fade instead.' },
+    { name: 'size', type: 'number', default: '40 / 72', body: 'Diameter in px, inline / page.' },
+    { name: 'page', type: 'boolean', default: 'false', body: 'A whole loading page: frosted glass over the viewport, the loader, and its label.' },
+    GLASS_OPTIONS,
   ],
   glass: [
     { name: 'as', type: 'ElementType', default: "'div'", body: 'The element to render; its own props pass through.' },
@@ -200,6 +208,22 @@ export function Notifications() {
       <GlassCheckbox label="Send alerts" name="alerts" checked={alerts} onChange={(e) => setAlerts(e.target.checked)} />
       <GlassCheckbox label="Weekly digest" name="digest" disabled />
     </div>
+  );
+}`,
+  loader: `import { useEffect, useState } from 'react';
+import { GlassLoader } from 'meniscus';
+
+export function Plates() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 3000);
+    return () => clearTimeout(id);
+  }, []);
+  return (
+    <>
+      <GlassLoader label="Loading plates" />
+      {loading && <GlassLoader page label="Preparing your plates" />}
+    </>
   );
 }`,
   glass: `import { useState } from 'react';
@@ -362,7 +386,7 @@ function Entry({
           <h2 id={`${id}-title`}>{title}</h2>
           <p>{description}</p>
         </div>
-        <a href={`/docs/#${['button', 'tabs', 'panel', 'text-field', 'select', 'checkbox'].includes(id) ? 'components' : id}`}>
+        <a href={`/docs/#${['button', 'tabs', 'panel', 'text-field', 'select', 'checkbox', 'loader'].includes(id) ? 'components' : id}`}>
           API &amp; guidance <span aria-hidden="true">↗</span>
         </a>
       </div>
@@ -441,6 +465,24 @@ function TabsDemo() {
   );
 }
 
+function LoaderDemo({ animate }: { animate: boolean }) {
+  const [page, setPage] = useState(false);
+  useEffect(() => {
+    if (!page) return;
+    const id = setTimeout(() => setPage(false), 3000);
+    return () => clearTimeout(id);
+  }, [page]);
+  return (
+    <>
+      <GlassLoader label="Loading plates" animate={animate} size={56} />
+      <GlassButton className="catalog__submit" onClick={() => setPage(true)}>
+        Show loading page
+      </GlassButton>
+      {page ? <GlassLoader page label="Preparing your plates" animate={animate} className="catalog__loading-page" /> : null}
+    </>
+  );
+}
+
 function GroupDemo() {
   const [joined, setJoined] = useState(false);
   return (
@@ -475,6 +517,7 @@ export function Components() {
   const [selectOff, setSelectOff] = useState(false);
   const [paneX, setPaneX] = useState(50);
   const [angle, setAngle] = useState(315);
+  const [loaderMoves, setLoaderMoves] = useState(true);
 
   return (
     <GlassProvider>
@@ -549,6 +592,16 @@ export function Components() {
             <Entry id="checkbox" title="GlassCheckbox" description="A native checkbox with a larger glass hit target. Its checked and disabled states use the browser's normal behavior." note="The visible label toggles the checkbox; its value participates in forms normally.">
               <GlassCheckbox label="Send alerts" name="alerts" checked={alerts} onChange={(event) => setAlerts(event.target.checked)} />
               <GlassCheckbox label="Weekly digest" name="digest" disabled />
+            </Entry>
+
+            <Entry
+              id="loader"
+              title="GlassLoader"
+              controls={<Toggle label="Animate" checked={loaderMoves} onChange={setLoaderMoves} />}
+              description="Loading, in liquid glass: three drops in one surface that orbit and breathe, fusing into a single drop and parting again. Inline, or as a whole loading page."
+              note="It is a polite status: screen readers hear the label once, without interrupting. Under reduced motion the drops fade instead of moving."
+            >
+              <LoaderDemo animate={loaderMoves} />
             </Entry>
 
             <Entry id="glass" title="Glass" description="The flexible foundation for a lens on a button, navigation bar, card, or sheet. Its children keep their native HTML semantics." note={'Use as="button" for an actual button. Add interactive only when the glass itself should respond to press and hover.'}>

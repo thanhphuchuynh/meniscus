@@ -3,6 +3,7 @@ import type { GlassOptions } from './glass';
 /** Every prop of `Glass` that configures the glass rather than the element. */
 export const GLASS_OPTION_KEYS = [
   'variant',
+  'appearance',
   'radius',
   'bezel',
   'refraction',

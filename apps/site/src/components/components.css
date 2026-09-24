@@ -127,6 +127,7 @@
   border: var(--hair) solid var(--rule-faint);
   background: var(--stock-deep);
 }
+.catalog__demo--loader,
 .catalog__demo--text-field,
 .catalog__demo--select,
 .catalog__demo--checkbox,
@@ -141,6 +142,7 @@
   background-position: center 36%;
   background-size: cover;
 }
+:root[data-theme='lantern'] .catalog__demo--loader,
 :root[data-theme='lantern'] .catalog__demo--text-field,
 :root[data-theme='lantern'] .catalog__demo--select,
 :root[data-theme='lantern'] .catalog__demo--checkbox,
@@ -449,4 +451,11 @@
     white-space: normal;
     text-align: center;
   }
+}
+
+.catalog__loading-page {
+  color: var(--ink);
+  font-weight: 650;
+  font-size: var(--fs-body);
+  font-family: var(--font-display);
 }

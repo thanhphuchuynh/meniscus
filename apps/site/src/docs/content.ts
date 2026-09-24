@@ -8,6 +8,7 @@ export interface PropRow {
 export const GLASS_PROPS: PropRow[] = [
   { name: 'as', type: 'ElementType', default: "'div'", body: 'The element or component to render. Every other prop it accepts passes through.' },
   { name: 'variant', type: "'regular' | 'clear'", default: "'regular'", body: 'Regular frosts and tints for legibility over busy content. Clear stays nearly transparent, for glass over media.' },
+  { name: 'appearance', type: "'auto' | 'light' | 'dark'", default: "'auto'", body: 'Light glass (a pale wash) or dark glass (a smoky one). Auto follows the page’s color scheme, a site’s own theme switch included, through CSS light-dark(). It sets the default tint; an explicit tint wins.' },
   { name: 'radius', type: "number | 'capsule'", default: '28', body: 'Corner radius in px, capped at half the short side. Capsule rounds the ends fully.' },
   { name: 'bezel', type: 'number', default: 'min(radius, 32)', body: 'Width of the curved band along the outline, in px. Capped at the corner radius.' },
   { name: 'refraction', type: 'number', default: '1', body: 'Glass thickness as a multiple of the bezel width. 0 turns refraction off; higher values bend harder.' },
@@ -16,7 +17,7 @@ export const GLASS_PROPS: PropRow[] = [
   { name: 'caustics', type: 'boolean', default: 'false', body: 'Let a steep rim fold the image into doubled lines, as thick real glass does. Off keeps the image one-to-one.' },
   { name: 'blur', type: 'number', default: '5 / 0.5', body: 'Backdrop blur in px, regular / clear.' },
   { name: 'saturation', type: 'number', default: '1.6 / 1.15', body: 'Backdrop saturation multiplier.' },
-  { name: 'tint', type: 'string', default: 'white at 12% / 3%', body: 'Any CSS color laid over the refracted backdrop. Custom properties work.' },
+  { name: 'tint', type: 'string', default: 'from appearance', body: 'Any CSS color laid over the refracted backdrop. Custom properties work.' },
   { name: 'aberration', type: 'number', default: '0', body: 'Chromatic aberration from 0 to 1. At 1, red shifts 25% further than green and blue 25% less. Costs two extra filter passes.' },
   { name: 'specular', type: 'number', default: '0.8 / 0.9', body: 'Strength of the reflected highlight, 0 to 1.' },
   { name: 'rim', type: 'number', default: '0.7 / 0.8', body: 'Strength of the bright grazing-angle line along the outline, 0 to 1.' },
