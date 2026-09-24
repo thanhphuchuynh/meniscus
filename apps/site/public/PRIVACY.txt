@@ -10,3 +10,8 @@ your browser requests pages, fonts, and images from the hosting service. That
 service may keep standard request logs under its own configuration. The site
 owner should review the hosting provider's logging and retention settings
 before deployment and update this note if those settings or the site change.
+
+The optional glass sound is synthesized in your browser and starts disabled.
+The "Edit in StackBlitz" button sends the public example source files to
+StackBlitz only when clicked. StackBlitz opens separately and has its own
+privacy policy. No account details or personal input are included by this site.

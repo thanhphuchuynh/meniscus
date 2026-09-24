@@ -1,6 +1,10 @@
 import { Glass } from 'meniscus';
 import { glassProfile, resolveGlass, roundedRectSdf, type GlassOptions } from 'meniscus/core';
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useLensMotion } from './useLensMotion';
+import { useGlassSound } from './useGlassSound';
+import { useReducedMotion } from '../shared/useReducedMotion';
+import { Scale } from '../shared/Scale';
 import { Install, Plate } from '../shared/chrome';
 import { useEngine } from '../shared/engine';
 import { Icon } from '../shared/Icon';
@@ -11,23 +15,6 @@ import { plateSrc, useTheme } from '../shared/theme';
 // A round magnifier: the bezel runs to the middle, so the whole lens is a dome.
 const LENS: GlassOptions = { radius: 'capsule', variant: 'clear', refraction: 1, ior: 1.5, bezel: 999 };
 
-interface Point {
-  x: number;
-  y: number;
-}
-
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mql = matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mql.matches);
-    const on = () => setReduced(mql.matches);
-    mql.addEventListener('change', on);
-    return () => mql.removeEventListener('change', on);
-  }, []);
-  return reduced;
-}
-
 export function PlateSpecimen() {
   const engine = useEngine();
   const theme = useTheme();
@@ -35,8 +22,11 @@ export function PlateSpecimen() {
   const plate = useRef<HTMLElement>(null);
   const engraving = useRef<HTMLImageElement>(null);
   const lens = useRef<HTMLButtonElement>(null);
-  const drag = useRef<{ id: number; dx: number; dy: number } | null>(null);
-  const [pos, setPos] = useState<Point | null>(null);
+  const sound = useGlassSound();
+  const { pos, handlers } = useLensMotion(plate, lens, reducedMotion, sound.play);
+  const [ior, setIor] = useState(1.5);
+  const lightAngle = pos ? Math.atan2(-120 - pos.x, pos.y + 180) * 180 / Math.PI : -45;
+  const lensOptions = { ...LENS, ior, aberration: 0.12, lightAngle };
   const [size, setSize] = useState({ w: 220, h: 220 });
   const [probe, setProbe] = useState<number | null>(null);
   const [sweep, setSweep] = useState(0.22);
@@ -51,34 +41,7 @@ export function PlateSpecimen() {
     return () => ro.disconnect();
   }, []);
 
-  // Keep the lens on the engraving: mostly inside it, never lost off an edge.
-  const clamp = useCallback((p: Point): Point => {
-    const f = plate.current;
-    const l = lens.current;
-    if (!f || !l) return p;
-    return {
-      x: Math.min(Math.max(-l.offsetWidth * 0.25, p.x), f.clientWidth - l.offsetWidth * 0.75),
-      y: Math.min(Math.max(-l.offsetHeight * 0.25, p.y), f.clientHeight - l.offsetHeight * 0.75),
-    };
-  }, []);
-
-  // Start over the eye of Fig. 8, where the engraving's lines are densest.
-  // The image covers its box from the top, scaled to the box's width.
-  useEffect(() => {
-    const place = () => {
-      const f = plate.current;
-      const l = lens.current;
-      if (!f || !l) return;
-      const k = f.clientWidth / 1200;
-      setPos(clamp({ x: 800 * k - l.offsetWidth / 2, y: 334 * k - l.offsetHeight / 2 }));
-    };
-    place();
-    const ro = new ResizeObserver(place);
-    if (plate.current) ro.observe(plate.current);
-    return () => ro.disconnect();
-  }, [clamp]);
-
-  const g = resolveGlass(LENS, size.w, size.h);
+  const g = resolveGlass(lensOptions, size.w, size.h);
   const profile = glassProfile(g);
   const optics = { bezel: g.bezel, thickness: g.thickness, ior: g.ior, profile: g.profile, caustics: g.caustics };
 
@@ -103,31 +66,6 @@ export function PlateSpecimen() {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [reducedMotion]);
-
-  const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
-    if (!pos) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    const fr = plate.current!.getBoundingClientRect();
-    drag.current = { id: e.pointerId, dx: e.clientX - fr.left - pos.x, dy: e.clientY - fr.top - pos.y };
-  };
-  const onPointerMove = (e: PointerEvent<HTMLButtonElement>) => {
-    probeFrom(e);
-    const d = drag.current;
-    if (!d || d.id !== e.pointerId) return;
-    const fr = plate.current!.getBoundingClientRect();
-    setPos(clamp({ x: e.clientX - fr.left - d.dx, y: e.clientY - fr.top - d.dy }));
-  };
-  const onPointerUp = (e: PointerEvent<HTMLButtonElement>) => {
-    if (drag.current?.id === e.pointerId) drag.current = null;
-  };
-  const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-    const step = e.shiftKey ? 40 : 10;
-    const delta: Record<string, Point> = { ArrowLeft: { x: -step, y: 0 }, ArrowRight: { x: step, y: 0 }, ArrowUp: { x: 0, y: -step }, ArrowDown: { x: 0, y: step } };
-    const m = delta[e.key];
-    if (!m || !pos) return;
-    e.preventDefault();
-    setPos(clamp({ x: pos.x + m.x, y: pos.y + m.y }));
-  };
 
   const shown = probe ?? sweep * g.bezel;
 
@@ -174,22 +112,19 @@ export function PlateSpecimen() {
             as="button"
             type="button"
             ref={lens}
-            {...LENS}
+            {...lensOptions}
             interactive
             // Where live refraction isn't available, the lens refracts the engraving in WebGL.
             backdrop={engraving}
             className="plate-one__lens"
             style={pos ? { left: pos.x, top: pos.y } : { visibility: 'hidden' }}
             aria-label="Glass lens. Drag it, or use the arrow keys, to move it across the engraving."
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
+            {...handlers}
+            onPointerMove={(e) => { probeFrom(e); handlers.onPointerMove(e); }}
             onPointerLeave={() => {
               setProbe(null);
               idleUntil.current = performance.now() + 1200;
             }}
-            onKeyDown={onKeyDown}
           >
             <Icon name="grip" className="plate-one__grip" />
           </Glass>
@@ -198,14 +133,18 @@ export function PlateSpecimen() {
 
       <div className="plate-one__figure">
         <RayDiagram {...optics} probe={shown} />
+        <Scale label="Refractive index n" value={ior} min={1} max={2.42} step={0.01} onChange={setIor} format={(n) => n.toFixed(2)} hint="1.00 air · 1.33 water · 1.50 glass · 2.42 diamond" />
+        <button type="button" className="action action--quiet" aria-pressed={sound.enabled} disabled={sound.unavailable} onClick={() => void sound.toggle()}>
+          {sound.unavailable ? 'Sound unavailable' : `Glass sound: ${sound.enabled ? 'on' : 'off'}`}
+        </button>
         <p className="caption">
-          <b>Fig. 1.</b> A meniscus bends the page. Drag the lens across the engraving and watch its lines bend; the section follows your pointer. Rim {g.bezel.toFixed(0)} px wide,{' '}
+          <b>Fig. 1.</b> A meniscus bends the page. Flick the lens and let it settle. Change the index to bend the engraving’s lines; the section follows your pointer. Rim {g.bezel.toFixed(0)} px wide,{' '}
           {g.thickness.toFixed(0)} px thick, <span className="var">n</span> = {g.ior.toFixed(2)}; the largest shift is{' '}
           <span className="num">{profile.maxDisplacement.toFixed(1)}</span> px.
         </p>
         {!engine.refracts ? (
           <p className="caption plate-one__notice">
-            {engine.browser} can’t refract live page content yet, so this plate shows the frosted path. Plate III refracts in every browser with WebGL.
+            {engine.browser} can’t refract live page content yet, so this lens refracts its supplied engraving with WebGL when available, and otherwise uses frosted glass.
           </p>
         ) : null}
       </div>

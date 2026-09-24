@@ -32,13 +32,15 @@ export type StageStatus = 'pending' | 'ready' | 'fallback';
 
 type Source = string | TexImageSource | RefObject<TexImageSource | null>;
 
+interface PaneOptions extends GlassOptions { shadow?: string | false }
+
 interface StageContextValue {
   status: StageStatus;
-  register: (el: HTMLElement, options: () => GlassOptions) => () => void;
+  register: (el: HTMLElement, options: () => PaneOptions) => () => void;
   /** Whether a pane gets one of the stage's WebGL slots. Panes past the limit frost instead. */
   drawn: (el: HTMLElement) => boolean;
-  /** Panes flow into one body, so they cast one shadow (drawn by the stage) instead of their own. */
-  merged: boolean;
+  /** The stage draws the shadows for merged or layered panes. */
+  shadowMode: 'css' | 'merged' | 'layered';
 }
 
 const StageContext = createContext<StageContextValue | null>(null);
@@ -60,6 +62,8 @@ export interface GlassStageProps extends Omit<HTMLAttributes<HTMLDivElement>, 'c
   onStatus?: (status: StageStatus) => void;
   /** Let panes fuse like drops: outlines closer than this many px bridge into one surface. 0 keeps them apart. */
   merge?: number;
+  /** Refract stacked panes and their shadows in registration order, back to front. Adds one pass per pane. Merge takes precedence. */
+  layered?: boolean;
   children?: ReactNode;
 }
 
@@ -77,7 +81,7 @@ function resolveSource(source: Source, img: HTMLImageElement | null): TexImageSo
  * inside. Where WebGL2 is missing, or the media can't be read (cross-origin
  * without CORS), panes fall back to frosted glass over the media itself.
  */
-export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPixelRatio = 2, animate = false, onStatus, merge = 0, style, children, ...rest }: GlassStageProps) {
+export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPixelRatio = 2, animate = false, onStatus, merge = 0, layered = false, style, children, ...rest }: GlassStageProps) {
   const [status, setStatus] = useState<StageStatus>('pending');
   const [restoreKey, setRestoreKey] = useState(0);
   const [slotsVersion, setSlotsVersion] = useState(0);
@@ -89,7 +93,7 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const panes = useRef(new Map<HTMLElement, () => GlassOptions>());
+  const panes = useRef(new Map<HTMLElement, () => PaneOptions>());
   const dirty = useRef(true);
   const onStatusRef = useRef(onStatus);
   useIsomorphicLayoutEffect(() => {
@@ -110,7 +114,7 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
     [slotsVersion],
   );
 
-  const register = useCallback((el: HTMLElement, options: () => GlassOptions) => {
+  const register = useCallback((el: HTMLElement, options: () => PaneOptions) => {
     panes.current.set(el, options);
     dirty.current = true;
     if (panes.current.size > MAX_PANES) setSlotsVersion((v) => v + 1);
@@ -227,15 +231,21 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
         const glass = resolveGlass(options, width, height);
         const x = (r.left - box.left) / scaleX - stage.clientLeft;
         const y = (r.top - box.top) / scaleY - stage.clientTop;
-        frames.push({ x, y, glass, tint: resolveTint(el, glass.tint) });
+        frames.push({ x, y, glass, tint: resolveTint(el, glass.tint), shadow: options.shadow === undefined });
         signature += `|${x.toFixed(2)},${y.toFixed(2)},${width.toFixed(2)},${height.toFixed(2)},${optionsKey(options)}`;
       }
 
       if (!live && !dirty.current && signature === lastSignature) return;
       lastSignature = signature;
       dirty.current = false;
-      // Merged panes are one body: one shadow, drawn in the shader, not one per pane.
-      renderer.render(frames, fit, pr, { merge, shadow: merge > 0 ? MERGED_SHADOW : null });
+      // Merged or stacked panes carry their shadows in the renderer.
+      try {
+        renderer.render(frames, fit, pr, { merge, layered, shadow: merge > 0 || layered ? MERGED_SHADOW : null });
+      } catch {
+        running = false;
+        setStatus('fallback');
+        return;
+      }
       setStatus((s) => (s === 'ready' ? s : 'ready'));
     };
 
@@ -271,9 +281,9 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
       }
       renderer.dispose();
     };
-  }, [source, fit, maxPixelRatio, animate, cors, failed, restoreKey, merge]);
+  }, [source, fit, maxPixelRatio, animate, cors, failed, restoreKey, merge, layered]);
 
-  const value = useMemo(() => ({ status, register, drawn, merged: merge > 0 }), [status, register, drawn, merge]);
+  const value = useMemo<StageContextValue>(() => ({ status, register, drawn, shadowMode: merge > 0 ? 'merged' : layered ? 'layered' : 'css' }), [status, register, drawn, merge, layered]);
 
   return (
     <StageContext.Provider value={value}>
@@ -303,9 +313,9 @@ function GlassPaneImpl(props: GlassPaneProps<ElementType>, forwardedRef: Forward
   const stage = useContext(StageContext);
   const defaults = useGlassDefaults();
   const [el, setEl] = useState<HTMLElement | null>(null);
-  const optionsRef = useRef<GlassOptions>({});
+  const optionsRef = useRef<PaneOptions>({});
 
-  const options: GlassOptions = {};
+  const options: PaneOptions = { shadow: props.shadow };
   for (const key of GLASS_OPTION_KEYS) {
     const value = (props as Record<string, unknown>)[key] ?? defaults[key];
     if (value !== undefined) (options as Record<string, unknown>)[key] = value;
@@ -323,7 +333,8 @@ function GlassPaneImpl(props: GlassPaneProps<ElementType>, forwardedRef: Forward
 
   const webgl = stage?.status === 'ready' && !!el && stage.drawn(el);
   const Pane = Glass as (p: Record<string, unknown>) => ReactElement | null;
-  const shadow = webgl && stage.merged ? false : props.shadow;
+  const keepCSSShadow = stage?.shadowMode === 'css' || (stage?.shadowMode === 'layered' && typeof props.shadow === 'string');
+  const shadow = webgl && !keepCSSShadow ? false : props.shadow;
   return <Pane {...props} ref={setRef} shadow={shadow} mode={webgl ? 'none' : 'frost'} data-meniscus-pane="" />;
 }
 

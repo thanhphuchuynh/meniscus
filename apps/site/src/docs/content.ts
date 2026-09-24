@@ -39,6 +39,7 @@ export const STAGE_PROPS: PropRow[] = [
   { name: 'maxPixelRatio', type: 'number', default: '2', body: 'Upper bound on the canvas resolution.' },
   { name: 'animate', type: 'boolean', default: 'false', body: 'Redraw every frame, for canvas sources that change on their own. Playing video always redraws.' },
   { name: 'onStatus', type: '(status) => void', default: '—', body: "Called with 'pending', 'ready' or 'fallback' as the stage settles." },
+  { name: 'layered', type: 'boolean', default: 'false', body: 'Composite panes back to front in registration order, refracting earlier panes and soft shadows. Adds one pass per pane and two reusable render textures. Keep stacks small. shadow={false} removes a pane’s shadow. Custom CSS shadows and DOM children are not refracted; positive merge takes precedence.' },
   { name: 'merge', type: 'number', default: '0', body: 'Let panes flow into one body: outlines closer than this many px bridge, and the neck blends the two glasses. 0 keeps panes apart.' },
 ];
 

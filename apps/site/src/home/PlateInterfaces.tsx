@@ -1,3 +1,4 @@
+import { PatternGallery } from './PatternGallery';
 import { Glass, GlassButton, GlassCheckbox, GlassGlyph, GlassIndicator, GlassPanel, GlassProvider, GlassSelect, GlassTextField } from 'meniscus';
 import { useEffect, useState, type ReactNode } from 'react';
 import { CodeBlock, Plate } from '../shared/chrome';
@@ -277,6 +278,7 @@ export function PlateInterfaces() {
           as flat UI; everything else stays exactly as it was.
         </p>
       </div>
+      <PatternGallery />
       <div className="interfaces__switch">
         <Switch checked={glass} onChange={setGlass} label="Glass">
           <span className="interfaces__switch-label">

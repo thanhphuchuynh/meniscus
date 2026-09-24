@@ -29,6 +29,8 @@ precision highp float;
 const int MAX_PANES = ${MAX_PANES};
 const float LUT_SAMPLES = ${LUT_SAMPLES}.0;
 
+uniform int u_layer;              // -1: independent panes; otherwise one composited layer
+uniform bool u_screenSource;     // source is a previous framebuffer pass
 uniform sampler2D u_source;
 uniform sampler2D u_lut;
 uniform vec2 u_resolution;
@@ -53,7 +55,15 @@ vec2 toUV(vec2 px) {
   return px * u_uvScale + u_uvOffset;
 }
 
+float paneShadow(vec2 px);
+
 vec4 source(vec2 px, float lod) {
+  if (u_screenSource) {
+    vec2 uv = vec2(px.x / u_resolution.x, 1.0 - px.y / u_resolution.y);
+    vec4 color = textureLod(u_source, clamp(uv, 0.0, 1.0), lod);
+    float a = paneShadow(px);
+    return vec4(0.0, 0.0, 0.0, a) + color * (1.0 - a);
+  }
   vec2 uv = toUV(px);
   if (u_letterbox && (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0)) return vec4(0.0);
   return textureLod(u_source, clamp(uv, 0.0, 1.0), lod);
@@ -94,6 +104,15 @@ float paneSdfAt(int i, vec2 p, out vec2 n) {
   vec4 rect = u_rect[i];
   vec2 halfSize = rect.zw * 0.5;
   return roundedRect(p - (rect.xy + halfSize), halfSize, u_shape[i].x, n);
+}
+
+// Sample the current pane’s shadow at the refracted position too. Previous
+// panes and their shadows are already part of the framebuffer source.
+float paneShadow(vec2 px) {
+  if (u_layer < 0 || u_shadow.x <= 0.0) return 0.0;
+  vec2 n;
+  float d = paneSdfAt(u_layer, px - vec2(0.0, u_shadow.y), n);
+  return u_shadow.x * 0.5 * (1.0 - tanh(d / max(u_shadow.z, 1e-3)));
 }
 
 float paneSdf(int i, out vec2 n) {
@@ -181,7 +200,7 @@ void main() {
 
   // A soft shadow under the glass, dropped and blurred: a blurred step is
   // close to 1 - tanh. The glass covers it, so it only shows outside.
-  if (u_shadow.x > 0.0 && u_count > 0) {
+  if (u_layer < 0 && u_shadow.x > 0.0 && u_count > 0) {
     float ds = glassField(v_px - vec2(0.0, u_shadow.y));
     float a = u_shadow.x * 0.5 * (1.0 - tanh(ds / max(u_shadow.z, 1e-3)));
     color = vec4(0.0, 0.0, 0.0, a) + color * (1.0 - a);
@@ -238,6 +257,7 @@ void main() {
   } else {
     for (int i = 0; i < MAX_PANES; i++) {
       if (i >= u_count) break;
+      if (u_layer >= 0 && i != u_layer) continue;
       vec2 n;
       float d = paneSdf(i, n);
       if (d > 1.0) continue;

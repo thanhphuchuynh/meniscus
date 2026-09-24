@@ -210,7 +210,9 @@ import { GlassPane, GlassStage } from 'meniscus/webgl';
 </GlassStage>
 ```
 
-For video or canvas, render the element yourself inside the stage and pass a ref as `source`. Cross-origin images need CORS headers. Where WebGL2 is missing, panes frost over the media. A stage draws up to 16 panes in one pass, and it refracts only its source, never the DOM above it.
+For video or canvas, render the element yourself inside the stage and pass a ref as `source`. Cross-origin images need CORS headers. Where WebGL2 is missing, panes frost over the media. By default, a stage draws up to 16 panes in one pass, and it refracts only its source, never the DOM above it.
+
+Set `layered` on `GlassStage` to composite panes back to front in registration order. Each pane refracts the earlier panes and their soft shadows. This uses two reusable render textures and an additional pass per pane; keep stacks small and use `maxPixelRatio` to bound GPU work. Set `shadow={false}` on a pane to remove its shadow. A custom CSS `shadow` string stays on the DOM pane and is not refracted. DOM children remain above the canvas and are not refracted. Positive `merge` takes precedence over `layered`. If WebGL rendering fails, panes fall back to frosted glass.
 
 Give the stage `merge={28}` and panes closer than 28 px flow into one body, with the neck blending each pane's glass into the other's.
 

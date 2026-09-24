@@ -15,6 +15,8 @@ export interface SourceRect {
 }
 
 export interface RenderOptions {
+  /** Composite panes back to front, refracting earlier panes and their shadows. Ignored when merging. */
+  layered?: boolean;
   /** Smooth-union distance: panes whose outlines are closer than this many px flow together. */
   merge?: number;
   /** Draw only the glass (and its shadow), leaving the rest of the canvas clear. */
@@ -24,6 +26,8 @@ export interface RenderOptions {
 }
 
 export interface PaneFrame {
+  /** Whether this pane casts the standard refracted shadow in layered mode. Defaults to true. */
+  shadow?: boolean;
   /** Pane box relative to the canvas, CSS px. */
   x: number;
   y: number;
@@ -49,12 +53,15 @@ function compile(gl: WebGL2RenderingContext, type: number, source: string): WebG
 
 /**
  * Draws a source image, video or canvas with glass panes refracting it, in a
- * single full-screen pass. Each pane's refraction table (the same one the SVG
+ * single full-screen pass by default, or ordered framebuffer passes for layers.
+ * Each pane's refraction table (the same one the SVG
  * path encodes into displacement maps) lives in one row of a lookup texture.
  */
 export class GlassRenderer {
   readonly gl: WebGL2RenderingContext;
   private program: WebGLProgram;
+  private targets: Array<{ texture: WebGLTexture; framebuffer: WebGLFramebuffer }> = [];
+  private targetSize = '';
   private sourceTex: WebGLTexture;
   private lutTex: WebGLTexture;
   private vao: WebGLVertexArrayObject;
@@ -88,7 +95,7 @@ export class GlassRenderer {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(`meniscus: program failed to link: ${gl.getProgramInfoLog(program)}`);
     this.program = program;
 
-    for (const name of ['u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_panesOnly', 'u_shadow', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc']) {
+    for (const name of ['u_layer', 'u_screenSource', 'u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_panesOnly', 'u_shadow', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc']) {
       this.uniforms[name] = gl.getUniformLocation(program, name);
     }
 
@@ -190,10 +197,11 @@ export class GlassRenderer {
    * scales the source to the canvas like object-fit, or a rect places it.
    */
   render(panes: PaneFrame[], fit: Fit | SourceRect, pixelRatio: number, options: RenderOptions | number = {}): void {
-    const { merge = 0, panesOnly = false, shadow = null } = typeof options === 'number' ? { merge: options } : options;
+    const { merge = 0, panesOnly = false, shadow = null, layered = false } = typeof options === 'number' ? { merge: options } : options;
     const gl = this.gl;
     const cw = this.canvas.width;
     const ch = this.canvas.height;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, cw, ch);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -239,6 +247,8 @@ export class GlassRenderer {
     const u = this.uniforms;
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.sourceTex);
+    gl.uniform1i(u.u_layer!, -1);
+    gl.uniform1i(u.u_screenSource!, 0);
     gl.uniform1i(u.u_source!, 0);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this.lutTex);
@@ -259,12 +269,77 @@ export class GlassRenderer {
     gl.uniform4fv(u.u_light!, a.light);
     gl.uniform4fv(u.u_misc!, a.misc);
     gl.bindVertexArray(this.vao);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    if (layered && merge <= 0 && !panesOnly && count > 0) {
+      this.ensureTargets(cw, ch);
+      // First pass fits the original media to the stage. Every following pass
+      // samples screen coordinates, including prior refraction and shadows.
+      gl.uniform1i(u.u_count!, 0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.targets[0]!.framebuffer);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.uniform1i(u.u_count!, count);
+      gl.uniform1i(u.u_screenSource!, 1);
+      gl.uniform1f(u.u_srcTexel!, 1);
+      for (let i = 0; i < count; i++) {
+        const input = this.targets[i % 2]!;
+        const output = i === count - 1 ? null : this.targets[(i + 1) % 2]!.framebuffer;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, output);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, input.texture);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.uniform1i(u.u_layer!, i);
+        gl.uniform3f(u.u_shadow!, shadow && panes[i]!.shadow !== false ? shadow.strength : 0, shadow ? shadow.drop * pixelRatio : 0, shadow ? shadow.blur * pixelRatio : 1);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+    } else {
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
     gl.bindVertexArray(null);
+  }
+
+  private ensureTargets(width: number, height: number): void {
+    const key = `${width}x${height}`;
+    if (this.targetSize === key) return;
+    const gl = this.gl;
+    gl.activeTexture(gl.TEXTURE0);
+    try {
+      for (let i = 0; i < 2; i++) {
+        if (!this.targets[i]) {
+          const texture = gl.createTexture();
+          const framebuffer = gl.createFramebuffer();
+          if (!texture || !framebuffer) {
+            gl.deleteTexture(texture);
+            gl.deleteFramebuffer(framebuffer);
+            throw new Error('meniscus: could not allocate layered render targets');
+          }
+          this.targets.push({ texture, framebuffer });
+        }
+        const target = this.targets[i]!;
+        gl.bindTexture(gl.TEXTURE_2D, target.texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target.texture, 0);
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+          throw new Error('meniscus: layered framebuffer is incomplete');
+        }
+      }
+      this.targetSize = key;
+    } finally {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.bindTexture(gl.TEXTURE_2D, this.sourceTex);
+    }
   }
 
   dispose(): void {
     const gl = this.gl;
+    for (const target of this.targets) {
+      gl.deleteTexture(target.texture);
+      gl.deleteFramebuffer(target.framebuffer);
+    }
+    this.targets = [];
     gl.deleteTexture(this.sourceTex);
     gl.deleteTexture(this.lutTex);
     gl.deleteProgram(this.program);

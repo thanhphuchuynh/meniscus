@@ -13,3 +13,5 @@ createRoot(document.getElementById('root')!).render(
     <Home />
   </StrictMode>,
 );
+
+import './experiments.css';

@@ -1,8 +1,10 @@
 import { GlassProvider } from 'meniscus';
 import { useState } from 'react';
 import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
+import { OnlineExample } from '../shared/OnlineExample';
 import { Icon } from '../shared/Icon';
 import { sitePath } from '../shared/paths';
+import { PlateDepth } from './PlateDepth';
 import { PlateAnatomy } from './PlateAnatomy';
 import { PlateRenderers } from './PlateRenderers';
 import { PlateSpecimen } from './PlateSpecimen';
@@ -29,12 +31,13 @@ export function Home() {
       <Masthead page="home" />
       <main id="main" className="home">
         <PlateSpecimen />
+        <PlateDepth />
         <PlateAnatomy sun={sun} onSun={setSun} />
         <PlateRenderers />
         <PlateSpecimens />
         <PlateTension />
         <PlateInterfaces />
-        <section className="closing" aria-labelledby="closing-title">
+        <section id="try-online" className="closing" aria-labelledby="closing-title">
           <div className="closing__text">
             <h2 id="closing-title">Start with one component</h2>
             <p>
@@ -43,6 +46,7 @@ export function Home() {
             </p>
             <div className="closing__actions">
               <Install />
+              <OnlineExample />
               <div className="actions-row">
                 <a className="action action--primary" href={sitePath('/playground/')}>
                   Open the playground
