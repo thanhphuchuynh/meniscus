@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Glass } from '../src';
 import { overrideRefractionSupport, overrideWebGL2 } from '../src/core';
 import { MAX_SQUASH, rippleOf, squashMatrix, squashTarget } from '../src/react/liquid';
@@ -139,6 +139,69 @@ describe('a moving interactive glass', () => {
     expect(el.style.transform).toBe('');
     // Tracking ended: nothing is left asking for frames.
     expect(frames.length).toBe(0);
+  });
+
+  it('hands the transform over when the app starts transforming mid-press', () => {
+    mockSize(200, 200);
+    const { getByTestId } = render(<Glass data-testid="g" interactive>x</Glass>);
+    const el = getByTestId('g');
+    const box = movable(el);
+    act(() => {
+      fireEvent.pointerDown(el, { pointerId: 1, clientX: 200, clientY: 200 });
+      frame();
+      // A drag library moves the element with its own transform once the drag starts.
+      for (let k = 1; k <= 6; k++) {
+        el.style.transform = `translate(${k * 20}px, 0px)`;
+        box.left += 20;
+        frame();
+      }
+    });
+    expect(el.style.transform).toBe('translate(120px, 0px)');
+    act(() => {
+      fireEvent.pointerUp(el, { pointerId: 1 });
+      frame(200);
+    });
+    expect(el.style.transform).toBe('translate(120px, 0px)');
+  });
+
+  it('keeps a press effect the app sets on pointerdown', () => {
+    mockSize(200, 200);
+    function Pressable() {
+      const [pressed, setPressed] = useState(false);
+      return (
+        <Glass data-testid="g" interactive style={{ transform: pressed ? 'scale(0.95)' : undefined }} onPointerDown={() => setPressed(true)}>
+          x
+        </Glass>
+      );
+    }
+    const { getByTestId } = render(<Pressable />);
+    const el = getByTestId('g');
+    movable(el);
+    // React commits the press effect first, then the frames run.
+    act(() => {
+      fireEvent.pointerDown(el, { pointerId: 1, clientX: 200, clientY: 200 });
+    });
+    expect(el.style.transform).toBe('scale(0.95)');
+    act(() => frame(10));
+    expect(el.style.transform).toBe('scale(0.95)');
+  });
+
+  it('lets go when the browser takes over a touch, even as the glass scrolls away', () => {
+    mockSize(200, 200);
+    const { getByTestId } = render(<Glass data-testid="g" interactive>x</Glass>);
+    const el = getByTestId('g');
+    const box = movable(el);
+    act(() => {
+      fireEvent.pointerDown(el, { pointerId: 1, clientX: 200, clientY: 200 });
+      frame();
+      fireEvent.pointerCancel(el, { pointerId: 1 });
+      // A nested scroller moves the glass on screen after the browser took the touch.
+      for (let k = 0; k < 10; k++) {
+        box.top -= 30;
+        frame();
+      }
+    });
+    expect(el.style.transform).toBe('');
   });
 
   it('does nothing under reduced motion', () => {

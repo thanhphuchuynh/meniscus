@@ -88,13 +88,14 @@ Placement measures the host with its own `transform` (the squash) divided out, a
   - **When it runs:** from `pointerdown` (primary button) until rest, at most one `getBoundingClientRect()` per animation frame.
   - **Motion:** velocity comes from the rect center's movement with page scroll (`window.scrollX/Y`) subtracted, smoothed with an exponential moving average (α = 0.5). Acceleration is the smoothed change in velocity per second, clamped to ±30,000 px/s².
   - **Stopping:** after release, tracking continues until the element has moved less than 0.1 px for 6 consecutive frames and the springs have settled, or 2 s have passed.
-  - **Edge case:** scrolling a nested container during a gesture is not compensated. This is rare and harmless: a brief squash.
+  - **Edge case:** `pointercancel` (the browser taking a touch for a scroll or zoom) ends tracking at once, so touch scrolling never squashes. Scrolling a nested container while a mouse button is held is not compensated.
 - **Squash:**
   - **Target:** a stretch along the velocity direction, stored as two numbers `(s·cos 2θ, s·sin 2θ)` with `s = 0.15 · tanh(|v| / 1800 px/s)`. Storing the doubled angle avoids a jump when the direction wraps around.
   - **Springs:** two springs chase the target, reusing `Spring` from `interaction.ts` with stiffness 260 and damping 14 (damping ratio about 0.43, one or two jiggles).
   - **Matrix:** `M = [[1+a, b], [b, 1−a]] / sqrt(1 − a² − b²)`. The determinant is 1, so area is preserved and the maximum stretch is about 16%. Applied as `transform: matrix(...)` around the element's center.
 - **Style ownership:**
   - The squash runs only if the element's computed `transform` is `none` when the gesture starts. An app that transforms its glass keeps full control.
+  - If the element's inline `transform` changes to anything other than the squash's own last value mid-gesture (a drag library, a press effect), the squash stops at once and never restores over it.
   - The inline `transform` is restored exactly when the gesture ends, on disable, on reduced motion and on unmount.
   - `useLiquidInteraction` keeps using the separate `scale` and `translate` properties, so the two compose.
 - **Ripple input:** while tracking, acceleration goes to `ripple.accelerate`. `pointerdown` drops a bead, pressed `pointermove` strokes, and Space/Enter drops a bead at the center. Local coordinates divide out the element's scale, as the bloom does.

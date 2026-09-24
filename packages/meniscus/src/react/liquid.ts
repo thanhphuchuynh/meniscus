@@ -93,6 +93,8 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
     let still = 0;
     let owned = false;
     let inline = '';
+    // The transform last written, as the element reads it back; null while resting.
+    let written: string | null = null;
     let trail: { x: number; y: number; t: number } | null = null;
 
     const local = (clientX: number, clientY: number) => {
@@ -110,8 +112,10 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
       still = 0;
       a.reset();
       b.reset();
-      if (owned) node.style.transform = inline;
+      // Only undo our own squash: a transform the app set since is theirs.
+      if (owned && written !== null && node.style.transform === written) node.style.transform = inline;
       owned = false;
+      written = null;
     };
 
     const tick = (now: number) => {
@@ -133,16 +137,27 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
       }
       last = { x, y, t: now };
       ripple?.accelerate(ax, ay);
+      if (owned && node.style.transform !== (written ?? inline)) {
+        // The app took the transform mid-gesture (a drag library, a press effect): it's theirs now.
+        owned = false;
+        written = null;
+        a.reset();
+        b.reset();
+      }
       if (owned) {
         [a.target, b.target] = squashTarget(vx, vy);
         a.step(dt);
         b.step(dt);
         const resting = a.settled && b.settled && Math.abs(a.value) < 1e-4 && Math.abs(b.value) < 1e-4;
         if (resting) {
-          node.style.transform = inline;
+          if (written !== null) {
+            node.style.transform = inline;
+            written = null;
+          }
         } else {
           const [m11, m12, m21, m22] = squashMatrix(a.value, b.value);
           node.style.transform = `matrix(${m11.toFixed(4)}, ${m21.toFixed(4)}, ${m12.toFixed(4)}, ${m22.toFixed(4)}, 0, 0)`;
+          written = node.style.transform;
         }
       }
       still = moved < 0.1 ? still + 1 : 0;
@@ -183,6 +198,13 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
       trail = null;
       releasedAt = performance.now();
     };
+    const onCancel = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return;
+      pointerId = null;
+      trail = null;
+      // The browser took the touch for a scroll or a zoom: stop following the glass.
+      finish();
+    };
     const onKey = (e: KeyboardEvent) => {
       if (!ripple || e.repeat || (e.key !== ' ' && e.key !== 'Enter')) return;
       ripple.drop(node.offsetWidth / 2, node.offsetHeight / 2);
@@ -193,13 +215,13 @@ export function useLiquidMotion(node: HTMLElement | null, { squash, ripple, redu
     node.addEventListener('keydown', onKey);
     // Releases can land anywhere once the pointer leaves the glass.
     window.addEventListener('pointerup', onUp, true);
-    window.addEventListener('pointercancel', onUp, true);
+    window.addEventListener('pointercancel', onCancel, true);
     return () => {
       node.removeEventListener('pointerdown', onDown);
       node.removeEventListener('pointermove', onMove);
       node.removeEventListener('keydown', onKey);
       window.removeEventListener('pointerup', onUp, true);
-      window.removeEventListener('pointercancel', onUp, true);
+      window.removeEventListener('pointercancel', onCancel, true);
       finish();
     };
   }, [node, squash, ripple, reducedMotion]);
