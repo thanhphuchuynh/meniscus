@@ -30,3 +30,30 @@ jobs:
       - run: pnpm test
       - run: pnpm typecheck
       - run: pnpm build
+
+  next-example:
+    # The App Router example, built against this repository's library packed as npm ships it,
+    # so a change that breaks Server Components or server rendering fails here.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.5.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter meniscus build
+      - run: npm pack --pack-destination "$RUNNER_TEMP"
+        working-directory: packages/meniscus
+      - run: npm ci --no-audit --no-fund
+        working-directory: examples/next-app
+      - run: npm install --no-save --no-audit --no-fund "$RUNNER_TEMP"/meniscus-*.tgz
+        working-directory: examples/next-app
+      - run: npm run build
+        working-directory: examples/next-app
+        env:
+          NEXT_TELEMETRY_DISABLED: 1

@@ -10,6 +10,8 @@ Liquid glass for React, refracted by optics. The library lives in [`packages/men
 
 [Run the editable example](examples/optics) — refractive index, RGB splitting and lighting controls, using the published npm package. Choose **Edit in StackBlitz** on the site to open it without installing anything.
 
+[Next.js App Router example](examples/next-app) — meniscus rendered from Server Components. CI builds it against the library packed from this repository.
+
 [Changelog](CHANGELOG.md) · [Release process](RELEASING.md)
 
 [Live site and manual](https://thanhphuchuynh.github.io/meniscus/) · [Manual](https://thanhphuchuynh.github.io/meniscus/docs/)
