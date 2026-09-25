@@ -4,6 +4,8 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-25
+
 ### Added
 
 - `reduceTransparency`, `reduceMotion` and `increaseContrast` on `GlassProvider`, for an app's own accessibility settings: Safari doesn't report Reduce Transparency to the web. A provider adds a setting; it never removes the system's.
