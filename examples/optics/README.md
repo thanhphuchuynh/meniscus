@@ -1,6 +1,6 @@
 # Meniscus optics experiment
 
-An independent Vite + React example using published `meniscus@0.1.1`. The image is generated locally as an SVG; no external media is required.
+An independent Vite + React example using the published `meniscus` package. The image is generated locally as an SVG; no external media is required.
 
 ```sh
 npm install
