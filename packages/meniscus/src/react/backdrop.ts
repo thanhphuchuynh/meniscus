@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState, type RefObject } from 'react';
-import { REDUCED_TRANSPARENCY, elementImage, supportsElementCopy, supportsWebGL2, type RenderMode, type RenderModePreference } from '../core/support';
+import { elementImage, supportsElementCopy, supportsWebGL2, type RenderMode, type RenderModePreference } from '../core/support';
 import { isMediaElement } from '../webgl/media';
 import { DEV } from './dev';
-import { useIsomorphicLayoutEffect, useMediaQuery } from './hooks';
+import { useGlassPreferences, useIsomorphicLayoutEffect } from './hooks';
 
 /**
  * What lies behind a glass, for browsers that can't refract the live page:
@@ -56,7 +56,7 @@ export function useFallback(
   /** Waves need WebGL: take the media path even where live refraction works. */
   preferWebGL = false,
 ): { path: FallbackPath | null; element: HTMLElement | null; fail: () => void } {
-  const reducedTransparency = useMediaQuery(REDUCED_TRANSPARENCY);
+  const { reducedTransparency } = useGlassPreferences();
   const [state, setState] = useState<{ path: FallbackPath | null; element: HTMLElement | null }>({ path: null, element: null });
   // A path that failed (unreadable media, a lost context) is not tried again.
   const [failed, setFailed] = useState<FallbackPath | null>(null);

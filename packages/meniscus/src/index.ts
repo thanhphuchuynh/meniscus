@@ -3,7 +3,7 @@ import { GlassLayer, GlassStack } from './react/GlassStack';
 
 /** A surface of liquid glass, with `Glass.Stack` and `Glass.Layer` for layered glass. */
 export const Glass = Object.assign(GlassBase, { Stack: GlassStack, Layer: GlassLayer });
-export { DEFAULT_SHADOW, GLASS_OPTION_KEYS, type GlassProps, type GlassOwnProps } from './react/Glass';
+export { DEFAULT_SHADOW, GLASS_OPTION_KEYS, type GlassProps, type GlassOwnProps, type GlassPath, type GlassPathReason } from './react/Glass';
 export { GlassStack, GlassLayer, type GlassStackProps, type GlassLayerProps, type StackRenderer } from './react/GlassStack';
 export { GlassButton, type GlassButtonProps } from './react/GlassButton';
 export { GlassPanel, type GlassPanelProps } from './react/GlassPanel';
@@ -15,7 +15,7 @@ export { GlassProvider, useGlassDefaults, type GlassProviderProps, type GlassDef
 export { GlassFilter, type GlassFilterProps } from './react/GlassFilter';
 export { GlassIndicator, type GlassIndicatorProps, type IndicatorBox } from './react/GlassIndicator';
 export { GlassGroup, useGlassGroup, type GlassGroupProps } from './react/GlassGroup';
-export { useGlassMode, useElementSize } from './react/hooks';
+export { useGlassMode, useGlassPreferences, useElementSize, type GlassPreferences } from './react/hooks';
 export { useGlassPhysics } from './react/useGlassPhysics';
 export { GlassPhysics, OPTICAL_REST, presenceOpacity, staggerDelay, type OpticalChannel, type OpticalState, type GlassPhysicsOptions, type TransitionOptions } from './core/physics';
 export { SPRINGS, type SpringConfig, type SpringInput, type SpringPreset } from './core/spring';

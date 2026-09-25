@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { GlassPhysics, type GlassPhysicsOptions } from '../core/physics';
-import { REDUCED_MOTION } from '../core/support';
-import { useIsomorphicLayoutEffect, useMediaQuery } from './hooks';
+import { useGlassPreferences, useIsomorphicLayoutEffect } from './hooks';
 
 /**
  * A `GlassPhysics` owned by this component: one instance for its whole life,
@@ -10,7 +9,7 @@ import { useIsomorphicLayoutEffect, useMediaQuery } from './hooks';
  * reduced-motion setting unless `reducedMotion` is passed.
  */
 export function useGlassPhysics(options: GlassPhysicsOptions = {}): GlassPhysics {
-  const systemReduced = useMediaQuery(REDUCED_MOTION);
+  const systemReduced = useGlassPreferences().reducedMotion;
   const reducedMotion = options.reducedMotion ?? systemReduced;
   const [physics] = useState(() => new GlassPhysics({ ...options, reducedMotion }));
   // Keyed by value: inline objects are new on every render.

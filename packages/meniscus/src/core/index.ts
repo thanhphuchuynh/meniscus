@@ -60,6 +60,8 @@ export {
   matchesMedia,
   REDUCED_MOTION,
   REDUCED_TRANSPARENCY,
+  MORE_CONTRAST,
+  FORCED_COLORS,
   type RenderMode,
   type RenderModePreference,
 } from './support';

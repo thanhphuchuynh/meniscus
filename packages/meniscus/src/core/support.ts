@@ -57,7 +57,10 @@ export function matchesMedia(query: string): boolean {
 }
 
 export const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+/** Chromium only: Safari has no such query and Firefox keeps it behind a flag, so `GlassProvider reduceTransparency` exists for apps' own settings. */
 export const REDUCED_TRANSPARENCY = '(prefers-reduced-transparency: reduce)';
+export const MORE_CONTRAST = '(prefers-contrast: more)';
+export const FORCED_COLORS = '(forced-colors: active)';
 
 let elementCopy: boolean | undefined;
 

@@ -6,6 +6,16 @@ import type { RenderModePreference } from '../core/support';
 export interface GlassDefaults extends GlassOptions {
   /** Rendering path for every glass below: `auto` refracts where the browser can. */
   mode?: RenderModePreference;
+  /**
+   * Draw glass opaque, without refraction, as under the system's Reduce
+   * Transparency. For an app's own setting: Safari doesn't report that
+   * preference to the web. `false` still follows the system.
+   */
+  reduceTransparency?: boolean;
+  /** Replace springs and ambient motion with short fades, as under Reduce Motion. `false` still follows the system. */
+  reduceMotion?: boolean;
+  /** Draw glass opaque with a hairline edge, as under Increase Contrast or forced colors. `false` still follows the system. */
+  increaseContrast?: boolean;
 }
 
 const GlassContext = createContext<GlassDefaults>({});

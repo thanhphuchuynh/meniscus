@@ -4,6 +4,18 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 
 ## [Unreleased]
 
+### Added
+
+- `reduceTransparency`, `reduceMotion` and `increaseContrast` on `GlassProvider`, for an app's own accessibility settings: Safari doesn't report Reduce Transparency to the web. A provider adds a setting; it never removes the system's.
+- `useGlassPreferences()`: the transparency, motion and contrast settings glass is following.
+- `onPathChange(path, reason)` on `Glass`: the path a glass draws (`refract`, `frost`, `webgl`, `element` or `none`) and why, such as `engine`, `accessibility` or `media`.
+- A development warning when an ancestor's `opacity`, `filter`, `mask`, `clip-path` or blend mode confines a refracting glass to that ancestor's content.
+
+### Changed
+
+- Under `prefers-contrast: more` and forced colors, glass turns opaque and draws a hairline edge, which forced colors repaint in the system's color.
+- `useGlassMode()` reports what glass draws, not what the browser supports: `frost` under reduced transparency or increased contrast.
+
 ## [0.3.0] - 2026-09-25
 
 ### Added

@@ -17,13 +17,13 @@ import {
 import { ABERRATION_SPREAD } from '../core/filter';
 import { lightingProfile, glassProfile, resolveGlass, type GlassOptions, type ResolvedGlass } from '../core/glass';
 import { toDataURL } from '../core/encode';
-import { REDUCED_TRANSPARENCY, type RenderModePreference } from '../core/support';
+import type { RenderModePreference } from '../core/support';
 import { unionJob, unionKernel, unionPixelScale, unionReach, type UnionJob, type UnionShape } from '../core/union';
 import { buildUnionInWorker, type UnionURLs } from '../core/unionWorker';
 import { GLASS_OPTION_KEYS } from '../core/constants';
 import type { Media } from '../webgl/media';
 import { optionsKey, useGlassDefaults } from './context';
-import { useGlassMode, useIsomorphicLayoutEffect, useMediaQuery } from './hooks';
+import { useGlassMode, useGlassPreferences, useIsomorphicLayoutEffect } from './hooks';
 import { GroupContext, useGlassGroup } from './group';
 import { useMergedRef } from './refs';
 import { useElementCopy, useFallback, type Backdrop } from './backdrop';
@@ -156,7 +156,7 @@ function GlassGroupImpl(props: GlassGroupProps, forwardedRef: ForwardedRef<HTMLE
   const [node, setNode] = useState<HTMLElement | null>(null);
   const setRef = useMergedRef(forwardedRef, setNode);
   const mode = useGlassMode(modePreference);
-  const reducedTransparency = useMediaQuery(REDUCED_TRANSPARENCY);
+  const { reducedTransparency } = useGlassPreferences();
   const refract = mode === 'refract' && !reducedTransparency;
   const fallback = useFallback(backdrop, node, modePreference, mode);
   const copying = fallback.path === 'element';

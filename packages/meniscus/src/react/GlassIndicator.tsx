@@ -1,8 +1,7 @@
 import { forwardRef, useCallback, useEffect, useRef, useState, type CSSProperties, type ForwardedRef, type ReactElement } from 'react';
-import { REDUCED_MOTION } from '../core/support';
 import { Glass, type GlassProps } from './Glass';
 import { useMergedRef } from './refs';
-import { useIsomorphicLayoutEffect, useMediaQuery } from './hooks';
+import { useGlassPreferences, useIsomorphicLayoutEffect } from './hooks';
 import { DEV } from './dev';
 
 /** A box in the indicator's offset-parent coordinates, px: for following a finger rather than an element. */
@@ -73,7 +72,7 @@ function boxOf(target: HTMLElement | IndicatorBox, host: HTMLElement): { x: numb
 function GlassIndicatorImpl({ target, inset = 0, stretch = 1, style, radius = 'capsule', ...rest }: GlassIndicatorProps, forwardedRef: ForwardedRef<HTMLSpanElement>) {
   const [node, setNode] = useState<HTMLSpanElement | null>(null);
   const setRef = useMergedRef(forwardedRef, setNode);
-  const reducedMotion = useMediaQuery(REDUCED_MOTION);
+  const { reducedMotion } = useGlassPreferences();
   const edges = useRef({ l: edge(), r: edge(), t: edge(), b: edge() });
   const placed = useRef(false);
   const anchor = useRef<Element | null>(null);

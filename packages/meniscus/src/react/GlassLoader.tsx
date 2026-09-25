@@ -1,10 +1,9 @@
 import { useEffect, useRef, type CSSProperties, type HTMLAttributes } from 'react';
 import { GLASS_OPTION_KEYS } from '../core/constants';
 import type { GlassOptions } from '../core/glass';
-import { REDUCED_MOTION } from '../core/support';
 import { Glass } from './Glass';
 import { GlassGroup } from './GlassGroup';
-import { useMediaQuery } from './hooks';
+import { useGlassPreferences } from './hooks';
 
 export interface GlassLoaderProps extends GlassOptions, Omit<HTMLAttributes<HTMLElement>, 'children' | 'color'> {
   /** What is loading, for assistive technology; shown as a caption on a loading page. */
@@ -25,7 +24,7 @@ const BREATH = 'cubic-bezier(0.45, 0, 0.55, 1)';
 
 /** Three glass drops that share one surface. */
 function Drops({ size, animate, options }: { size: number; animate: boolean; options: GlassOptions }) {
-  const reducedMotion = useMediaQuery(REDUCED_MOTION);
+  const { reducedMotion } = useGlassPreferences();
   const wheel = useRef<HTMLSpanElement>(null);
   const drops = useRef<Array<HTMLElement | null>>([]);
   // Apart, the drops clear the bridging distance; together, they are one drop.

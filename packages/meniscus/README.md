@@ -8,7 +8,7 @@ meniscus renders glass surfaces whose edges bend what lies behind them the way r
 - **Frosted glass everywhere else**, with the same props and the same rim light.
 - **True refraction in every browser** over images, video or canvas, with the WebGL stage.
 - **Liquid motion**: selections that flow like a drop, glass that merges and splits by surface tension, press and hover response, and entrances that materialize.
-- Server-rendering safe, no stylesheet to import, React 18 and 19.
+- Server-rendering safe, with `"use client"` on the React entries for Server Components. No stylesheet to import; React 18 and 19.
 
 ```sh
 npm i meniscus
@@ -87,7 +87,7 @@ const photo = useRef<HTMLImageElement>(null);
 <Glass radius="capsule" backdrop={photo}>…</Glass>
 ```
 
-The server and the first client render are frosted, so markup hydrates cleanly. Refraction switches on right after hydration where supported. Read the path in code with `useGlassMode()`, or force one for a subtree with `<GlassProvider mode="frost">`.
+The server and the first client render are frosted, so markup hydrates cleanly. Refraction switches on right after hydration where supported. Read the page's path with `useGlassMode()`, which accounts for reduced transparency and increased contrast, or one glass's path and why with `onPathChange={(path, reason) => …}`: `('webgl', 'media')` over a video in Safari, `('frost', 'accessibility')` under Reduce Transparency. Force a path for a subtree with `<GlassProvider mode="frost">`. In development, glass warns when an ancestor's `opacity`, `filter`, `mask`, `clip-path` or blend mode cuts it off from the page behind it.
 
 ## Props
 
@@ -246,6 +246,8 @@ export function Workspace({ open }: { open: boolean }) {
 .sidebar { translate: calc((1 - var(--meniscus-presence, 1)) * -28px) 0; }
 ```
 
+In a Server Component, import `GlassStack` and `GlassLayer` by name. `Glass.Stack` reads a property off a client component, and on the server that property is undefined, so the page fails to render.
+
 | Scene behind the stack | Chromium | Safari, Firefox |
 |---|---|---|
 | Any page content | Live refraction; each layer bends the layers beneath it, text included | Frosted; blur and tint stack |
@@ -296,8 +298,18 @@ traceRay({ bezel: 32, thickness: 32, ior: 1.5 }, 6); // one ray, 6 px in from th
 ## Accessibility
 
 - Semantics come from `as` and your markup. The filter, highlight and glow layers are hidden from assistive technology.
-- Under `prefers-reduced-transparency`, glass turns nearly opaque and stops refracting.
-- Under `prefers-reduced-motion`, interactive glass keeps its glow but stops swelling, stretching, squashing and blooming; `ripple` is off; indicators jump with a short fade; `appear` fades.
+- Under `prefers-reduced-transparency`, glass turns nearly opaque and stops refracting. Only Chromium reports that setting, so give your app its own switch and pass it as `<GlassProvider reduceTransparency>`.
+- Under `prefers-contrast: more`, and in forced colors such as Windows High Contrast, glass turns opaque and draws a hairline edge, which forced colors repaint in the system's color. `increaseContrast` on the provider does the same.
+- Under `prefers-reduced-motion`, or `reduceMotion` on the provider, interactive glass keeps its glow but stops swelling, stretching, squashing and blooming; `ripple` is off; indicators jump with a short fade; `appear` fades.
+- A provider can add a setting but never remove one the system asks for. `useGlassPreferences()` returns what glass is following, for your own components.
+
+```tsx
+import { GlassProvider, useGlassPreferences } from 'meniscus';
+
+<GlassProvider reduceTransparency={settings.solidGlass}>{app}</GlassProvider>;
+
+const { reducedTransparency, reducedMotion, increasedContrast } = useGlassPreferences();
+```
 - `GlassIndicator` is hidden from assistive technology. Mark the selection itself with `aria-current`, `aria-selected` or a checked radio.
 - Text on glass needs contrast against the busiest thing behind it; regular glass frosts and tints for that.
 

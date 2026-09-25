@@ -21,10 +21,10 @@ import { DEFAULTS, VARIANTS, defaultTint, glassHighlight, glassTiles, resolveGla
 import type { Radius } from '../core/shape';
 import type { GlassPhysics } from '../core/physics';
 import { RippleField } from '../core/ripple';
-import { REDUCED_MOTION, REDUCED_TRANSPARENCY, supportsWebGL2, type RenderModePreference } from '../core/support';
+import { supportsWebGL2, type RenderModePreference } from '../core/support';
 import { GlassFilter } from './GlassFilter';
 import { useGlassDefaults } from './context';
-import { useElementSize, useGlassMode, useIsomorphicLayoutEffect, useMediaQuery, usePixelRatio } from './hooks';
+import { useElementSize, useGlassMode, useGlassPreferences, useIsomorphicLayoutEffect, usePixelRatio } from './hooks';
 import { useLiquidInteraction, type InteractionHandlers } from './interaction';
 import { registerRipple, useLiquidMotion, warnUndrawnRipple } from './liquid';
 import { useAppear } from './appear';
@@ -42,9 +42,28 @@ export { useMergedRef };
 
 export { DEFAULT_SHADOW, GLASS_OPTION_KEYS };
 
+/** Where a glass draws: refracting the live page, frosted, in WebGL over media, over a live copy of its backdrop (Firefox), or nothing of its own. */
+export type GlassPath = 'refract' | 'frost' | 'webgl' | 'element' | 'none';
+
+/**
+ * Why a glass takes its path: it refracts (`supported`); the browser can't
+ * refract the live page (`engine`); reduced transparency or increased
+ * contrast frost it (`accessibility`); a `mode` asked (`preference`); WebGL
+ * draws its media backdrop (`media`); it bends a live copy of its backdrop
+ * (`copy`); a `GlassGroup` draws it (`group`); its element can't hold the
+ * layers (`void`); or it has no edge to bend (`flat`).
+ */
+export type GlassPathReason = 'supported' | 'engine' | 'accessibility' | 'preference' | 'media' | 'copy' | 'group' | 'void' | 'flat';
+
 export interface GlassOwnProps extends GlassOptions {
   /** Rendering path. `auto` refracts in Chromium and frosts elsewhere. */
   mode?: RenderModePreference;
+  /**
+   * Called with the path this glass draws and why, once it has a size and
+   * whenever either changes: `('frost', 'accessibility')` under reduced
+   * transparency, `('webgl', 'media')` over a video in Safari.
+   */
+  onPathChange?: (path: GlassPath, reason: GlassPathReason) => void;
   /** Swell on press, stretch toward the pointer, and glow where it touches. */
   interactive?: boolean;
   /** Materialize on mount: fade in, swell into place on a spring, and let the lens gather its bend. */
@@ -81,6 +100,34 @@ export type GlassProps<T extends ElementType = 'div'> = GlassOwnProps & { as?: T
 /** Elements that can't hold the glass's layers. They render with the frosted surface only. */
 const CHILDLESS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr', 'textarea', 'select']);
 let warnedChildless = false;
+let warnedConfined = false;
+
+/**
+ * The nearest ancestor that confines a backdrop filter to its own content,
+ * described for a warning, or null. The walk stops at glass: glass in glass
+ * is meant to bend the glass around it, faded or not.
+ */
+function backdropRoot(node: HTMLElement): string | null {
+  const set = (value: string | undefined, rest: string) => !!value && value !== rest;
+  for (let el = node.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+    const s = getComputedStyle(el);
+    if (el.hasAttribute('data-meniscus') || set(s.backdropFilter, 'none')) return null;
+    const why =
+      Number(s.opacity || 1) < 1
+        ? `opacity: ${s.opacity}`
+        : set(s.filter, 'none')
+          ? `filter: ${s.filter}`
+          : set(s.clipPath, 'none')
+            ? 'clip-path'
+            : set(s.maskImage, 'none')
+              ? 'mask'
+              : set(s.mixBlendMode, 'normal')
+                ? `mix-blend-mode: ${s.mixBlendMode}`
+                : null;
+    if (why) return `<${el.tagName.toLowerCase()}${typeof el.className === 'string' && el.className ? ` class="${el.className}"` : ''}> (${why})`;
+  }
+  return null;
+}
 
 /** Room around a stacked glass's canvas, so the layers beneath refract from real pixels at its rim, px. */
 const STACK_MARGIN = 48;
@@ -102,6 +149,18 @@ const LIGHT: CSSProperties = {
   zIndex: -1,
   borderRadius: 'inherit',
   overflow: 'hidden',
+  pointerEvents: 'none',
+};
+
+/**
+ * The outline under increased contrast. Forced colors repaint its border in
+ * the system's own color, so the glass keeps an edge in Windows High Contrast.
+ */
+const EDGE: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  borderRadius: 'inherit',
+  border: '1px solid color-mix(in srgb, CanvasText 55%, transparent)',
   pointerEvents: 'none',
 };
 
@@ -148,7 +207,7 @@ function chain(ours: AnyHandler, theirs: AnyHandler): AnyHandler {
 
 function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HTMLElement>) {
   const defaults = useGlassDefaults();
-  const { as, mode: modePreference, interactive = false, appear = false, ripple = false, backdrop, shadow, optics, style, children, ...rest } = props as GlassProps<ElementType> & {
+  const { as, mode: modePreference, onPathChange, interactive = false, appear = false, ripple = false, backdrop, shadow, optics, style, children, ...rest } = props as GlassProps<ElementType> & {
     style?: CSSProperties;
   } & Record<string, unknown>;
 
@@ -180,8 +239,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   // only its shape, content and interaction.
   const ownMode = useGlassMode(modePreference);
   const mode = group ? 'none' : ownMode;
-  const reducedTransparency = useMediaQuery(REDUCED_TRANSPARENCY);
-  const reducedMotion = useMediaQuery(REDUCED_MOTION);
+  const { reducedTransparency, reducedMotion, increasedContrast } = useGlassPreferences();
   const pixelRatio = usePixelRatio();
   const filterId = `meniscus-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   // A disabled control doesn't answer the pointer, so its glass doesn't either.
@@ -313,7 +371,45 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     }
   }
 
-  const path = bare ? 'none' : webgl ? 'webgl' : copyActive ? 'element' : tiles ? 'refract' : 'frost';
+  const path: GlassPath = bare ? 'none' : webgl ? 'webgl' : copyActive ? 'element' : tiles ? 'refract' : 'frost';
+  const reason: GlassPathReason =
+    path === 'none'
+      ? group
+        ? 'group'
+        : 'preference'
+      : path === 'webgl'
+        ? 'media'
+        : path === 'element'
+          ? 'copy'
+          : path === 'refract'
+            ? 'supported'
+            : childless
+              ? 'void'
+              : reducedTransparency
+                ? 'accessibility'
+                : ownMode === 'frost'
+                  ? (modePreference ?? defaults.mode) === 'frost'
+                    ? 'preference'
+                    : 'engine'
+                  : 'flat';
+  // Unmeasured glass is always frosted for a moment; report the path it settles on.
+  const measured = g !== null || childless;
+  const onPathChangeRef = useRef(onPathChange);
+  onPathChangeRef.current = onPathChange;
+  useEffect(() => {
+    if (measured) onPathChangeRef.current?.(path, reason);
+  }, [measured, path, reason]);
+  useEffect(() => {
+    if (!DEV || warnedConfined || path !== 'refract' || !node) return;
+    // Checked once entrances settle: a parent fading in is below full opacity for a moment.
+    const id = setTimeout(() => {
+      const root = warnedConfined ? null : backdropRoot(node);
+      if (!root) return;
+      warnedConfined = true;
+      console.warn(`meniscus: ${root} confines this glass's backdrop filter to its own content, so the glass can't bend the page behind it. Fade or filter the glass itself, not an ancestor.`);
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [node, path]);
   const elementProps = { ...rest, ...events, ref: setRef, style: rootStyle, 'data-meniscus': path };
   if (childless) return createElement(tag, elementProps);
 
@@ -333,6 +429,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     webgl && node && fallback.element ? <MediaLayer host={node} media={fallback.element as Media} frame={mediaFrame} onFail={fallback.fail} style={{ zIndex: -1 }} /> : null,
     highlight && g ? <span aria-hidden="true" data-meniscus-layer="highlight" style={highlightStyle(highlight, g.radius)} /> : null,
     optics && !bare && !webgl && !childless ? <span aria-hidden="true" data-meniscus-layer="spot" style={SPOT} /> : null,
+    increasedContrast ? <span aria-hidden="true" data-meniscus-layer="edge" style={EDGE} /> : null,
     interactive && !disabled ? (
       <span aria-hidden="true" data-meniscus-layer="light" style={LIGHT}>
         <span data-meniscus-layer="glow" style={GLOW} />
