@@ -2,6 +2,6 @@
   "name": "meniscus-next-example",
   "private": true,
   "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
-  "dependencies": { "meniscus": "^0.3.0", "next": "^16.3.6", "react": "^19.3.0", "react-dom": "^19.3.0" },
+  "dependencies": { "meniscus": "^0.4.0", "next": "^16.3.6", "react": "^19.3.0", "react-dom": "^19.3.0" },
   "devDependencies": { "@types/node": "^26.6.2", "@types/react": "^19.3.0", "@types/react-dom": "^19.3.0", "typescript": "^6.0.3" }
 }
