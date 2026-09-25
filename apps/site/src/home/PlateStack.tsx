@@ -57,7 +57,8 @@ export function PlateStack() {
           interactive
           role="region"
           aria-label="Stacked card"
-          style={{ left: `calc(38% + ${offset.x}px)`, top: `calc(18% + ${offset.y}px)` }}
+          // At rest the card starts over the sidebar, but never past the stage's right edge.
+          style={{ left: `calc(min(38%, 100% - var(--card-w) - 12px) + ${offset.x}px)`, top: `calc(18% + ${offset.y}px)` }}
           onPointerDown={onDown}
           onPointerMove={onMove}
           onPointerUp={onUp}
