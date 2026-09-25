@@ -378,6 +378,14 @@
   gap: 20px;
   padding: clamp(48px, 6vw, 88px) 0 0;
 }
+.catalog__patterns {
+  display: grid;
+  gap: 20px;
+  padding: clamp(48px, 6vw, 88px) 0 0;
+}
+.catalog__patterns > p {
+  color: var(--ink-soft);
+}
 .catalog__companions h2 {
   margin-bottom: 0;
 }

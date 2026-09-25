@@ -1,0 +1,326 @@
+/* Two native media elements, with Meniscus surfaces for the controls. */
+.media-video {
+  position: relative;
+  width: min(100%, 960px);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--stock-deep);
+}
+.media-video__picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.media-video__hero-play {
+  position: absolute !important;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  transform: translate(-50%, -50%);
+  color: var(--ink);
+}
+.media-video__hero-play svg {
+  width: 28px;
+  height: 28px;
+}
+.media-video__controls {
+  position: absolute !important;
+  right: clamp(12px, 3%, 30px);
+  bottom: clamp(12px, 3%, 30px);
+  left: clamp(12px, 3%, 30px);
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.2vw, 14px);
+  min-height: 54px;
+  padding: 6px 12px;
+  color: var(--ink);
+}
+.media-player__plain-control {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.media-player__plain-control:hover {
+  color: var(--spot-ink);
+}
+.media-player__plain-control svg {
+  width: 20px;
+  height: 20px;
+}
+.media-video__time {
+  flex: none;
+  font-size: var(--fs-label);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.media-seek {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+}
+.media-video__controls .media-seek {
+  flex: 1;
+}
+/* The playground's engraved scale: a rule, a tick per tenth, vermilion up to
+   the playhead. A glass lens rides it as the thumb and bends the rule. */
+.media-seek__visual {
+  --seek: 0%;
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  pointer-events: none;
+}
+.media-seek__scale {
+  position: absolute;
+  inset: 0 12px;
+  background:
+    linear-gradient(var(--spot), var(--spot)) 0 50% / var(--seek) 2px no-repeat,
+    repeating-linear-gradient(90deg, var(--ink-faint) 0 1px, transparent 1px 10%) 0 calc(50% + 6px) / 100% 5px no-repeat,
+    linear-gradient(var(--rule), var(--rule)) 0 50% / 100% 1px no-repeat;
+}
+.media-seek__lens {
+  position: absolute !important;
+  top: 50%;
+  left: var(--seek);
+  width: 24px;
+  height: 16px;
+  translate: -50% -50%;
+  transition: scale 150ms var(--ease-out);
+}
+/* The scale thumb's ink ring, so the lens reads as the control on pale glass. */
+.media-seek__lens::after {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid var(--ink);
+  border-radius: inherit;
+  transition: border-color 150ms var(--ease-out);
+  content: '';
+}
+.media-seek[data-scrubbing='true'] .media-seek__lens::after,
+.media-seek:focus-within .media-seek__lens::after {
+  border-color: var(--spot);
+}
+.media-seek__preview-anchor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.media-seek__preview {
+  position: absolute !important;
+  bottom: calc(100% + 10px);
+  left: clamp(0px, calc(var(--seek, 0%) - 40px), calc(100% - 80px));
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  width: 80px;
+  padding: 8px;
+  font-size: var(--fs-label);
+  color: var(--ink);
+}
+.media-seek__preview--video {
+  width: 144px;
+  left: clamp(0px, calc(var(--seek, 0%) - 72px), calc(100% - 144px));
+}
+.media-seek__preview canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 9px;
+}
+.media-seek[data-scrubbing='true'] .media-seek__lens,
+.media-seek:focus-within .media-seek__lens {
+  scale: 1.2;
+}
+.media-seek:focus-within .media-seek__visual {
+  outline: 2px solid var(--spot);
+  outline-offset: 3px;
+}
+.media-seek input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  opacity: 0;
+  cursor: ew-resize;
+}
+.media-seek input::-webkit-slider-thumb {
+  appearance: none;
+  width: 1px;
+  height: 34px;
+}
+.media-seek input::-moz-range-thumb {
+  width: 1px;
+  height: 34px;
+  border: 0;
+}
+.media-video__error {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  max-width: calc(100% - 24px);
+  padding: 8px 12px;
+  background: var(--stock-raised);
+  color: var(--ink);
+  font-size: var(--fs-ui);
+}
+.media-video:fullscreen {
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  background: var(--stock-deep);
+}
+.media-video:fullscreen .media-video__picture {
+  position: absolute;
+  inset: 0;
+}
+
+.media-music {
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+  width: min(100%, 390px);
+  padding: 26px;
+  color: var(--ink);
+}
+.media-music__record {
+  position: relative;
+  width: min(100%, 178px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  /* An engraved disc: faint grooves inside a rule, not a solid black ring. */
+  border: var(--hair) solid var(--rule);
+  background: repeating-radial-gradient(circle, var(--rule-faint) 0 1px, transparent 1px 4px);
+  animation: media-record-turn 12s linear infinite;
+  animation-play-state: paused;
+}
+.media-music[data-playing='true'] .media-music__record {
+  animation-play-state: running;
+}
+.media-music__engraving {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background-color: var(--stock);
+  background-image: var(--sheet);
+  background-position: 50% 38%;
+  background-size: 520px auto;
+}
+.media-music__engraving::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--rule-faint);
+  box-shadow: inset 0 0 0 11px color-mix(in srgb, var(--stock) 22%, transparent);
+  content: '';
+}
+.media-music__spindle {
+  position: absolute !important;
+  top: 50%;
+  left: 50%;
+  width: 42px;
+  height: 42px;
+  transform: translate(-50%, -50%);
+}
+.media-music__body {
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: center;
+}
+.media-music__edition {
+  font-size: var(--fs-label);
+  font-family: var(--font-text);
+  color: var(--ink);
+}
+.media-music h3 {
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+}
+.media-music__subtitle {
+  font-size: var(--fs-ui);
+  color: var(--ink);
+}
+.media-music__body > .media-seek {
+  margin-top: 9px;
+}
+.media-music__times {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: -9px;
+  color: var(--ink);
+  font-size: var(--fs-label);
+}
+.media-music__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 3px;
+}
+.ui-icon-button {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  color: var(--ink);
+}
+.ui-icon-button--main {
+  width: 60px;
+  height: 60px;
+}
+.ui-icon-button svg {
+  width: 20px;
+  height: 20px;
+}
+.media-music__error {
+  color: var(--spot-ink);
+  font-size: var(--fs-ui);
+}
+@keyframes media-record-turn {
+  to { transform: rotate(360deg); }
+}
+@media (max-width: 640px) {
+  .media-video__controls {
+    gap: 4px;
+    min-height: 44px;
+    padding: 4px 7px;
+  }
+  .media-player__plain-control {
+    width: 30px;
+    height: 30px;
+  }
+  .media-video__hero-play {
+    width: 56px;
+    height: 56px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .media-music__record {
+    animation: none;
+  }
+  .media-seek__lens {
+    transition: none;
+  }
+}

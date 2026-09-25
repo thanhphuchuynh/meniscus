@@ -1,5 +1,5 @@
 import { GlassProvider } from 'meniscus';
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
 /** Two inert previews keep duplicate controls out of the focus and accessibility trees. */
 export function GlassComparison({ label, children }: { label: string; children: ReactNode }) {
@@ -21,7 +21,7 @@ export function GlassComparison({ label, children }: { label: string; children: 
         </div>
         <span className="comparison__label comparison__label--flat">Flat</span>
         <span className="comparison__label comparison__label--glass">Glass</span>
-        <div className="comparison__line" style={{ left: `${split}%` }}>
+        <div className="comparison__line" style={{ left: `${split}%`, '--split': split } as CSSProperties}>
           <button type="button" role="slider" className="comparison__handle" aria-labelledby={id}
             aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(split)} aria-valuetext={`${Math.round(split)}% flat, ${100 - Math.round(split)}% glass`}
             onPointerDown={(e) => { if (e.button !== 0 || drag.current !== null) return; drag.current = e.pointerId; e.currentTarget.setPointerCapture(e.pointerId); }}

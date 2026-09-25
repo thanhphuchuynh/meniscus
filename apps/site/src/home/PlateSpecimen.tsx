@@ -6,7 +6,7 @@ import { useGlassSound } from './useGlassSound';
 import { useReducedMotion } from '../shared/useReducedMotion';
 import { Scale } from '../shared/Scale';
 import { Install, Plate } from '../shared/chrome';
-import { useEngine } from '../shared/engine';
+import { frostReason, useEngine } from '../shared/engine';
 import { Icon } from '../shared/Icon';
 import { sitePath } from '../shared/paths';
 import { RayDiagram } from '../shared/RayDiagram';
@@ -145,7 +145,9 @@ export function PlateSpecimen() {
         </p>
         {!engine.refracts ? (
           <p className="caption plate-one__notice">
-            {engine.browser} can’t refract live page content yet, so this lens refracts its supplied engraving with WebGL when available, and otherwise uses frosted glass.
+            {engine.settingFrosts
+              ? `${frostReason(engine)}, so this lens is frosted.`
+              : `${engine.browser} can’t refract live page content yet, so this lens refracts its supplied engraving with WebGL when available, and otherwise uses frosted glass.`}
           </p>
         ) : null}
       </div>

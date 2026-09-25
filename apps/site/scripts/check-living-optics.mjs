@@ -144,26 +144,31 @@ try {
   assert.ok(gpu.opticsCheck.inside > 200, `a clipped render draws its pane: ${JSON.stringify(gpu.opticsCheck)}`);
   assert.equal(gpu.opticsCheck.clipError, 0);
 
-  const handle = page.getByRole('slider', { name: 'Navigation', exact: true });
-  await handle.focus(); await page.keyboard.press('End');
+  // The flat/glass comparisons, modal and toast live in the Components catalog.
+  const catalog = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  catalog.on('pageerror', e => errors.push(e.message));
+  await catalog.goto(new URL('components/', page.url()).href);
+  await catalog.locator('.splash').waitFor({ state: 'detached' });
+  const handle = catalog.getByRole('slider', { name: 'Navigation', exact: true });
+  await handle.focus(); await catalog.keyboard.press('End');
   assert.equal(await handle.getAttribute('aria-valuenow'), '100');
-  await page.keyboard.press('Home');
+  await catalog.keyboard.press('Home');
   assert.equal(await handle.getAttribute('aria-valuenow'), '0');
-  await page.keyboard.press('ArrowRight');
+  await catalog.keyboard.press('ArrowRight');
   assert.equal(await handle.getAttribute('aria-valuenow'), '2');
-  const stageBox = await page.locator('.comparison__stage').first().boundingBox();
+  const stageBox = await catalog.locator('.comparison__stage').first().boundingBox();
   const handleBox = await handle.boundingBox();
-  await page.mouse.move(handleBox.x + 22, handleBox.y + 26); await page.mouse.down();
-  await page.mouse.move(stageBox.x + stageBox.width * 0.6, handleBox.y + 26); await page.mouse.up();
+  await catalog.mouse.move(handleBox.x + 22, handleBox.y + 26); await catalog.mouse.down();
+  await catalog.mouse.move(stageBox.x + stageBox.width * 0.6, handleBox.y + 26); await catalog.mouse.up();
   assert.ok(Number(await handle.getAttribute('aria-valuenow')) >= 59);
-  if (process.env.MENISCUS_CAPTURE) await page.locator('.pattern-gallery').screenshot({ path: join(tmpdir(), 'meniscus-comparison.png') });
-  await page.getByRole('button', { name: 'Try the modal' }).click();
-  assert.equal(await page.locator('dialog').evaluate(el => el.open), true);
-  await page.getByRole('dialog').getByRole('button', { name: 'Save plate' }).click();
-  assert.equal(await page.locator('dialog').evaluate(el => el.open), false);
-  assert.match(await page.locator('.pattern-feedback').innerText(), /Plate saved/);
-  await page.locator('.pattern-feedback').getByRole('button', { name: 'Dismiss', exact: true }).click();
-  assert.equal(await page.locator('.pattern-feedback').innerText(), '');
+  if (process.env.MENISCUS_CAPTURE) await catalog.locator('.pattern-gallery').screenshot({ path: join(tmpdir(), 'meniscus-comparison.png') });
+  await catalog.getByRole('button', { name: 'Try the modal' }).click();
+  assert.equal(await catalog.locator('dialog').evaluate(el => el.open), true);
+  await catalog.getByRole('dialog').getByRole('button', { name: 'Save plate' }).click();
+  assert.equal(await catalog.locator('dialog').evaluate(el => el.open), false);
+  assert.match(await catalog.locator('.pattern-feedback').innerText(), /Plate saved/);
+  await catalog.locator('.pattern-feedback').getByRole('button', { name: 'Dismiss', exact: true }).click();
+  assert.equal(await catalog.locator('.pattern-feedback').innerText(), '');
   assert.equal(await page.locator('form[action="https://stackblitz.com/run"] input[name="project[files][src/App.jsx]"]').count(), 1);
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -178,18 +183,20 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   if (process.env.MENISCUS_CAPTURE) await page.screenshot({ path: join(tmpdir(), 'meniscus-living-mobile.png') });
   await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth, undefined, { timeout: 3000 });
-  await page.locator('.pattern-gallery').scrollIntoViewIfNeeded();
-  if (process.env.MENISCUS_CAPTURE) await page.screenshot({ path: join(tmpdir(), 'meniscus-comparison-mobile.png') });
+  await catalog.setViewportSize({ width: 390, height: 844 });
+  await catalog.locator('.pattern-gallery').scrollIntoViewIfNeeded();
+  if (process.env.MENISCUS_CAPTURE) await catalog.screenshot({ path: join(tmpdir(), 'meniscus-comparison-mobile.png') });
   // Touch input on the same comparison control.
   await handle.scrollIntoViewIfNeeded();
   const touchBox = await handle.boundingBox();
-  const touchStage = await page.locator('.comparison__stage').first().boundingBox();
-  const cdp = await page.context().newCDPSession(page);
+  const touchStage = await catalog.locator('.comparison__stage').first().boundingBox();
+  const cdp = await catalog.context().newCDPSession(catalog);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: touchBox.x + 22, y: touchBox.y + 26 }] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: touchStage.x + touchStage.width * 0.3, y: touchBox.y + 26 }] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   assert.ok(Math.abs(Number(await handle.getAttribute('aria-valuenow')) - 30) < 2, 'touch comparison drag');
   await cdp.detach();
+  await catalog.close();
   // Context loss must show the fallback and restoration must render again.
   await depth.scrollIntoViewIfNeeded();
   await depth.evaluate(el => {

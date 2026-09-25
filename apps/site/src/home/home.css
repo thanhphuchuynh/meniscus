@@ -3,6 +3,74 @@
   gap: clamp(72px, 10vw, 150px);
   padding-top: clamp(28px, 4vw, 52px);
 }
+.home-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px clamp(12px, 2.4vw, 28px);
+  margin: calc(-1 * clamp(36px, 5vw, 76px)) var(--gutter) 0;
+  padding: 14px 0;
+  border-top: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.home-index a {
+  color: var(--ink-soft);
+  font: 600 var(--fs-ui) var(--font-display);
+  text-decoration: none;
+}
+.home-index a:hover,
+.home-index a:focus-visible {
+  color: var(--spot-ink);
+}
+.media-showcase {
+  display: grid;
+  gap: clamp(24px, 3vw, 40px);
+  padding: var(--plate-pad);
+}
+.media-showcase__text {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px clamp(24px, 4vw, 64px);
+}
+.media-showcase h2 {
+  font-size: clamp(2.2rem, 4.6vw, 3.7rem);
+  line-height: 0.98;
+  letter-spacing: -0.024em;
+}
+.media-showcase__text p {
+  max-width: 52ch;
+  color: var(--ink-soft);
+}
+.media-showcase__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr);
+  gap: clamp(20px, 2.4vw, 36px);
+  align-items: start;
+}
+.media-showcase__figure {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+}
+.media-showcase__stage {
+  display: grid;
+  place-items: center;
+  min-height: 450px;
+  padding: clamp(12px, 2vw, 28px);
+  border: var(--hair) solid var(--rule-faint);
+  background: var(--sheet) 50% 48% / 1200px auto no-repeat;
+}
+.media-showcase__more,
+.interfaces__more {
+  justify-self: start;
+}
+@media (max-width: 1000px) {
+  .media-showcase__grid { grid-template-columns: minmax(0, 1fr); }
+  .media-showcase__stage { min-height: 0; }
+}
+@media (max-width: 640px) {
+  .media-showcase__text { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* ——— Plate I: the specimen ——— */
 
@@ -705,11 +773,8 @@
 .exhibit--nav {
   grid-column: 1 / -1;
 }
-.exhibit--player {
-  grid-column: 1 / span 5;
-}
 .exhibit--form {
-  grid-column: 6 / span 7;
+  grid-column: 1 / -1;
 }
 .exhibit__stage {
   display: grid;
@@ -724,9 +789,6 @@
 .exhibit--nav .exhibit__stage {
   min-height: 150px;
   background-position: 38% 16%;
-}
-.exhibit--player .exhibit__stage {
-  background-position: 62% 56%;
 }
 .exhibit--form .exhibit__stage {
   background-position: 18% 88%;
@@ -776,55 +838,6 @@
   font-size: var(--fs-ui);
   line-height: 1;
   font-family: var(--font-display);
-}
-.ui-player {
-  display: grid;
-  gap: 10px;
-  width: min(100%, 340px);
-  padding: 20px 22px 18px;
-  color: var(--ink);
-}
-.ui-player__meta {
-  font-size: var(--fs-ui);
-  color: var(--ink-soft);
-}
-.ui-player__meta b {
-  display: block;
-  font-size: var(--fs-ui);
-  font-family: var(--font-display);
-  color: var(--ink);
-}
-.ui-player__seek {
-  width: 100%;
-  accent-color: var(--spot);
-}
-.ui-player__times {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--fs-label);
-  color: var(--ink-faint);
-}
-.ui-player__controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-.ui-icon-button {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  padding: 0;
-  color: var(--ink);
-}
-.ui-icon-button--main {
-  width: 60px;
-  height: 60px;
-}
-.ui-icon-button svg {
-  width: 20px;
-  height: 20px;
 }
 .ui-form {
   width: min(100%, 380px);
@@ -1133,7 +1146,7 @@
 .notice p {
   margin-top: 3px;
   font-size: var(--fs-ui);
-  color: var(--ink-soft);
+  color: var(--ink);
 }
 .notice__action {
   padding: 10px 14px;
@@ -1170,10 +1183,19 @@
   font-size: var(--fs-body);
   color: var(--ink-soft);
 }
+/* The facts an evaluator checks before installing, read out like a figure's values. */
+.closing__facts {
+  max-width: 460px;
+}
 .closing__actions {
   display: grid;
   justify-items: start;
   gap: 14px;
+}
+.closing--final {
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: clamp(28px, 4vw, 56px);
+  border-top: var(--hair) solid var(--rule);
 }
 
 @media (max-width: 1080px) {
@@ -1215,7 +1237,6 @@
   .interfaces__text {
     grid-template-columns: minmax(0, 1fr);
   }
-  .exhibit--player,
   .exhibit--form {
     grid-column: 1 / -1;
   }

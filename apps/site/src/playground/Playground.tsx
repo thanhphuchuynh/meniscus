@@ -176,7 +176,11 @@ export function Playground() {
           <h1>Playground</h1>
           <p>
             Every prop of <code>Glass</code> on one bench. Drag the glass across the specimen, tune it on the right, and copy the result.{' '}
-            {engine.refracts ? `${engine.browser} refracts live content, so you’re seeing the full effect.` : `${engine.browser} shows the frosted path; refraction needs a Chromium browser.`}
+            {engine.refracts
+              ? `${engine.browser} refracts live content, so you’re seeing the full effect.`
+              : engine.settingFrosts
+                ? 'An accessibility setting asks for less transparency, so the glass here is frosted.'
+                : `${engine.browser} shows the frosted path; refraction needs a Chromium browser.`}
           </p>
         </header>
 

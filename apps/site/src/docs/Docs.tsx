@@ -136,7 +136,8 @@ export function Docs() {
             <Install />
             <p>
               meniscus needs React 18 or newer and ships as ES modules with type definitions. There is no stylesheet to import: every style is inline, so it
-              works under server rendering and in any CSS setup.
+              works under server rendering and in any CSS setup. The React entries carry <code>"use client"</code>, so Server Components can render
+              them; <code>meniscus/core</code> stays importable on the server.
             </p>
             <CodeBlock code={CODE.quick} label="Quick start" />
           </Section>
@@ -305,6 +306,10 @@ export function Docs() {
             </p>
             <CodeBlock code={CODE.stack} label="A sidebar and a card over a photo" />
             <p>
+              In a Server Component, import <code>GlassStack</code> and <code>GlassLayer</code> by name. <code>Glass.Stack</code> reads a property off a
+              client component, and on the server that property is undefined, so the page fails to render.
+            </p>
+            <p>
               Each layer’s optics move on springs: presence, refraction, highlight, tint and shadow, each at its own speed. The highlight settles first
               and the shadow last, and a flung layer rings with the momentum of its release; nothing has a duration. When layers change{' '}
               <code>present</code> in one render, nearer ones lead and deeper ones follow by <code>stagger</code> times their spring’s period. Layers move
@@ -396,14 +401,26 @@ export function Docs() {
               </li>
               <li>
                 Under <code>prefers-reduced-transparency</code>, glass turns nearly opaque (your tint mixed into the system canvas color) and stops refracting.
+                Only Chromium reports that setting; Safari keeps it from the web. Give your app its own switch and pass it as{' '}
+                <code>{'<GlassProvider reduceTransparency>'}</code>.
+              </li>
+              <li>
+                Under <code>prefers-contrast: more</code>, and in forced colors such as Windows High Contrast, glass turns opaque and draws a hairline edge.
+                Forced colors repaint that edge in the system’s own color, so buttons and bars keep their outline. <code>increaseContrast</code> on the
+                provider does the same.
               </li>
               <li>
                 Text on glass needs contrast against the busiest thing behind it. Regular glass frosts and tints for that; with clear glass, keep text off it
                 or raise the tint.
               </li>
               <li>
-                Under <code>prefers-reduced-motion</code>, springs turn off: presses only glow, indicators move straight to their target with a short fade,
-                and <code>appear</code> fades. Motion you drive yourself, such as dragging a group member, stays yours to reduce.
+                Under <code>prefers-reduced-motion</code>, or <code>reduceMotion</code> on the provider, springs turn off: presses only glow, indicators move
+                straight to their target with a short fade, and <code>appear</code> fades. Motion you drive yourself, such as dragging a group member, stays
+                yours to reduce.
+              </li>
+              <li>
+                A provider can add a setting but never remove one the system asks for. <code>useGlassPreferences()</code> tells your own components what
+                the glass is following.
               </li>
               <li>
                 <code>GlassIndicator</code> is <code>aria-hidden</code>. Mark the selection itself with <code>aria-current</code>,{' '}

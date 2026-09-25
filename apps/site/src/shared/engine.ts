@@ -1,10 +1,14 @@
+import { useGlassPreferences } from 'meniscus';
 import { supportsBackdropRefraction, supportsWebGL2 } from 'meniscus/core';
 import { useSyncExternalStore } from 'react';
 
 export interface EngineReport {
   browser: string;
+  /** Glass here refracts the live page: the browser can, and no accessibility setting asks for frost. */
   refracts: boolean;
   webgl: boolean;
+  /** Reduced transparency or increased contrast frosts glass the browser could refract. */
+  settingFrosts?: boolean;
 }
 
 function detectBrowser(): string {
@@ -28,5 +32,12 @@ const SERVER: EngineReport = { browser: 'this browser', refracts: false, webgl: 
 
 /** Which rendering paths this visitor's browser gets, stated plainly on the page. */
 export function useEngine(): EngineReport {
-  return useSyncExternalStore(() => () => {}, snapshot, () => SERVER);
+  const report = useSyncExternalStore(() => () => {}, snapshot, () => SERVER);
+  const { reducedTransparency } = useGlassPreferences();
+  return reducedTransparency && report.refracts ? { ...report, refracts: false, settingFrosts: true } : report;
+}
+
+/** Why glass here is frosted, for copy that says so. */
+export function frostReason(engine: EngineReport): string {
+  return engine.settingFrosts ? 'An accessibility setting asks for less transparency' : `${engine.browser} can’t refract the live page`;
 }

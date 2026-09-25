@@ -4,6 +4,9 @@ import type { SVGProps } from 'react';
  * Icons drawn in the plate's single engraving weight: 1.5px strokes on a
  * 24px grid, round joins, no fills.
  */
+/** A numeral five for the skip glyphs, drawn at the same stroke. */
+const FIVE = 'M13.6 8.75h-2.9l-.4 3.2c.5-.35 1.05-.5 1.6-.5 1.25 0 2.1.95 2.1 2.1s-.9 2.2-2.2 2.2c-.8 0-1.4-.35-1.8-.9';
+
 const paths = {
   copy: (
     <>
@@ -37,8 +40,25 @@ const paths = {
   ),
   play: <path d="M8 5.5v13l10.5-6.5z" />,
   pause: <path d="M8.5 5.5v13M15.5 5.5v13" />,
+  expand: <path d="M9 4.5H4.5V9M15 4.5h4.5V9M4.5 15v4.5H9M19.5 15v4.5H15" />,
+  volume: <><path d="M4.5 9h4l4.5-3.5v13L8.5 15h-4z" /><path d="M16 8a6 6 0 0 1 0 8M18.5 5.5a9.5 9.5 0 0 1 0 13" /></>,
+  muted: <><path d="M4.5 9h4l4.5-3.5v13L8.5 15h-4z" /><path d="m16 9 5 6m0-6-5 6" /></>,
   back: <path d="M15 5.5L8.5 12l6.5 6.5" />,
   forward: <path d="M9 5.5l6.5 6.5L9 18.5" />,
+  back5: (
+    <>
+      <path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" />
+      <path d="M4 4.5v3.5h3.5" />
+      <path d={FIVE} />
+    </>
+  ),
+  forward5: (
+    <>
+      <path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" />
+      <path d="M20 4.5v3.5h-3.5" />
+      <path d={FIVE} />
+    </>
+  ),
   search: (
     <>
       <circle cx="10.5" cy="10.5" r="6" />

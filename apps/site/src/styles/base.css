@@ -560,11 +560,10 @@ sup {
   margin: 0;
   appearance: none;
   -webkit-appearance: none;
-  /* Graduations: one engraved tick per tenth of the scale. */
-  --tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5'%3E%3Cpath d='M.5 0v5' stroke='%235a6773'/%3E%3C/svg%3E");
+  /* Graduations: one engraved tick per tenth of the scale, in the theme's faint ink. */
   background:
     linear-gradient(var(--spot), var(--spot)) 0 50% / var(--pct) 2px no-repeat,
-    var(--tick) 0 calc(50% + 6px) / 10% 5px repeat-x,
+    repeating-linear-gradient(90deg, var(--ink-faint) 0 1px, transparent 1px 10%) 0 calc(50% + 6px) / 100% 5px no-repeat,
     linear-gradient(var(--rule), var(--rule)) 0 50% / 100% 1px no-repeat;
   cursor: pointer;
 }

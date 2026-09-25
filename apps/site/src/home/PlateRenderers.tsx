@@ -69,12 +69,12 @@ export function PlateRenderers() {
   const current = engine.refracts ? 'svg' : 'frost';
 
   return (
-    <Plate folio="Plate III" className="renderers" label="One API, three renderers">
+    <Plate folio="Plate II" id="browser-support" className="renderers" label="One API, three renderers">
       <div className="renderers__text">
         <h2>One API, three renderers</h2>
         <p>
           meniscus picks the best path each browser can draw and says which one it took: every glass carries a <code>data-meniscus</code> attribute, and{' '}
-          <code>useGlassMode()</code> returns the same answer in code.
+          <code>onPathChange</code> tells your code the path and why.
         </p>
       </div>
 
@@ -148,7 +148,7 @@ export function PlateRenderers() {
           </div>
         </GlassStage>
         <figcaption className="caption">
-          <b>Fig. 3.</b> The WebGL stage refracting Plate IV of <i>Opticks</i>
+          <b>Fig. 2.</b> The WebGL stage refracting Plate IV of <i>Opticks</i>
           {status === 'ready' ? ` in ${engine.browser}` : status === 'fallback' ? `, frosted: ${engine.browser} has no WebGL2 here` : ''}. Drag either pane;
           the lens adds aberration, so its rim splits red from blue.
           {status === 'fallback' ? null : ` Bring them within ${MERGE} px and they flow into one body, wherever WebGL2 runs.`}

@@ -2,6 +2,7 @@ import { Glass, GlassButton, GlassPanel } from 'meniscus';
 import { useEffect, useRef, useState } from 'react';
 import { GlassComparison } from './GlassComparison';
 import { plateSrc, useTheme } from '../shared/theme';
+import './patterns.css';
 
 function PrintPreview() {
   return <GlassPanel radius={24} className="pattern-panel"><h3>Keep a little light.</h3><p>Save this plate to your collection of optical experiments.</p><GlassButton className="ui-button">Save plate</GlassButton></GlassPanel>;

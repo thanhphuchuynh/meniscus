@@ -30,7 +30,7 @@ export function PlateAnatomy({ sun, onSun }: { sun: number; onSun: (deg: number)
   const [on, setOn] = useState<Record<Layer, boolean>>({ refraction: true, frost: true, tint: true, rim: true, highlight: true, aberration: false });
 
   return (
-    <Plate folio="Plate II" className="anatomy" label="Anatomy of a glass">
+    <Plate folio="Plate III" id="anatomy" className="anatomy" label="Anatomy of a glass">
       <div className="anatomy__text">
         <h2>Anatomy of a glass</h2>
         <p>
@@ -91,7 +91,7 @@ export function PlateAnatomy({ sun, onSun }: { sun: number; onSun: (deg: number)
       </ol>
 
       <p className="caption anatomy__caption">
-        <b>Fig. 2.</b> One glass over Plate IV of <i>Opticks</i>, lettered by layer. Every letter above is a prop on the same component.
+        <b>Fig. 3.</b> One glass over Plate IV of <i>Opticks</i>, lettered by layer. Every letter above is a prop on the same component.
       </p>
     </Plate>
   );

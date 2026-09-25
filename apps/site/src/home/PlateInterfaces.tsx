@@ -1,10 +1,9 @@
-import { PatternGallery } from './PatternGallery';
 import { Glass, GlassButton, GlassCheckbox, GlassGlyph, GlassIndicator, GlassPanel, GlassProvider, GlassSelect, GlassTextField } from 'meniscus';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { CodeBlock, Plate } from '../shared/chrome';
 import { Switch } from '../shared/controls';
-import { GlassIcon } from '../shared/GlassIcon';
 import { Icon } from '../shared/Icon';
+import { sitePath } from '../shared/paths';
 import { plateSrc, useTheme } from '../shared/theme';
 
 const NAV_CODE = `import { useState } from 'react';
@@ -33,36 +32,6 @@ export function LibraryNav() {
         ))}
       </div>
       <GlassButton>Subscribe</GlassButton>
-    </Glass>
-  );
-}`;
-
-const PLAYER_CODE = `import { useEffect, useState } from 'react';
-import { Glass, GlassButton } from 'meniscus';
-
-const LENGTH = 240;
-const time = (s: number) => \`\${Math.floor(s / 60)}:\${String(s % 60).padStart(2, '0')}\`;
-
-export function Player() {
-  const [playing, setPlaying] = useState(false);
-  const [at, setAt] = useState(84);
-  useEffect(() => {
-    if (!playing) return;
-    const id = setInterval(() => setAt((s) => (s < LENGTH ? s + 1 : s)), 1000);
-    return () => clearInterval(id);
-  }, [playing]);
-  return (
-    <Glass radius={28} role="group" aria-label="Now playing" className="player">
-      <p><b>Of the Refrangibility of Light</b> Opticks, Book I</p>
-      <input type="range" aria-label="Position" min={0} max={LENGTH} value={at} onChange={(e) => setAt(Number(e.target.value))} />
-      <p className="player__times"><span>{time(at)}</span><span>{time(LENGTH)}</span></p>
-      <div className="player__controls">
-        <GlassButton aria-label="Back 15 seconds" onClick={() => setAt((s) => Math.max(0, s - 15))}><BackIcon /></GlassButton>
-        <GlassButton aria-label={playing ? 'Pause' : 'Play'} onClick={() => setPlaying((p) => !p)}>
-          {playing ? <PauseIcon /> : <PlayIcon />}
-        </GlassButton>
-        <GlassButton aria-label="Forward 15 seconds" onClick={() => setAt((s) => Math.min(LENGTH, s + 15))}><ForwardIcon /></GlassButton>
-      </div>
     </Glass>
   );
 }`;
@@ -164,8 +133,6 @@ function Icons() {
 }
 
 const PAGES = ['Plates', 'Figures', 'Notes'];
-const LENGTH = 240;
-const time = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 function LibraryNav() {
   const [page, setPage] = useState('Plates');
@@ -182,39 +149,6 @@ function LibraryNav() {
         ))}
       </div>
       <GlassButton className="ui-button">Subscribe</GlassButton>
-    </Glass>
-  );
-}
-
-function Player() {
-  const [playing, setPlaying] = useState(false);
-  const [at, setAt] = useState(84);
-  useEffect(() => {
-    if (!playing) return;
-    const id = setInterval(() => setAt((s) => (s < LENGTH ? s + 1 : s)), 1000);
-    return () => clearInterval(id);
-  }, [playing]);
-  return (
-    <Glass radius={28} role="group" aria-label="Now playing" className="ui-player">
-      <p className="ui-player__meta">
-        <b>Of the Refrangibility of Light</b> Opticks, Book I
-      </p>
-      <input className="ui-player__seek" type="range" aria-label="Position" aria-valuetext={time(at)} min={0} max={LENGTH} value={at} onChange={(e) => setAt(Number(e.target.value))} />
-      <p className="ui-player__times num">
-        <span>{time(at)}</span>
-        <span>{time(LENGTH)}</span>
-      </p>
-      <div className="ui-player__controls">
-        <GlassButton className="ui-icon-button" aria-label="Back 15 seconds" onClick={() => setAt((s) => Math.max(0, s - 15))}>
-          <GlassIcon name="back" />
-        </GlassButton>
-        <GlassButton className="ui-icon-button ui-icon-button--main" aria-label={playing ? 'Pause' : 'Play'} onClick={() => setPlaying((p) => !p)}>
-          <GlassIcon name={playing ? 'pause' : 'play'} />
-        </GlassButton>
-        <GlassButton className="ui-icon-button" aria-label="Forward 15 seconds" onClick={() => setAt((s) => Math.min(LENGTH, s + 15))}>
-          <GlassIcon name="forward" />
-        </GlassButton>
-      </div>
     </Glass>
   );
 }
@@ -274,13 +208,11 @@ export function PlateInterfaces() {
       <div className="interfaces__text">
         <h2>Interfaces</h2>
         <p>
-          Three finished pieces built only from the components: a navigation bar, a player and a small form. Switch the glass off to see the same interfaces
-          as flat UI; everything else stays exactly as it was.
+          Compose the same surface into navigation, a form, and glass glyphs. Switch these examples between glass and flat UI to see what the material adds.
         </p>
       </div>
-      <PatternGallery />
       <div className="interfaces__switch">
-        <Switch checked={glass} onChange={setGlass} label="Glass">
+        <Switch checked={glass} onChange={setGlass} label="Glass in these examples">
           <span className="interfaces__switch-label">
             Glass <b>{glass ? 'on' : 'off'}</b>
           </span>
@@ -292,17 +224,15 @@ export function PlateInterfaces() {
           <Exhibit id="nav" fig="Fig. 6a." title="A navigation bar: a selection that flows, and a call to action." code={NAV_CODE}>
             <LibraryNav />
           </Exhibit>
-          <Exhibit id="player" fig="Fig. 6b." title="A player: a glass card holding three glass buttons." code={PLAYER_CODE}>
-            <Player />
-          </Exhibit>
-          <Exhibit id="form" fig="Fig. 6c." title="A form: fields, a choice and a submit button on a glass panel." code={FORM_CODE}>
+          <Exhibit id="form" fig="Fig. 6b." title="A form: fields, a choice and a submit button on a glass panel." code={FORM_CODE}>
             <PrintRequest />
           </Exhibit>
-          <Exhibit id="icons" fig="Fig. 6d." title="Icons whose glyphs are glass: translucent layers with lit rims that tint each other where they overlap, as in Icon Composer." code={ICON_CODE}>
+          <Exhibit id="icons" fig="Fig. 6c." title="Icons whose glyphs are glass: translucent layers with lit rims that tint each other where they overlap, as in Icon Composer." code={ICON_CODE}>
             <Icons />
           </Exhibit>
         </div>
       </GlassProvider>
+      <a className="action action--quiet interfaces__more" href={sitePath('/components/#patterns')}>Compare more interface patterns</a>
     </Plate>
   );
 }

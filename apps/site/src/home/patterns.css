@@ -1,0 +1,32 @@
+.pattern-gallery { display: grid; gap: 22px; }
+.pattern-gallery__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.comparison { margin: 0; min-width: 0; }
+.comparison > figcaption { font: 650 var(--fs-ui) var(--font-display); margin-bottom: 12px; }
+.comparison__stage { position: relative; height: 300px; border: var(--hair) solid var(--rule-faint); }
+.comparison__view { isolation: isolate; position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; overflow: hidden; background: var(--stock) var(--sheet) 50% 40% / 850px auto; }
+.comparison__view--flat [data-meniscus='none'] { background: var(--stock-raised); border: var(--hair) solid var(--rule-faint); box-shadow: none !important; }
+.comparison__label { position: absolute; top: 10px; padding: 4px 8px; background: var(--stock-raised); color: var(--ink-soft); font: 500 var(--fs-label) var(--font-display); pointer-events: none; }
+.comparison__label--flat { left: 10px; }
+.comparison__label--glass { right: 10px; }
+.comparison__line { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--spot-ink); pointer-events: none; }
+.comparison__handle { position: absolute; top: 50%; left: 0; /* Slides from right of the line to left of it, so the handle never leaves the stage. */ transform: translate(calc(var(--split, 50) * -1%), -50%); display: grid; place-items: center; width: 44px; height: 52px; border: var(--hair) solid var(--rule); border-radius: 999px; background: var(--stock-raised); color: var(--ink); touch-action: none; cursor: ew-resize; pointer-events: auto; }
+.comparison__handle:hover { color: var(--spot-ink); border-color: var(--spot-ink); }
+.pattern-panel { width: min(100%, 350px); display: grid; gap: 12px; color: var(--ink); }
+.pattern-panel h3 { font: 750 1.4rem / 1.15 var(--font-display); }
+.pattern-panel p { font-size: var(--fs-ui); }
+.pattern-panel > .ui-button { justify-self: start; }
+.pattern-nav { display: flex; align-items: center; gap: 14px; padding: 8px 8px 8px 18px; font: 600 var(--fs-ui) var(--font-display); }
+.pattern-toast { padding: 18px 22px; color: var(--ink); font-size: var(--fs-ui); }
+.pattern-toast b { font-family: var(--font-display); }
+.pattern-toast p { margin-top: 8px; }
+.pattern-dialog { border: 0; padding: 0; overflow: visible; width: min(440px, calc(100% - 40px)); background: transparent; color: var(--ink); }
+.pattern-dialog .pattern-panel { width: 100%; }
+.pattern-dialog::backdrop { background: rgba(5, 12, 18, 0.52); }
+.pattern-feedback { position: fixed; z-index: 20; right: 24px; bottom: 24px; max-width: calc(100% - 48px); }
+.pattern-feedback .pattern-toast { display: flex; align-items: center; gap: 12px; background: var(--stock-raised); }
+.pattern-gallery .ui-button { font: 650 var(--fs-ui) var(--font-display); color: var(--ink); }
+@media (max-width: 720px) {
+  .pattern-gallery__grid { grid-template-columns: minmax(0, 1fr); }
+  .comparison__view { padding: 18px; }
+  .pattern-nav { gap: 10px; font-size: 0.8rem; }
+}

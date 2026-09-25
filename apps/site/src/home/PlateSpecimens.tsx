@@ -1,4 +1,4 @@
-import { Glass, GlassIndicator } from 'meniscus';
+import { Glass, GlassIndicator, useGlassMode } from 'meniscus';
 import { useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
 import { CodeBlock, Plate } from '../shared/chrome';
 import { GlassIcon } from '../shared/GlassIcon';
@@ -173,9 +173,11 @@ export function PlateSpecimens() {
   // The card materializes when it comes back, not on first load.
   const [revived, setRevived] = useState(false);
   const tint = 'var(--glass-wash)';
+  // The card says what the visitor's browser actually draws.
+  const refracts = useGlassMode() === 'refract';
 
   return (
-    <Plate folio="Plate IV" className="specimens" label="Specimens">
+    <Plate folio="Plate IV" id="specimens" className="specimens" label="Specimens">
       <div className="specimens__text">
         <h2>Specimens</h2>
         <p>
@@ -248,7 +250,7 @@ export function PlateSpecimens() {
               <GlassIcon name="bell" className="notice__icon" />
               <div>
                 <h3>Plate IV is ready</h3>
-                <p>Six figures, refracted in place.</p>
+                <p>{refracts ? 'Six figures, refracted in place.' : 'Six figures under frosted glass.'}</p>
               </div>
               <button type="button" className="notice__action" onClick={() => setDismissed(true)}>
                 Dismiss

@@ -26,6 +26,7 @@ export const GLASS_PROPS: PropRow[] = [
   { name: 'lightAngle', type: 'number', default: '-45', body: 'Where the light comes from, in degrees clockwise from the top. -45 (or 315) is the top left.' },
   { name: 'lightElevation', type: 'number', default: '18', body: 'Height of the light above the surface, in degrees. Lower lights push highlights toward the outline.' },
   { name: 'mode', type: "'auto' | 'refract' | 'frost' | 'none'", default: "'auto'", body: 'Rendering path. Auto refracts where the browser can. None draws only shape, shadow and interaction.' },
+  { name: 'onPathChange', type: '(path, reason) => void', default: '—', body: 'Called with the path this glass draws (refract, frost, webgl, element or none) and why (supported, engine, accessibility, preference, media, copy, group, void or flat), once it has a size and whenever either changes.' },
   { name: 'interactive', type: 'boolean', default: 'false', body: 'Lift on hover, swell on press with light blooming from the touch point, stretch toward the pointer, glow where it touches. When the glass itself moves, it squashes along its path and wobbles as it stops. Keyboard presses animate too.' },
   { name: 'appear', type: 'boolean', default: 'false', body: 'Materialize on mount: fade in, swell into place on a spring, and let the lens gather its bend. A plain fade under reduced motion.' },
   { name: 'ripple', type: 'boolean', default: 'false', body: 'A liquid surface: a tap rings it, a finger drawn across leaves a trail, and moving the glass sloshes it. Waves bend what is behind and catch the light, then die out. Drawn in WebGL: glass over an image, video or canvas backdrop (every browser, Chromium included), or a GlassPane in a GlassStage. Off under reduced motion.' },
@@ -106,12 +107,17 @@ export function Toolbar() {
   <Glass as="header" radius="capsule">…</Glass>
   <Glass radius={24}>…</Glass>
 </GlassProvider>`,
-  mode: `import { useGlassMode } from 'meniscus';
+  mode: `import { Glass, GlassProvider, useGlassMode } from 'meniscus';
 
 function Notice() {
+  // What glass draws here, after the browser and accessibility settings.
   const mode = useGlassMode(); // 'refract' | 'frost' | 'none'
-  return mode === 'frost' ? <p>Refraction needs a Chromium browser.</p> : null;
+  return mode === 'frost' ? <p>The glass on this page is frosted.</p> : null;
 }
+
+// One glass, and why it draws the way it does:
+<Glass backdrop={videoRef} onPathChange={(path, reason) => console.log(path, reason)} />
+// Chromium: 'refract', 'supported'. Safari: 'webgl', 'media'. Reduce Transparency: 'frost', 'accessibility'.
 
 // Or force a path for a subtree:
 <GlassProvider mode="frost">…</GlassProvider>`,

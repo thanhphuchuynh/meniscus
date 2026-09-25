@@ -1,7 +1,7 @@
 import { Glass, GlassGroup } from 'meniscus';
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent, type PointerEvent } from 'react';
 import { CodeBlock, Plate } from '../shared/chrome';
-import { useEngine } from '../shared/engine';
+import { frostReason, useEngine } from '../shared/engine';
 import { GlassIcon } from '../shared/GlassIcon';
 import { Icon } from '../shared/Icon';
 import { Scale, Segmented } from '../shared/Scale';
@@ -315,7 +315,11 @@ export function PlateTension() {
       <p className="caption tension__caption">
         <b>Fig. 5.</b> A capsule and a drop in one group, over Fig. 12 of <i>Opticks</i>, Plate II. Drag the drop into the capsule, or tap it to absorb and
         release it.
-        {engine.refracts ? null : ` ${engine.browser} can’t refract the live page, so this group draws itself in WebGL over the engraving it names as its backdrop.`}
+        {engine.refracts
+          ? null
+          : engine.settingFrosts
+            ? ` ${frostReason(engine)}, so this group is frosted.`
+            : ` ${frostReason(engine)}, so this group draws itself in WebGL over the engraving it names as its backdrop.`}
       </p>
 
       <div className="tension__legend">

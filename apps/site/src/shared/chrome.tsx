@@ -163,7 +163,8 @@ export function Colophon() {
       <p>
         Set in Archivo and STIX Two Text. Every figure on these pages is computed live by the library it describes. Engravings from Isaac Newton,{' '}
         <i>Opticks</i> (London, 1704), Book I, Plates II and IV: public domain, scanned by the{' '}
-        <a href="https://archive.org/details/optickstreatise00newta">Internet Archive</a>, duotoned for this site.
+        <a href="https://archive.org/details/optickstreatise00newta">Internet Archive</a>, duotoned for this site; the film in Plate VII drifts across the
+        same two plates. <i>Prism étude</i> is an original composition synthesized for this site.
       </p>
       <nav aria-label="Footer">
         <a href={HREF.home}>Plates</a>

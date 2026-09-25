@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
 import { plateSrc, useTheme } from '../shared/theme';
 import { sitePath } from '../shared/paths';
+import { PatternGallery } from '../home/PatternGallery';
 
 const ITEMS = [
   { id: 'button', name: 'GlassButton', role: 'A native action with glass response' },
@@ -551,6 +552,7 @@ export function Components() {
                   </a>
                 </li>
               ))}
+              <li><a href="#patterns"><span>Interface patterns</span><small>Compare glass with flat UI</small></a></li>
               <li><a href="#companions"><span>Companion libraries</span><small>Accessible behavior and app structure</small></a></li>
             </ul>
           </nav>
@@ -635,6 +637,12 @@ export function Components() {
                 <Glass radius={24} className="catalog__provider-sample">Every glass agrees</Glass>
               </GlassProvider>
             </Entry>
+
+            <section className="catalog__patterns" id="patterns" aria-labelledby="patterns-title">
+              <h2 id="patterns-title">Interface patterns</h2>
+              <p>Drag each divider to see how glass changes a navigation bar, card, modal, and toast.</p>
+              <PatternGallery />
+            </section>
 
             <section className="catalog__companions" id="companions" aria-labelledby="companions-title">
               <h2 id="companions-title">Companion libraries</h2>
