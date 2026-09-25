@@ -4,6 +4,8 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-25
+
 ### Added
 
 - `ripple` on `Glass` and `GlassPane`: a damped-wave liquid surface. Taps ring it, fingers leave trails, and the glass sloshes when it starts or stops. Waves refract the backdrop and catch the light, in WebGL, and cost nothing at rest.
