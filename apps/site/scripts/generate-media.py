@@ -81,7 +81,7 @@ def main() -> None:
             output.setsampwidth(2)
             output.setframerate(RATE)
             output.writeframes(pcm.tobytes())
-        run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav), "-c:a", "aac", "-b:a", "96k", str(DEST)], check=True)
+        run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav), "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", str(DEST)], check=True)
     for theme in ("", "-lantern"):
         render_film(theme)
 

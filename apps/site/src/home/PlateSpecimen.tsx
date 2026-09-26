@@ -1,6 +1,6 @@
 import { Glass } from 'meniscus';
-import { glassProfile, resolveGlass, roundedRectSdf, type GlassOptions } from 'meniscus/core';
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { glassProfile, resolveGlass, roundedRectSdf, type GlassOptions, type OpticsInput } from 'meniscus/core';
+import { useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react';
 import { useLensMotion } from './useLensMotion';
 import { useGlassSound } from './useGlassSound';
 import { useReducedMotion } from '../shared/useReducedMotion';
@@ -29,7 +29,6 @@ export function PlateSpecimen() {
   const lensOptions = { ...LENS, ior, aberration: 0.12, lightAngle };
   const [size, setSize] = useState({ w: 220, h: 220 });
   const [probe, setProbe] = useState<number | null>(null);
-  const [sweep, setSweep] = useState(0.22);
   const idleUntil = useRef(0);
 
   // Track the lens size: the section figure is drawn from the same optics.
@@ -51,23 +50,6 @@ export function PlateSpecimen() {
     setProbe(Math.min(g.bezel, Math.max(0.3, -s.distance)));
     idleUntil.current = performance.now() + 3500;
   };
-
-  // With nobody probing, the figure sweeps its ray slowly across the rim.
-  useEffect(() => {
-    if (reducedMotion) return;
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      raf = requestAnimationFrame(tick);
-      if (now < idleUntil.current) return;
-      const phase = ((now - start) / 9000) * Math.PI * 2;
-      setSweep(0.2 + 0.36 * (0.5 - 0.5 * Math.cos(phase)));
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [reducedMotion]);
-
-  const shown = probe ?? sweep * g.bezel;
 
   return (
     <Plate folio="Plate I" className="plate-one" label="Glass that bends the page">
@@ -133,7 +115,7 @@ export function PlateSpecimen() {
       </div>
 
       <div className="plate-one__figure">
-        <RayDiagram {...optics} probe={shown} />
+        <SweptDiagram {...optics} probe={probe} idleUntil={idleUntil} reducedMotion={reducedMotion} />
         <Scale label="Refractive index n" value={ior} min={1} max={2.42} step={0.01} onChange={setIor} format={(n) => n.toFixed(2)} hint="1.00 air · 1.33 water · 1.50 glass · 2.42 diamond" />
         <button type="button" className="action action--quiet" aria-pressed={sound.enabled} disabled={sound.unavailable} onClick={() => void sound.toggle()}>
           {sound.unavailable ? 'Sound unavailable' : `Glass sound: ${sound.enabled ? 'on' : 'off'}`}
@@ -154,4 +136,41 @@ export function PlateSpecimen() {
 
     </Plate>
   );
+}
+
+/**
+ * The section figure. With nobody probing, it sweeps its ray slowly across
+ * the rim, re-rendering only itself, and only while it is on screen.
+ */
+function SweptDiagram({ probe, idleUntil, reducedMotion, ...optics }: OpticsInput & { probe: number | null; idleUntil: RefObject<number>; reducedMotion: boolean }) {
+  const figure = useRef<HTMLElement>(null);
+  const [sweep, setSweep] = useState(0.22);
+
+  useEffect(() => {
+    const el = figure.current;
+    if (reducedMotion || !el) return;
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      if (now < idleUntil.current) return;
+      const phase = ((now - start) / 9000) * Math.PI * 2;
+      setSweep(0.2 + 0.36 * (0.5 - 0.5 * Math.cos(phase)));
+    };
+    if (typeof IntersectionObserver === 'undefined') {
+      raf = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(raf);
+    }
+    const io = new IntersectionObserver(([entry]) => {
+      cancelAnimationFrame(raf);
+      if (entry?.isIntersecting) raf = requestAnimationFrame(tick);
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [reducedMotion, idleUntil]);
+
+  return <RayDiagram ref={figure} {...optics} probe={probe ?? sweep * optics.bezel} />;
 }

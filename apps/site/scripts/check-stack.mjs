@@ -15,6 +15,28 @@ for (const name of engines) {
     await page.locator('.splash').waitFor({ state: 'detached' });
     const stage = page.locator('.stack__stage');
     await stage.scrollIntoViewIfNeeded();
+    // Let the WebGL stages near the view make their first draw before timing springs:
+    // headless software GL takes seconds over one, and no frame runs meanwhile.
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll('[data-meniscus-stage]')].every((s) => {
+        const r = s.getBoundingClientRect();
+        return s.dataset.meniscusStage !== 'pending' || r.bottom < -innerHeight / 2 || r.top > innerHeight * 1.5;
+      }),
+    );
+    await page.evaluate(
+      () =>
+        new Promise((done) => {
+          let last = performance.now();
+          let quick = 0;
+          const tick = (t) => {
+            quick = t - last < 50 ? quick + 1 : 0;
+            last = t;
+            if (quick >= 10) done();
+            else requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }),
+    );
     const card = page.locator('.stack__card');
     const side = page.locator('.stack__sidebar');
     assert.equal(await card.getAttribute('data-meniscus'), name === 'chromium' ? 'refract' : 'webgl', `${name}: card path`);

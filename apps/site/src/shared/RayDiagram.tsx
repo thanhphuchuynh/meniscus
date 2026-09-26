@@ -1,5 +1,5 @@
 import { computeRefractionProfile, resolveProfile, sampleTable, traceRay, type OpticsInput } from 'meniscus/core';
-import { useId, useMemo } from 'react';
+import { useId, useMemo, type Ref } from 'react';
 
 export interface RayDiagramProps extends OpticsInput {
   /** The probed point, px in from the outline. */
@@ -21,7 +21,7 @@ const deg = (r: number) => (r * 180) / Math.PI;
  * computed by the library: the bezel is its height profile, each ray's bend
  * is Snell's law, and each landing point is the shift the renderer applies.
  */
-export function RayDiagram({ probe, rays = 7, title = 'Section A–A through the rim', ...optics }: RayDiagramProps) {
+export function RayDiagram({ probe, rays = 7, title = 'Section A–A through the rim', ref, ...optics }: RayDiagramProps & { ref?: Ref<HTMLElement> }) {
   const hatch = `hatch-${useId().replace(/:/g, '')}`;
   const arrow = `arrow-${useId().replace(/:/g, '')}`;
   const arrowSpot = `arrow-spot-${useId().replace(/:/g, '')}`;
@@ -54,10 +54,11 @@ export function RayDiagram({ probe, rays = 7, title = 'Section A–A through the
     };
 
     const fan = Array.from({ length: rays }, (_, i) => ray(((i + 0.5) / rays) * bezel * 0.96));
-    return { scale, x, y, outline, body, plateauX, fan, probe: ray(Math.min(bezel * 0.999, Math.max(0.2, probe))), profile };
-  }, [optics.bezel, optics.thickness, optics.ior, optics.profile, optics.caustics, probe, rays]);
+    return { x, y, outline, body, plateauX, fan, ray };
+  }, [optics.bezel, optics.thickness, optics.ior, optics.profile, optics.caustics, rays]);
 
-  const p = geometry.probe;
+  // The probe can move every frame; only its own ray is traced again.
+  const p = geometry.ray(Math.min(optics.bezel * 0.999, Math.max(0.2, probe)));
   const n = { x: -Math.sin(p.trace.incidence), y: -Math.cos(p.trace.incidence) }; // outward normal, screen space
   const normalLen = 58;
   const arcR = 34;
@@ -81,7 +82,7 @@ export function RayDiagram({ probe, rays = 7, title = 'Section A–A through the
   const hasBend = p.trace.incidence > 0.02;
 
   return (
-    <figure className="ray-diagram">
+    <figure className="ray-diagram" ref={ref}>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={`${hatch}-title`}>
         <title id={`${hatch}-title`}>
           {`${title}: a ray entering ${p.d.toFixed(1)} px from the outline meets the surface at ${deg(p.trace.incidence).toFixed(1)} degrees, refracts to ${deg(p.trace.refraction).toFixed(1)} degrees, and lands ${p.applied.toFixed(1)} px inward.`}
