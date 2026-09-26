@@ -220,15 +220,18 @@ export interface HighlightURL {
   slice: number;
 }
 
+/** Whether this glass bends light at all, so it has displacement tiles. Cheap: no maps are built. */
+export function glassRefracts(g: ResolvedGlass): boolean {
+  return g.radius >= 1 && g.bezel >= 0.5 && g.thickness > 0 && glassProfile(g).maxDisplacement > 0;
+}
+
 /** Encoded displacement tiles, or null when this glass doesn't refract. */
 export function glassTiles(g: ResolvedGlass): TileURLs | null {
-  if (g.radius < 1 || g.bezel < 0.5 || g.thickness <= 0) return null;
+  if (!glassRefracts(g)) return null;
   const key = `${opticsKey(g)}|${g.radius}`;
   const hit = tileCache.get(key);
   if (hit) return hit;
-  const profile = glassProfile(g);
-  if (profile.maxDisplacement <= 0) return null;
-  const t = createDisplacementTiles(profile, g.radius, g.bezel);
+  const t = createDisplacementTiles(glassProfile(g), g.radius, g.bezel);
   return tileCache.set(key, {
     radius: g.radius,
     scale: t.scale,

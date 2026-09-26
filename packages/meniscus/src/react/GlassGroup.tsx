@@ -17,7 +17,7 @@ import {
 import { ABERRATION_SPREAD } from '../core/filter';
 import { lightingProfile, glassProfile, resolveGlass, type GlassOptions, type ResolvedGlass } from '../core/glass';
 import { toDataURL } from '../core/encode';
-import type { RenderModePreference } from '../core/support';
+import { NEAR, type RenderModePreference } from '../core/support';
 import { unionJob, unionKernel, unionPixelScale, unionReach, type UnionJob, type UnionShape } from '../core/union';
 import { buildUnionInWorker, type UnionURLs } from '../core/unionWorker';
 import { GLASS_OPTION_KEYS } from '../core/constants';
@@ -203,7 +203,8 @@ function GlassGroupImpl(props: GlassGroupProps, forwardedRef: ForwardedRef<HTMLE
     if (!node || webgl) return;
     let frame = 0;
     let alive = true;
-    let visible = true;
+    // Off screen until the observer's first report says otherwise.
+    let visible = typeof IntersectionObserver === 'undefined';
     let lastSignature = '';
     let lastChange = 0;
     let sharp = true;
@@ -334,9 +335,13 @@ function GlassGroupImpl(props: GlassGroupProps, forwardedRef: ForwardedRef<HTMLE
 
     const io =
       typeof IntersectionObserver !== 'undefined'
-        ? new IntersectionObserver((entries) => {
-            visible = entries.some((e) => e.isIntersecting);
-          })
+        ? new IntersectionObserver(
+            (entries) => {
+              visible = entries.some((e) => e.isIntersecting);
+            },
+            // Build the merged maps half a screen early, so they're in as it scrolls in.
+            { rootMargin: NEAR },
+          )
         : null;
     io?.observe(node);
     frame = requestAnimationFrame(loop);

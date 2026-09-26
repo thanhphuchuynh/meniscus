@@ -4,6 +4,17 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 
 ## [Unreleased]
 
+### Changed
+
+- Glass off screen builds its refraction and light maps in idle time once the page is up, or as it scrolls within half a screen, and draws frost until then. Glass on screen still builds them before its first paint. `data-meniscus` and `onPathChange` report the path a glass settles on from the start. On the demo's home page this halves the first render on a throttled phone.
+- WebGL stages, media layers, merged groups and element copies make their first draw as they come within half a screen, not while off screen at mount.
+
+### Fixed
+
+- Building maps no longer waits on the GPU. They're encoded on a CPU canvas, which removes about 180 ms of waiting from the demo's first render on a fast desktop.
+- WebGL decodes image sources off the main thread before uploading them, so a stage scrolling into view no longer drops frames decoding its image. `GlassRenderer.uploadDecoded()` does the same for your own renderer; `setSource()` still uploads at once.
+- The WebGL renderer asks for shader status once, after linking, instead of waiting on each compile.
+
 ## [0.4.0] - 2026-09-25
 
 ### Added

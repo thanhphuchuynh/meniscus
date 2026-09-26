@@ -44,6 +44,51 @@ export interface PaneFrame {
   optics?: OpticalState | null;
 }
 
+interface Decode {
+  src: string;
+  bitmap?: ImageBitmap;
+  failed?: boolean;
+}
+const decodes = new WeakMap<HTMLImageElement, Decode>();
+
+/**
+ * The pixels to upload for a source. An image is decoded off the main thread
+ * into an ImageBitmap first (null until it's ready), so its upload doesn't
+ * stall a frame decoding it. Video and canvas upload as they are, and so does
+ * an image that can't be decoded this way.
+ */
+function uploadable(s: TexImageSource): TexImageSource | null {
+  if (typeof HTMLImageElement === 'undefined' || !(s instanceof HTMLImageElement) || typeof createImageBitmap !== 'function' || typeof fetch !== 'function') return s;
+  const src = s.currentSrc || s.src;
+  let d = decodes.get(s);
+  if (!d || d.src !== src) {
+    const decode: Decode = (d = { src });
+    decodes.set(s, decode);
+    // A cross-origin image the page didn't open to CORS stays as it was: unreadable.
+    const readable = s.crossOrigin !== null || new URL(src, location.href).origin === location.origin;
+    // From its bytes (in the HTTP cache by now): a bitmap made from the element itself decodes on the main thread.
+    const bytes = readable ? fetch(src, { cache: 'force-cache', credentials: s.crossOrigin === 'use-credentials' ? 'include' : 'same-origin' }) : Promise.reject(new Error('opaque'));
+    bytes
+      .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(r.statusText))))
+      .then((blob) => createImageBitmap(blob, { premultiplyAlpha: 'premultiply' }))
+      .then(
+        (bitmap) => {
+          if (decodes.get(s) === decode) decode.bitmap = bitmap;
+          else bitmap.close();
+        },
+        () => (decode.failed = true),
+      );
+  }
+  return d.failed ? s : (d.bitmap ?? null);
+}
+
+/** Frees an image's decoded copy once it's on the GPU; a later upload decodes it again. */
+function uploadedFrom(s: TexImageSource): void {
+  if (typeof HTMLImageElement === 'undefined' || !(s instanceof HTMLImageElement)) return;
+  decodes.get(s)?.bitmap?.close();
+  decodes.delete(s);
+}
+
 const MAX_SLOPE = 1e4;
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
@@ -51,11 +96,6 @@ function compile(gl: WebGL2RenderingContext, type: number, source: string): WebG
   if (!shader) throw new Error('meniscus: could not create shader');
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const log = gl.getShaderInfoLog(shader);
-    gl.deleteShader(shader);
-    throw new Error(`meniscus: shader failed to compile: ${log}`);
-  }
   return shader;
 }
 
@@ -102,11 +142,15 @@ export class GlassRenderer {
 
     const program = gl.createProgram();
     if (!program) throw new Error('meniscus: could not create program');
-    gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX));
-    gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FRAGMENT));
+    const shaders = [compile(gl, gl.VERTEX_SHADER, VERTEX), compile(gl, gl.FRAGMENT_SHADER, FRAGMENT)];
+    for (const shader of shaders) gl.attachShader(program, shader);
     gl.bindAttribLocation(program, 0, 'a_position');
     gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(`meniscus: program failed to link: ${gl.getProgramInfoLog(program)}`);
+    // One status query, after linking: each query waits for the GPU to finish compiling.
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      const log = shaders.map((shader) => gl.getShaderInfoLog(shader)).filter(Boolean).join('\n') || gl.getProgramInfoLog(program);
+      throw new Error(`meniscus: shaders failed to compile or link: ${log}`);
+    }
     this.program = program;
 
     for (const name of ['u_layer', 'u_screenSource', 'u_source', 'u_lut', 'u_resolution', 'u_uvScale', 'u_uvOffset', 'u_srcTexel', 'u_letterbox', 'u_count', 'u_merge', 'u_panesOnly', 'u_shadow', 'u_rect', 'u_shape', 'u_tint', 'u_light', 'u_misc', 'u_waves', 'u_wave', 'u_optic']) {
@@ -191,6 +235,18 @@ export class GlassRenderer {
     gl.generateMipmap(gl.TEXTURE_2D);
     this.sourceSize = [w, h];
     this.hasSource = w > 0 && h > 0;
+  }
+
+  /**
+   * `setSource`, with an image decoded off the main thread first: returns
+   * false, uploading nothing, until its pixels are ready.
+   */
+  uploadDecoded(source: TexImageSource, width: number, height: number): boolean {
+    const pixels = uploadable(source);
+    if (!pixels) return false;
+    this.setSource(pixels, width, height);
+    uploadedFrom(source);
+    return true;
   }
 
   get ready(): boolean {

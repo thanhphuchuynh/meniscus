@@ -93,7 +93,8 @@ export function useElementCopy(copy: RefObject<HTMLElement | null>, backdrop: HT
     el.style.backgroundImage = elementImage(copyId(backdrop));
     el.style.backgroundRepeat = 'no-repeat';
     let frame = 0;
-    let visible = true;
+    // Off screen until the observer's first report says otherwise.
+    let visible = typeof IntersectionObserver === 'undefined';
     let last = '';
     const loop = () => {
       frame = requestAnimationFrame(loop);

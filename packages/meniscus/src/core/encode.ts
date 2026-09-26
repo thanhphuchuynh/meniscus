@@ -8,7 +8,8 @@ import type { RGBAImage } from './maps';
 export function toDataURL(img: RGBAImage): string {
   const canvas = createCanvas(img.width, img.height);
   if (canvas) {
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+    // A CPU canvas: a GPU one makes toDataURL wait for the GPU to drain every frame queued before it.
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
     if (ctx && 'toDataURL' in canvas) {
       const data = ctx.createImageData(img.width, img.height);
       data.data.set(img.data);

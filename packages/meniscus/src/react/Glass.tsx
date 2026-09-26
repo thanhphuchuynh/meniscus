@@ -17,7 +17,7 @@ import {
   type SyntheticEvent,
 } from 'react';
 import { DEFAULT_SHADOW, GLASS_OPTION_KEYS } from '../core/constants';
-import { DEFAULTS, VARIANTS, defaultTint, glassHighlight, glassTiles, resolveGlass, type GlassOptions, type HighlightURL } from '../core/glass';
+import { DEFAULTS, VARIANTS, defaultTint, glassHighlight, glassRefracts, glassTiles, resolveGlass, type GlassOptions, type HighlightURL } from '../core/glass';
 import type { Radius } from '../core/shape';
 import type { GlassPhysics } from '../core/physics';
 import { RippleField } from '../core/ripple';
@@ -37,6 +37,7 @@ import { isMediaElement, type Media } from '../webgl/media';
 import { useGlassGroup } from './group';
 import { useMergedRef } from './refs';
 import { DEV } from './dev';
+import { nearViewport, whenNearOrIdle } from './defer';
 
 export { useMergedRef };
 
@@ -276,8 +277,32 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     const drawable = !!media && isMediaElement(media) && supportsWebGL2() && (modePreference ?? 'auto') === 'auto' && !reducedTransparency;
     if (!drawable) warnUndrawnRipple();
   });
-  const tiles = g && (mode === 'refract' || copying) && !reducedTransparency && !childless ? glassTiles(g) : null;
-  const highlight = g && !bare && !childless && !webgl ? glassHighlight(g, pixelRatio) : null;
+  const refracts = !!g && (mode === 'refract' || copying) && !reducedTransparency && !childless && glassRefracts(g);
+  const lit = !!g && !bare && !childless && !webgl;
+  // Glass on screen builds its maps before it paints; glass off screen waits
+  // for idle time or for the page to scroll it near, and draws frost till then.
+  const [built, setBuilt] = useState(false);
+  const build = useRef(() => {});
+  build.current = () => {
+    if (refracts) glassTiles(g!);
+    if (lit) glassHighlight(g!, pixelRatio);
+  };
+  // Judged as the element mounts, a render before it's measured, so glass on
+  // screen has its maps in the first render that can draw them.
+  const deferrable = !built && !bare && !childless;
+  useIsomorphicLayoutEffect(() => {
+    if (!deferrable || !node) return;
+    if (nearViewport(node)) {
+      setBuilt(true);
+      return;
+    }
+    return whenNearOrIdle(node, () => {
+      build.current();
+      setBuilt(true);
+    });
+  }, [deferrable, node]);
+  const tiles = refracts && built ? glassTiles(g!) : null;
+  const highlight = lit && built ? glassHighlight(g!, pixelRatio) : null;
   useOptics(node, optics, tiles);
   // Refraction off (or unmeasured yet) leaves nothing to copy: plain frost.
   const copyActive = copying && !!tiles;
@@ -371,7 +396,8 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     }
   }
 
-  const path: GlassPath = bare ? 'none' : webgl ? 'webgl' : copyActive ? 'element' : tiles ? 'refract' : 'frost';
+  // The path this glass draws once its maps are built, which off-screen glass reports ahead of time.
+  const path: GlassPath = bare ? 'none' : webgl ? 'webgl' : refracts ? (copying ? 'element' : 'refract') : 'frost';
   const reason: GlassPathReason =
     path === 'none'
       ? group

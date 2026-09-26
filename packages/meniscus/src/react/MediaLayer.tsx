@@ -1,5 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import type { ResolvedGlass } from '../core/glass';
+import { NEAR } from '../core/support';
 import type { OpticalState } from '../core/physics';
 import { resolveTint, tintVersion } from '../webgl/color';
 import { MERGED_SHADOW, isVideo, mediaRect, sourceReady, sourceSize, type Media } from '../webgl/media';
@@ -64,7 +65,8 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
     let renderer: GlassRenderer | null = null;
     let running = true;
     let raf = 0;
-    let visible = true;
+    // Off screen until the observer's first report says otherwise.
+    let visible = typeof IntersectionObserver === 'undefined';
     let uploaded = false;
     let last = '';
     const panes: PaneFrame[] = [];
@@ -89,7 +91,8 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
       if (!uploaded || live) {
         const [w, h] = sourceSize(media);
         try {
-          renderer.setSource(media, w, h);
+          // False while an image decodes: nothing to draw yet.
+          if (!renderer.uploadDecoded(media, w, h)) return;
           uploaded = true;
           // New pixels: draw even if nothing else changed.
           last = '';
@@ -156,10 +159,13 @@ export function MediaLayer({ host, media, frame, onFail, maxPixelRatio = 2, styl
 
     const io =
       typeof IntersectionObserver !== 'undefined'
-        ? new IntersectionObserver((entries) => {
-            visible = entries.some((e) => e.isIntersecting);
-            last = '';
-          })
+        ? new IntersectionObserver(
+            (entries) => {
+              visible = entries.some((e) => e.isIntersecting);
+              last = '';
+            },
+            { rootMargin: NEAR },
+          )
         : null;
     io?.observe(host);
     const onLost = (e: Event) => {

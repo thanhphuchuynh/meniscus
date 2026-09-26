@@ -62,6 +62,9 @@ export const REDUCED_TRANSPARENCY = '(prefers-reduced-transparency: reduce)';
 export const MORE_CONTRAST = '(prefers-contrast: more)';
 export const FORCED_COLORS = '(forced-colors: active)';
 
+/** How far off screen a glass starts its costly first draw, so it's ready as it scrolls in. */
+export const NEAR = '50% 0px';
+
 let elementCopy: boolean | undefined;
 
 /**

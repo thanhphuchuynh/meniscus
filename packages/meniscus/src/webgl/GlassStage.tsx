@@ -18,7 +18,7 @@ import {
 } from 'react';
 import { GLASS_OPTION_KEYS } from '../core/constants';
 import { resolveGlass, type GlassOptions } from '../core/glass';
-import { supportsWebGL2 } from '../core/support';
+import { NEAR, supportsWebGL2 } from '../core/support';
 import { Glass, type GlassProps } from '../react/Glass';
 import { useMergedRef } from '../react/refs';
 import { optionsKey, useGlassDefaults } from '../react/context';
@@ -164,16 +164,18 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
     }
 
     let frame = 0;
-    let visible = true;
+    // Off screen until the observer's first report says otherwise.
+    let visible = typeof IntersectionObserver === 'undefined';
     let running = true;
     let lastSignature = '';
     let uploaded: TexImageSource | null = null;
     const frames: PaneFrame[] = [];
 
+    // False when this frame can't draw: the image is still decoding, or the upload failed.
     const upload = (src: TexImageSource) => {
       const [w, h] = sourceSize(src);
       try {
-        renderer.setSource(src, w, h);
+        if (!renderer.uploadDecoded(src, w, h)) return false;
         uploaded = src;
         return true;
       } catch {
@@ -254,10 +256,14 @@ export function GlassStage({ source, fit = 'cover', alt = '', crossOrigin, maxPi
 
     const io =
       typeof IntersectionObserver !== 'undefined'
-        ? new IntersectionObserver((entries) => {
-            visible = entries.some((e) => e.isIntersecting);
-            dirty.current = true;
-          })
+        ? new IntersectionObserver(
+            (entries) => {
+              visible = entries.some((e) => e.isIntersecting);
+              dirty.current = true;
+            },
+            // Upload and draw half a screen early, so the stage is ready as it scrolls in.
+            { rootMargin: NEAR },
+          )
         : null;
     io?.observe(stage);
 
