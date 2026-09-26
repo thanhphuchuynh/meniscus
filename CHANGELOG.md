@@ -4,6 +4,8 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-26
+
 ### Changed
 
 - Glass off screen builds its refraction and light maps in idle time once the page is up, or as it scrolls within half a screen, and draws frost until then. Glass on screen still builds them before its first paint. `data-meniscus` and `onPathChange` report the path a glass settles on from the start. On the demo's home page this halves the first render on a throttled phone.
