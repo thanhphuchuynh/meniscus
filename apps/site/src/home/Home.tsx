@@ -64,7 +64,7 @@ export function Home() {
                 {/* ponytail: measured by hand (esbuild, minified, React external, gzip -9); re-measure on release. */}
                 <dt>Glass, gzipped</dt>
                 <dd>
-                  <span className="num">21</span> kB
+                  <span className="num">23</span> kB
                 </dd>
               </div>
               <div>

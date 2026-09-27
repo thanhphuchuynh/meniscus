@@ -4,6 +4,8 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-27
+
 ### Added
 
 - `GlassDialog`: a modal card, a bottom sheet, or a side drawer, in the browser's top layer. It keeps focus inside, closes on Escape, on the dimmed page or on a drag away, and returns focus to its trigger. `<form method="dialog">` works inside.
@@ -14,6 +16,12 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 - `variant="tinted"`: colored glass from `tint` or `--meniscus-accent`, with text that stays readable.
 - `appearance="adaptive"`: glass that reads what is behind it and turns light or dark with it, carrying `data-meniscus-tone` and setting `--meniscus-ink-on-light` or `--meniscus-ink-on-dark`.
 - `supportsPopover` and `overridePopoverSupport` in `meniscus/core`.
+
+### Changed
+
+- Each module now builds into its own file under `dist/modules`, so bundlers drop what you don't import. `import { Glass }` costs 23.1 kB gzipped, where it pulled in the whole library (28.7 kB) before. The `exports` map is unchanged.
+- `GlassVariant` gains `'tinted'` and `GlassAppearance` gains `'adaptive'`. An exhaustive `switch` over either needs the new member.
+- `defaultTint()` returns a variant's tint as is when light and dark share it, instead of wrapping it in `light-dark()`.
 
 ### Fixed
 
