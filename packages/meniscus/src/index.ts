@@ -16,6 +16,7 @@ export { GlassNavbar, type GlassNavbarProps } from './react/GlassNavbar';
 export { GlassSidebar, type GlassSidebarProps } from './react/GlassSidebar';
 export { GlassSwitch, type GlassSwitchProps } from './react/GlassSwitch';
 export { GlassSlider, type GlassSliderProps } from './react/GlassSlider';
+export { GlassSegmented, type GlassSegmentedProps, type GlassSegmentedOption } from './react/GlassSegmented';
 export { GlassPanel, type GlassPanelProps } from './react/GlassPanel';
 export { GlassGlyph, type GlassGlyphProps } from './react/GlassGlyph';
 export { GlassLoader, type GlassLoaderProps } from './react/GlassLoader';
