@@ -116,3 +116,34 @@ export function supportsWebGL2(): boolean {
 export function overrideWebGL2(value: boolean | undefined): void {
   webgl2Support = value;
 }
+
+let popoverSupport: boolean | undefined;
+
+/** Whether the browser has the Popover API, which lifts glass overlays into the top layer. */
+export function supportsPopover(): boolean {
+  if (popoverSupport !== undefined) return popoverSupport;
+  // Not cached on the server: the answer there says nothing about the browser.
+  if (typeof HTMLElement === 'undefined') return false;
+  popoverSupport = typeof (HTMLElement.prototype as { showPopover?: unknown }).showPopover === 'function';
+  return popoverSupport;
+}
+
+/** For tests and hosts: force Popover API support on or off, or undefined to detect again. */
+export function overridePopoverSupport(value: boolean | undefined): void {
+  popoverSupport = value;
+}
+
+let anchorSupport: boolean | undefined;
+
+/** Whether the browser positions an element against an anchor in CSS (`anchor-name` and `position-area`). */
+export function supportsAnchorPositioning(): boolean {
+  if (anchorSupport !== undefined) return anchorSupport;
+  if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function') return false;
+  anchorSupport = CSS.supports('position-area', 'bottom') && CSS.supports('anchor-name', '--a');
+  return anchorSupport;
+}
+
+/** For tests and hosts: force CSS anchor positioning on or off, or undefined to detect again. */
+export function overrideAnchorPositioning(value: boolean | undefined): void {
+  anchorSupport = value;
+}
