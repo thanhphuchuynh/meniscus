@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { GlassSegmented } from '../src';
 
 const MEDIA = [
@@ -47,4 +47,24 @@ it('disables options, and draws the selection in glass', () => {
   const { getByRole, container } = render(<GlassSegmented label="Medium" options={MEDIA} tint="rgba(255, 255, 255, 0.3)" />);
   expect((getByRole('radio', { name: 'Diamond' }) as HTMLInputElement).disabled).toBe(true);
   expect(container.querySelector('fieldset [data-meniscus]')).not.toBeNull();
+});
+
+it('follows its form back to the default on reset', async () => {
+  const options = [
+    { value: 'glass', label: 'Glass' },
+    { value: 'water', label: 'Water' },
+  ];
+  const form = () => (
+    <form>
+      <GlassSegmented label="Medium" name="medium" defaultValue="glass" options={options} />
+    </form>
+  );
+  const { getByRole, container, rerender } = render(form());
+  fireEvent.click(getByRole('radio', { name: 'Water' }));
+  await act(async () => {
+    container.querySelector('form')!.reset();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  rerender(form());
+  expect(new FormData(container.querySelector('form')!).get('medium')).toBe('glass');
 });

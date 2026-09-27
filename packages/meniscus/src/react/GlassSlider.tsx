@@ -1,9 +1,9 @@
 import { forwardRef, useCallback, useEffect, useId, useRef, useState, type CSSProperties, type InputHTMLAttributes } from 'react';
 import type { GlassOptions } from '../core/glass';
-import { springEasing } from './appear';
+import { useSpringEasing } from './appear';
 import { focusVisible } from './focus';
 import { Glass } from './Glass';
-import { useGlassPreferences } from './hooks';
+import { useFormReset, useGlassPreferences } from './hooks';
 import { splitGlassOptions } from './options';
 import { useMergedRef } from './refs';
 import { useGlassPhysics } from './useGlassPhysics';
@@ -28,6 +28,8 @@ const RULE: CSSProperties = {
   marginTop: -2,
   borderRadius: 2,
   background: 'light-dark(rgb(15 20 26 / 0.14), rgb(255 255 255 / 0.18))',
+  // Invisible, until forced colors paint it: they drop the rule's fill, and this keeps its edge.
+  outline: '1px solid transparent',
 };
 const FILL: CSSProperties = { ...RULE, right: 'auto', width: 'calc(var(--meniscus-value, 0) * 100%)', background: 'var(--meniscus-accent, #2563eb)' };
 const THUMB: CSSProperties = {
@@ -67,6 +69,7 @@ export const GlassSlider = forwardRef<HTMLInputElement, GlassSliderProps>(functi
   const fraction = max > min ? Math.max(0, Math.min(1, (value - min) / (max - min))) : 0;
   const disabled = !!input.disabled;
   const { reducedMotion } = useGlassPreferences();
+  const easing = useSpringEasing();
   const thumb = useGlassPhysics();
   const [held, setHeld] = useState(false);
   const [ring, setRing] = useState(false);
@@ -81,6 +84,7 @@ export const GlassSlider = forwardRef<HTMLInputElement, GlassSliderProps>(functi
     if (!controlled && inputEl.current) setOwn(Number(inputEl.current.value));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useFormReset(inputEl, controlled ? null : () => setOwn(Number(inputEl.current?.value)));
 
   const hold = (on: boolean) => {
     setHeld(on);
@@ -107,7 +111,7 @@ export const GlassSlider = forwardRef<HTMLInputElement, GlassSliderProps>(functi
           optics={thumb}
           aria-hidden="true"
           tint={glass.tint ?? THUMB_TINT}
-          style={{ ...THUMB, ...(ring ? RING : null), scale: held && !reducedMotion ? '1.35' : '1', transition: reducedMotion ? 'none' : `scale 420ms ${springEasing()}` }}
+          style={{ ...THUMB, ...(ring ? RING : null), scale: held && !reducedMotion ? '1.35' : '1', transition: reducedMotion ? 'none' : `scale 420ms ${easing}` }}
         />
         <input
           {...input}

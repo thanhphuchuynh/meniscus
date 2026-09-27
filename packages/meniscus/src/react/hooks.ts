@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   FORCED_COLORS,
   MORE_CONTRAST,
@@ -71,6 +71,25 @@ export function useMediaQuery(query: string): boolean {
   );
   const snapshot = useCallback(() => mediaStore(query)?.mql.matches ?? false, [query]);
   return useSyncExternalStore(subscribe, snapshot, () => false);
+}
+
+/**
+ * Calls `onReset` once the form holding `field` has reset, which changes
+ * uncontrolled inputs without an input or change event. Null skips it, for a
+ * controlled field.
+ */
+export function useFormReset(field: { readonly current: { readonly form: HTMLFormElement | null } | null }, onReset: (() => void) | null): void {
+  const latest = useRef(onReset);
+  latest.current = onReset;
+  const active = onReset !== null;
+  useEffect(() => {
+    const form = field.current?.form;
+    if (!form || !active) return;
+    // Fields take their defaults after the reset event: read them a task later.
+    const reset = () => setTimeout(() => latest.current?.());
+    form.addEventListener('reset', reset);
+    return () => form.removeEventListener('reset', reset);
+  }, [field, active]);
 }
 
 export interface GlassPreferences {

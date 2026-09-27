@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { GlassSidebar } from '../src';
 
 function viewport(narrow: boolean) {
@@ -32,6 +33,13 @@ it('is a sticky glass column on wide screens, hidden by a media query below its 
   expect(container.querySelector('style')!.textContent).toContain('@media (max-width: 767.98px)');
   expect(container.querySelector('style')!.textContent).toContain(`[data-meniscus-sidebar="${aside.getAttribute('data-meniscus-sidebar')}"]`);
   expect(container.querySelector('dialog')).toBeNull();
+});
+
+it('server-renders its media rule as CSS a browser can read', () => {
+  viewport(false);
+  // React 18 escapes a <style>'s text like any other, which breaks the attribute selector's quotes.
+  const css = /<style>(.*?)<\/style>/.exec(renderToString(<GlassSidebar label="Library">Plates</GlassSidebar>))![1];
+  expect(css).toMatch(/\[data-meniscus-sidebar="[\w-]+"\]\{display:none!important\}/);
 });
 
 it('becomes a drawer on narrow screens, keeping its landmark inside', () => {

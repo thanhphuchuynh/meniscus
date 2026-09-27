@@ -51,3 +51,20 @@ it('turns its thumb into a lens while dragged, but not while disabled', () => {
   settle();
   expect(Number(thumbOf(slider).style.getPropertyValue('--meniscus-tint'))).toBeCloseTo(1, 2);
 });
+
+it('follows its form back to the default on reset', () => {
+  const { getByRole, container } = render(
+    <form>
+      <GlassSlider label="Volume" name="volume" defaultValue={20} format={(v) => String(v)} />
+    </form>,
+  );
+  const slider = getByRole('slider', { name: 'Volume' }) as HTMLInputElement;
+  fireEvent.change(slider, { target: { value: '80' } });
+  expect(slider.getAttribute('aria-valuetext')).toBe('80');
+  act(() => {
+    container.querySelector('form')!.reset();
+    vi.runAllTimers();
+  });
+  expect(slider.value).toBe('20');
+  expect(slider.getAttribute('aria-valuetext')).toBe('20');
+});

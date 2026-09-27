@@ -1,9 +1,9 @@
-import { forwardRef, useCallback, useEffect, useRef, useState, type CSSProperties, type InputHTMLAttributes, type PointerEvent } from 'react';
+import { forwardRef, useCallback, useRef, useState, type CSSProperties, type InputHTMLAttributes, type PointerEvent } from 'react';
 import type { GlassOptions } from '../core/glass';
-import { springEasing } from './appear';
+import { useSpringEasing } from './appear';
 import { focusVisible } from './focus';
 import { Glass } from './Glass';
-import { useGlassPreferences } from './hooks';
+import { useFormReset, useGlassPreferences } from './hooks';
 import { splitGlassOptions } from './options';
 import { useMergedRef } from './refs';
 import { useGlassPhysics } from './useGlassPhysics';
@@ -24,6 +24,8 @@ const TRACK: CSSProperties = {
   boxSizing: 'border-box',
   transition: 'background-color 200ms ease',
   touchAction: 'none',
+  // Invisible, until forced colors paint it: they drop the track's fill, and this keeps its edge.
+  outline: '1px solid transparent',
 };
 const OFF = 'light-dark(rgb(15 20 26 / 0.14), rgb(255 255 255 / 0.18))';
 const ON = 'var(--meniscus-accent, #2563eb)';
@@ -52,6 +54,7 @@ export const GlassSwitch = forwardRef<HTMLInputElement, GlassSwitchProps>(functi
   const checked = controlled ? !!input.checked : own;
   const disabled = !!input.disabled;
   const { reducedMotion } = useGlassPreferences();
+  const easing = useSpringEasing();
   const knob = useGlassPhysics();
   const [ring, setRing] = useState(false);
   const [held, setHeld] = useState(false);
@@ -64,14 +67,7 @@ export const GlassSwitch = forwardRef<HTMLInputElement, GlassSwitchProps>(functi
   }, []);
   const setRef = useMergedRef(ref, onNode);
 
-  // A form reset changes an uncontrolled switch without a change event.
-  useEffect(() => {
-    const form = inputEl.current?.form;
-    if (!form || controlled) return;
-    const reset = () => setTimeout(() => setOwn(!!inputEl.current?.checked));
-    form.addEventListener('reset', reset);
-    return () => form.removeEventListener('reset', reset);
-  }, [controlled]);
+  useFormReset(inputEl, controlled ? null : () => setOwn(!!inputEl.current?.checked));
 
   const lens = (on: boolean) => knob.to(on && !reducedMotion ? LENS : REST);
   const fractionAt = (e: PointerEvent<HTMLElement>) => {
@@ -144,7 +140,7 @@ export const GlassSwitch = forwardRef<HTMLInputElement, GlassSwitchProps>(functi
             ...KNOB,
             translate: `calc(${drag ?? (checked ? 1 : 0)} * ${TRAVEL}) 0`,
             scale: held && !reducedMotion ? '1.35' : '1',
-            transition: reducedMotion ? 'none' : drag !== null ? `scale 420ms ${springEasing()}` : `translate 360ms ${springEasing()}, scale 420ms ${springEasing()}`,
+            transition: reducedMotion ? 'none' : drag !== null ? `scale 420ms ${easing}` : `translate 360ms ${easing}, scale 420ms ${easing}`,
           }}
         />
         <input

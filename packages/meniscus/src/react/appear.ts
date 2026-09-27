@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useIsomorphicLayoutEffect } from './hooks';
 
 const SWELL_MS = 620;
@@ -6,13 +6,14 @@ const FADE_MS = 260;
 const LENS_MS = 820;
 const FROM_SCALE = 0.9;
 
+const CUBIC = 'cubic-bezier(0.2, 0.9, 0.3, 1.18)';
 let springCurve: string | null = null;
 
 /** A CSS `linear()` easing traced from an underdamped spring, or a close cubic where `linear()` is unsupported. */
 export function springEasing(): string {
   if (springCurve) return springCurve;
   const supported = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('transition-timing-function', 'linear(0, 1)');
-  if (!supported) return (springCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1.18)');
+  if (!supported) return (springCurve = CUBIC);
   const k = 300;
   const c = 19;
   const samples = 40;
@@ -30,6 +31,13 @@ export function springEasing(): string {
   }
   points.push('1');
   return (springCurve = `linear(${points.join(', ')})`);
+}
+
+const noSubscribe = () => () => {};
+
+/** `springEasing()` for rendering. The server and hydration get the cubic, so markup matches; a browser with `linear()` switches after. */
+export function useSpringEasing(): string {
+  return useSyncExternalStore(noSubscribe, springEasing, () => CUBIC);
 }
 
 /**

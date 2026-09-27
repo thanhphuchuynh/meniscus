@@ -32,6 +32,23 @@ jobs:
       - run: pnpm build
       - run: pnpm --filter meniscus size
 
+  react-18:
+    # peerDependencies accept React 18: the library's tests run on it too.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.5.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter meniscus add -D react@18.3.1 react-dom@18.3.1
+      - run: pnpm --filter meniscus test
+
   next-example:
     # The App Router example, built against this repository's library packed as npm ships it,
     # so a change that breaks Server Components or server rendering fails here.

@@ -48,7 +48,8 @@ export function GlassSidebar({ label, as = 'aside', collapseBelow = 768, side = 
   }
   return (
     <>
-      {collapseBelow > 0 ? <style>{`@media ${query}{[data-meniscus-sidebar="${key}"]{display:none!important}}`}</style> : null}
+      {/* As HTML: React 18 escapes a <style>'s text like any other, which breaks the selector's quotes. The key is sanitized. */}
+      {collapseBelow > 0 ? <style dangerouslySetInnerHTML={{ __html: `@media ${query}{[data-meniscus-sidebar="${key}"]{display:none!important}}` }} /> : null}
       <Glass {...glass} as={as as 'aside'} aria-label={label} data-meniscus-sidebar={key} className={className} style={{ ...column(inset), ...style }}>
         {children}
       </Glass>

@@ -1,7 +1,8 @@
-import { useId, useState, type CSSProperties, type ReactNode } from 'react';
+import { useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { GlassOptions } from '../core/glass';
 import { focusVisible } from './focus';
 import { GlassIndicator } from './GlassIndicator';
+import { useFormReset } from './hooks';
 
 /** One option of a `GlassSegmented`. */
 export interface GlassSegmentedOption {
@@ -47,8 +48,10 @@ export function GlassSegmented({ label, options, value: valueProp, defaultValue,
   const value = valueProp ?? own;
   const [selected, setSelected] = useState<HTMLElement | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
+  const fieldset = useRef<HTMLFieldSetElement>(null);
+  useFormReset(fieldset, valueProp !== undefined ? null : () => setOwn(fieldset.current?.querySelector<HTMLInputElement>('input:checked')?.value));
   return (
-    <fieldset className={className} style={{ ...FIELDSET, ...style }}>
+    <fieldset ref={fieldset} className={className} style={{ ...FIELDSET, ...style }}>
       <legend style={LEGEND}>{label}</legend>
       <div style={ROW}>
         <GlassIndicator target={selected} radius={11} {...glass} />

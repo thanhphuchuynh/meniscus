@@ -101,3 +101,20 @@ it('ignores presses and drags while disabled, and doesn’t swell under reduced 
   fireEvent.pointerDown(trackOf(calm), { pointerId: 1, button: 0, clientX: 10 });
   expect(knobOf(calm).style.scale).toBe('1');
 });
+
+it('follows its form back to the default on reset', () => {
+  const { getByRole, container } = render(
+    <form>
+      <GlassSwitch label="Sound" name="sound" />
+    </form>,
+  );
+  const input = getByRole('switch', { name: 'Sound' }) as HTMLInputElement;
+  fireEvent.click(input);
+  expect(input.parentElement!.style.background).toBe('var(--meniscus-accent, #2563eb)');
+  act(() => {
+    container.querySelector('form')!.reset();
+    vi.runAllTimers();
+  });
+  expect(input.checked).toBe(false);
+  expect(input.parentElement!.style.background).not.toBe('var(--meniscus-accent, #2563eb)');
+});
