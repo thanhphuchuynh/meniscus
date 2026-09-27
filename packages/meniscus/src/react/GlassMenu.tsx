@@ -46,7 +46,9 @@ export interface GlassMenuProps extends Omit<GlassProps<'div'>, 'as' | 'children
   physics?: SpringInput;
 }
 
-const SURFACE: CSSProperties = { border: 0, padding: 6, minWidth: '12rem', display: 'grid', gap: 2, color: 'inherit', boxSizing: 'border-box', overflow: 'visible' };
+// The popover element's own display stays the browser's: `display: none` is how a closed popover hides.
+const SURFACE: CSSProperties = { border: 0, padding: 6, minWidth: '12rem', color: 'inherit', boxSizing: 'border-box', overflow: 'visible' };
+const LIST: CSSProperties = { display: 'grid', gap: 2 };
 const ITEM: CSSProperties = {
   position: 'relative',
   display: 'flex',
@@ -189,35 +191,37 @@ export function GlassMenu({ label, trigger, items, placement = 'bottom-start', o
         style={{ ...SURFACE, ...position, ...(overlay.reducedMotion ? null : SWELL), ...fallbackStyle(supported, overlay.shown), ...style }}
       >
         <GlassIndicator target={active >= 0 ? (buttons.current[active] ?? null) : null} radius={10} shadow={false} tint={HIGHLIGHT} />
-        {items.map((item, i) =>
-          item === 'separator' ? (
-            <div key={`separator-${i}`} role="separator" style={SEPARATOR} />
-          ) : (
-            <button
-              key={i}
-              ref={(el) => {
-                buttons.current[i] = el;
-              }}
-              type="button"
-              role="menuitem"
-              tabIndex={i === active ? 0 : -1}
-              aria-disabled={item.disabled || undefined}
-              onClick={() => choose(i)}
-              onPointerMove={() => {
-                if (!item.disabled && active !== i) focusItem(i);
-              }}
-              style={item.disabled ? DISABLED : ITEM}
-            >
-              {item.icon ? (
-                <span aria-hidden="true" style={{ display: 'inline-flex' }}>
-                  {item.icon}
-                </span>
-              ) : null}
-              <span>{item.label}</span>
-              {item.shortcut ? <kbd style={SHORTCUT}>{item.shortcut}</kbd> : null}
-            </button>
-          ),
-        )}
+        <div style={LIST}>
+          {items.map((item, i) =>
+            item === 'separator' ? (
+              <div key={`separator-${i}`} role="separator" style={SEPARATOR} />
+            ) : (
+              <button
+                key={i}
+                ref={(el) => {
+                  buttons.current[i] = el;
+                }}
+                type="button"
+                role="menuitem"
+                tabIndex={i === active ? 0 : -1}
+                aria-disabled={item.disabled || undefined}
+                onClick={() => choose(i)}
+                onPointerMove={() => {
+                  if (!item.disabled && active !== i) focusItem(i);
+                }}
+                style={item.disabled ? DISABLED : ITEM}
+              >
+                {item.icon ? (
+                  <span aria-hidden="true" style={{ display: 'inline-flex' }}>
+                    {item.icon}
+                  </span>
+                ) : null}
+                <span>{item.label}</span>
+                {item.shortcut ? <kbd style={SHORTCUT}>{item.shortcut}</kbd> : null}
+              </button>
+            ),
+          )}
+        </div>
       </Glass>
     </>
   );

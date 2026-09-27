@@ -105,3 +105,13 @@ it('closes on Tab', () => {
   key('Tab');
   expect(trigger.getAttribute('aria-expanded')).toBe('false');
 });
+
+it('leaves a closed menu to the browser’s hidden popover style, so it takes no clicks', () => {
+  const { trigger, getByRole } = setup();
+  fireEvent.click(trigger);
+  const menu = getByRole('menu', { name: 'Plate actions' });
+  expect(getComputedStyle(menu).display).not.toBe('none');
+  fireEvent.click(trigger);
+  settle();
+  expect(getComputedStyle(menu).display).toBe('none');
+});
