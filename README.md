@@ -6,6 +6,8 @@ Liquid glass for React, refracted by optics. The library lives in [`packages/men
 
 [Watch the full 30-second demo](docs/media/meniscus-demo.mp4) — drag a lens across Newton's engraving, tune its optical layers, compare finished interfaces with glass on and off, then see the React example.
 
+Components: `Glass` and its layers; `GlassButton`, `GlassPanel`, `GlassTabs`, the form fields and `GlassLoader`; and the kit of overlays, bars and controls: `GlassDialog` (modal, sheet or drawer), `GlassPopover`, `GlassMenu`, `GlassTooltip`, `GlassToaster` with `toast()`, `GlassNavbar`, `GlassSidebar`, `GlassSwitch`, `GlassSlider` and `GlassSegmented`. [See them all](https://thanhphuchuynh.github.io/meniscus/components/).
+
 [![Try Meniscus in StackBlitz](https://img.shields.io/badge/Try_live-StackBlitz-1269d3)](https://thanhphuchuynh.github.io/meniscus/#try-online)
 
 [Run the editable example](examples/optics) — refractive index, RGB splitting and lighting controls, using the published npm package. Choose **Edit in StackBlitz** on the site to open it without installing anything.

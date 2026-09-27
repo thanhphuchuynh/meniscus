@@ -4,6 +4,21 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 
 ## [Unreleased]
 
+### Added
+
+- `GlassDialog`: a modal card, a bottom sheet, or a side drawer, in the browser's top layer. It keeps focus inside, closes on Escape, on the dimmed page or on a drag away, and returns focus to its trigger. `<form method="dialog">` works inside.
+- `GlassPopover`, `GlassMenu` and `GlassTooltip`, anchored to their trigger, flipping and shifting to stay on screen. The menu follows the WAI-ARIA menu button pattern, with a glass highlight that flows between items.
+- `GlassToaster` and `toast()`: messages that arrive on a spring, stack three at a time, pause while read, swipe away and are announced politely.
+- `GlassNavbar`, a sticky bar that deepens as content scrolls under it, and `GlassSidebar`, a glass column that becomes a drawer on narrow screens.
+- `GlassSwitch`, `GlassSlider` and `GlassSegmented`, on native inputs. The switch knob and slider thumb become clear lenses while held.
+- `variant="tinted"`: colored glass from `tint` or `--meniscus-accent`, with text that stays readable.
+- `appearance="adaptive"`: glass that reads what is behind it and turns light or dark with it, carrying `data-meniscus-tone` and setting `--meniscus-ink-on-light` or `--meniscus-ink-on-dark`.
+- `supportsPopover` and `overridePopoverSupport` in `meniscus/core`.
+
+### Fixed
+
+- Glass in the top layer no longer warns that a faded parent confines it.
+
 ## [0.5.0] - 2026-09-26
 
 ### Changed

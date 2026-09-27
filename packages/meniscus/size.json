@@ -8,16 +8,16 @@
     "budget": 29
   },
   "GlassPopover": {
-    "kB": 26,
-    "budget": 28.6
+    "kB": 25.7,
+    "budget": 28.3
   },
   "GlassTooltip": {
-    "kB": 25.9,
-    "budget": 28.5
+    "kB": 25.6,
+    "budget": 28.2
   },
   "GlassMenu": {
-    "kB": 27.8,
-    "budget": 30.6
+    "kB": 27.5,
+    "budget": 30.3
   },
   "GlassToaster": {
     "kB": 25.7,

@@ -7,9 +7,9 @@ export interface PropRow {
 
 export const GLASS_PROPS: PropRow[] = [
   { name: 'as', type: 'ElementType', default: "'div'", body: 'The element or component to render. Every other prop it accepts passes through.' },
-  { name: 'variant', type: "'regular' | 'clear'", default: "'regular'", body: 'Regular frosts and tints for legibility over busy content. Clear stays nearly transparent, for glass over media.' },
+  { name: 'variant', type: "'regular' | 'clear' | 'tinted'", default: "'regular'", body: 'Regular frosts and tints for legibility over busy content. Clear stays nearly transparent, for glass over media. Tinted is colored glass: tint, or --meniscus-accent, mixed in at 70%, with text that stays readable on it.' },
   { name: 'intensity', type: "'subtle' | 'regular' | 'strong' | number", default: "'regular'", body: 'How strongly the glass bends and lights, as a named step or a number from 0 (subtle) through 0.5 (regular) to 1 (strong). Explicit refraction, specular and aberration win.' },
-  { name: 'appearance', type: "'auto' | 'light' | 'dark'", default: "'auto'", body: 'Light glass (a pale wash) or dark glass (a smoky one). Auto follows the page’s color scheme, a site’s own theme switch included, through CSS light-dark(). It sets the default tint; an explicit tint wins.' },
+  { name: 'appearance', type: "'auto' | 'light' | 'dark' | 'adaptive'", default: "'auto'", body: 'Light glass (a pale wash) or dark glass (a smoky one). Auto follows the page’s color scheme through CSS light-dark(). Adaptive reads what is behind the glass and turns light or dark with it, setting data-meniscus-tone and a readable text color. An explicit tint wins.' },
   { name: 'radius', type: "number | 'capsule'", default: '28', body: 'Corner radius in px, capped at half the short side. Capsule rounds the ends fully.' },
   { name: 'bezel', type: 'number', default: 'min(radius, 32)', body: 'Width of the curved band along the outline, in px. Capped at the corner radius.' },
   { name: 'refraction', type: 'number', default: '1', body: 'Glass thickness as a multiple of the bezel width. 0 turns refraction off; higher values bend harder.' },
@@ -228,4 +228,105 @@ export function Workspace({ open }: { open: boolean }) {
 
 /* Layers move in with your CSS: */
 .sidebar { translate: calc((1 - var(--meniscus-presence, 1)) * -28px) 0; }`,
+    kit: `import { GlassButton, GlassDialog, GlassMenu, GlassNavbar, GlassToaster, toast } from 'meniscus';
+
+  <GlassNavbar label="Main">
+    <strong>Opticks</strong>
+    <GlassMenu label="Plate actions" trigger={<GlassButton>Plate</GlassButton>} items={[
+      { label: 'Duplicate', onSelect: duplicate },
+      { label: 'Share', onSelect: () => toast('Link copied') },
+    ]} />
+    <GlassDialog label="Order a print" trigger={<GlassButton>Order</GlassButton>}>
+      <form method="dialog">
+        <GlassButton type="submit">Done</GlassButton>
+      </form>
+    </GlassDialog>
+  </GlassNavbar>
+  <GlassToaster />`,
+    tone: `import { Glass, GlassButton, GlassProvider, type GlassDefaults } from 'meniscus';
+
+  // A theme is a provider's props.
+  const theme = { variant: 'tinted', tint: '#1269d3', intensity: 'strong' } satisfies GlassDefaults;
+
+  <GlassProvider {...theme}>
+    <GlassButton>Order a print</GlassButton>
+  </GlassProvider>
+
+  // Glass that reads what's behind it and sets its own text color.
+  <Glass appearance="adaptive" className="caption-bar">Plate II</Glass>
+
+  /* Style what adaptive and tinted glass set: */
+  [data-meniscus-tone='dark'] svg { fill: currentColor; }
+  :root { --meniscus-ink-on-dark: #f5f1ea; --meniscus-ink-on-light: #1b1a17; }`,
 };
+
+export const DIALOG_PROPS: PropRow[] = [
+  { name: 'label', type: 'string', default: '—', body: 'Accessible name. Or pass aria-labelledby naming the dialog’s heading. Development builds warn when neither is given.' },
+  { name: 'placement', type: "'center' | 'bottom' | 'left' | 'right'", default: "'center'", body: 'A modal card, a sheet along the bottom, or a drawer down one side. Sheets drag down from their grabber and drawers drag toward their edge to close.' },
+  { name: 'trigger', type: 'ReactElement', default: '—', body: 'The element that opens the dialog. Its own handlers, ref and attributes stay; focus returns to it on close.' },
+  { name: 'open', type: 'boolean', default: '—', body: 'Open, controlled. A controlled dialog stays open until you set it false, which covers dialogs that must be answered.' },
+  { name: 'defaultOpen', type: 'boolean', default: 'false', body: 'Open at first, uncontrolled. It opens after hydration.' },
+  { name: 'onOpenChange', type: '(open: boolean) => void', default: '—', body: 'true from the trigger; false from Escape, the dimmed page, a drag away, or a form with method="dialog", whose submitter’s value becomes the dialog’s returnValue.' },
+  { name: 'physics', type: 'SpringInput', default: "'snappy'", body: 'The spring it arrives and leaves on. Under reduced motion it fades instead.' },
+  { name: '…glass', type: 'GlassOptions', default: 'provider', body: 'Tint, radius, intensity and the rest apply to the panel, as do className and style.' },
+];
+
+export const POPOVER_PROPS: PropRow[] = [
+  { name: 'label', type: 'string', default: 'required', body: 'Accessible name of the popover, a non-modal dialog.' },
+  { name: 'trigger', type: 'ReactElement', default: 'required', body: 'Opens and closes it, with aria-expanded and aria-controls added. It must pass its ref through.' },
+  { name: 'placement', type: 'GlassPlacement', default: "'bottom'", body: 'top, bottom, left or right, each optionally -start or -end. It flips to the other side where there is no room.' },
+  { name: 'offset', type: 'number', default: '8', body: 'Gap from the trigger, px.' },
+  { name: 'open, defaultOpen, onOpenChange', type: 'boolean, (open) => void', default: '—', body: 'As on GlassDialog. Escape, a press outside, or focus leaving it closes it.' },
+  { name: '…glass', type: 'GlassOptions', default: 'provider', body: 'On the popover’s glass.' },
+];
+
+export const MENU_PROPS: PropRow[] = [
+  { name: 'label', type: 'string', default: 'required', body: 'Accessible name of the menu.' },
+  { name: 'trigger', type: 'ReactElement', default: 'required', body: 'The menu button. Enter, Space or ArrowDown opens on the first item; ArrowUp on the last.' },
+  { name: 'items', type: 'GlassMenuItem[]', default: 'required', body: "{ label, onSelect, disabled?, icon?, shortcut?, textValue? }, or 'separator'. Disabled items are skipped. Shortcuts are shown only." },
+  { name: 'placement', type: 'GlassPlacement', default: "'bottom-start'", body: 'Where it opens.' },
+  { name: 'open, defaultOpen, onOpenChange', type: 'boolean, (open) => void', default: '—', body: 'As on GlassDialog.' },
+  { name: '…glass', type: 'GlassOptions', default: 'provider', body: 'On the menu’s glass. --meniscus-menu-highlight tints the highlight.' },
+];
+
+export const TOOLTIP_PROPS: PropRow[] = [
+  { name: 'content', type: 'ReactNode', default: 'required', body: 'The hint, linked with aria-describedby. Touch screens never show it.' },
+  { name: 'children', type: 'ReactElement', default: 'required', body: 'The element it describes. It must pass its ref through.' },
+  { name: 'placement', type: 'GlassPlacement', default: "'top'", body: 'Where it shows.' },
+  { name: 'offset', type: 'number', default: '6', body: 'Gap from the element, px.' },
+  { name: 'delay', type: 'number', default: '500', body: 'Hover time before it shows, ms. Keyboard focus shows it at once, as does moving from another tooltip.' },
+];
+
+export const TOASTER_PROPS: PropRow[] = [
+  { name: 'toast(message, options?)', type: '(ReactNode, ToastOptions) => string', default: '—', body: 'Shows a toast and returns its id. Options: description, action { label, onClick }, duration in ms (default 5000; Infinity stays), and an id to replace a toast in place.' },
+  { name: 'toast.dismiss(id?)', type: '(id?: string) => void', default: '—', body: 'Removes one toast, or all of them.' },
+  { name: 'placement', type: "'top' | 'bottom' | 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end'", default: "'bottom'", body: 'Where toasts gather. The newest sits nearest the edge.' },
+  { name: 'max', type: 'number', default: '3', body: 'How many show at once. Older ones wait their turn.' },
+  { name: 'label', type: 'string', default: "'Notifications'", body: 'Accessible name of the region.' },
+  { name: 'physics', type: 'SpringInput', default: "'bouncy'", body: 'The spring toasts arrive and leave on.' },
+  { name: '…glass, className, style', type: 'GlassOptions', default: 'provider', body: 'On every toast.' },
+];
+
+export const NAVBAR_PROPS: PropRow[] = [
+  { name: 'label', type: 'string', default: 'required', body: 'Accessible name of the nav landmark.' },
+  { name: 'inset', type: 'number', default: '12', body: 'Gap from the top of its scroll container while stuck, and from each side, px.' },
+  { name: 'scrollEdge', type: 'boolean', default: 'true', body: 'Clear at the top of the page; its tint and shadow deepen once content scrolls under it. No re-render, no rebuilt maps.' },
+  { name: 'appearance', type: 'GlassAppearance', default: "'adaptive'", body: 'Follows what is behind it, unless a provider or this prop says otherwise.' },
+  { name: '…glass', type: 'GlassOptions', default: 'provider', body: 'Radius defaults to capsule.' },
+];
+
+export const SIDEBAR_PROPS: PropRow[] = [
+  { name: 'label', type: 'string', default: 'required', body: 'Accessible name of the landmark, and of the drawer it becomes.' },
+  { name: 'as', type: "'aside' | 'nav'", default: "'aside'", body: 'The landmark it renders, as a column or inside the drawer.' },
+  { name: 'collapseBelow', type: 'number', default: '768', body: 'Below this viewport width, px, it is a drawer. A media query hides the column before JavaScript runs. 0 never collapses.' },
+  { name: 'side', type: "'left' | 'right'", default: "'left'", body: 'The side the drawer opens from.' },
+  { name: 'inset', type: 'number', default: '12', body: 'Gap from the viewport’s edges, px.' },
+  { name: 'open, defaultOpen, onOpenChange', type: 'boolean, (open) => void', default: '—', body: 'The drawer’s state: pair them with a button of your own shown below the breakpoint. Ignored while it is a column.' },
+];
+
+export const CONTROL_PROPS: PropRow[] = [
+  { name: 'GlassSwitch label', type: 'string', default: 'required', body: 'Visible label. The switch is a native checkbox with role="switch"; its props, form value and ref are the input’s.' },
+  { name: 'GlassSlider label, format', type: 'string, (value) => string', default: 'required, —', body: 'Visible label, and the value shown beside it and read out as aria-valuetext. The slider is a native range input.' },
+  { name: 'GlassSegmented label, options', type: 'string, { value, label, disabled? }[]', default: 'required', body: 'The legend and the choices: native radios in a fieldset. value, defaultValue and onValueChange as on GlassTabs; name for forms.' },
+  { name: '…glass', type: 'GlassOptions', default: 'provider', body: 'On the knob, the thumb or the selection. The switch track and slider fill use --meniscus-accent.' },
+];

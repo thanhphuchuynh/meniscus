@@ -2,13 +2,14 @@ import { Glass, GlassIndicator, GlassProvider } from 'meniscus';
 import { glassProfile, resolveGlass } from 'meniscus/core';
 import { useEffect, useState, type ReactNode } from 'react';
 import packageJson from '../../../../packages/meniscus/package.json';
+import sizes from '../../../../packages/meniscus/size.json';
 import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
 import { useEngine } from '../shared/engine';
 import { RayDiagram } from '../shared/RayDiagram';
 import { Scale } from '../shared/Scale';
 import { sitePath } from '../shared/paths';
 import { plateSrc, useTheme } from '../shared/theme';
-import { CODE, GLASS_PROPS, GROUP_PROPS, INDICATOR_PROPS, LAYER_PROPS, STACK_PROPS, STAGE_PROPS, type PropRow } from './content';
+import { CODE, CONTROL_PROPS, DIALOG_PROPS, GLASS_PROPS, GROUP_PROPS, INDICATOR_PROPS, LAYER_PROPS, MENU_PROPS, NAVBAR_PROPS, POPOVER_PROPS, SIDEBAR_PROPS, STACK_PROPS, STAGE_PROPS, TOASTER_PROPS, TOOLTIP_PROPS, type PropRow } from './content';
 
 const SECTIONS = [
   ['install', 'Installation'],
@@ -22,6 +23,8 @@ const SECTIONS = [
   ['interaction', 'Interaction'],
   ['indicator', 'Selections that flow'],
   ['group', 'Surface tension'],
+  ['kit', 'Overlays, bars and controls'],
+  ['tone', 'Tinted and adaptive glass'],
   ['a11y', 'Accessibility'],
   ['performance', 'Performance'],
   ['core', 'meniscus/core'],
@@ -95,6 +98,21 @@ function PropsTable({ rows, caption }: { rows: PropRow[]; caption: string }) {
   );
 }
 
+/** What each component runs, besides Glass itself. */
+const KIT_COSTS: ReadonlyArray<readonly [keyof typeof sizes, string]> = [
+  ['Glass', 'One filter per glass; maps built once per shape.'],
+  ['GlassDialog', 'Springs while opening and closing; nothing while open.'],
+  ['GlassPopover', 'Springs while opening and closing; a scroll and resize listener while open.'],
+  ['GlassMenu', 'As a popover; the highlight springs as it moves.'],
+  ['GlassTooltip', 'A timer while hovered.'],
+  ['GlassToaster', 'A timer per shown toast.'],
+  ['GlassNavbar', 'One passive scroll listener; springs as the edge is crossed; adaptive sampling at most ten times a second while scrolling.'],
+  ['GlassSidebar', 'Nothing as a column; a dialog as a drawer.'],
+  ['GlassSwitch', 'Springs while pressed.'],
+  ['GlassSlider', 'Springs while dragged; the thumb refracts as it moves.'],
+  ['GlassSegmented', 'The selection springs when the choice changes.'],
+];
+
 export function Docs() {
   const active = useActiveSection();
   const engine = useEngine();
@@ -159,7 +177,10 @@ export function Docs() {
               <code>GlassTextField</code>, <code>GlassSelect</code>, and <code>GlassCheckbox</code> wrap native form controls in glass while retaining their
               labels, input props, refs, and form behavior. <code>GlassLoader</code> is a loading indicator of three glass drops that fuse and part,
               inline or as a whole loading page with <code>page</code>; <code>GlassGlyph</code> turns an icon or shape inside glass into glass. They all ship
-              from <code>meniscus</code> and need no stylesheet. See their{' '}
+              from <code>meniscus</code> and need no stylesheet.
+              {' '}The kit adds overlays, bars and controls: <code>GlassDialog</code>, <code>GlassPopover</code>, <code>GlassMenu</code>,
+              <code>GlassTooltip</code>, <code>GlassToaster</code>, <code>GlassNavbar</code>, <code>GlassSidebar</code>, <code>GlassSwitch</code>,
+              <code>GlassSlider</code> and <code>GlassSegmented</code> (<a href="#kit">§12</a>).{' '}See their{' '}
               <a href={sitePath('/components/')}>live examples</a>.
             </p>
             <CodeBlock code={`import { GlassButton, GlassPanel, GlassTabs } from 'meniscus';
@@ -393,7 +414,74 @@ export function Docs() {
             <CodeBlock code={CODE.merge} label="Panes that merge on the WebGL stage" />
           </Section>
 
-          <Section id="a11y" n={12} title="Accessibility">
+          <Section id="kit" n={12} title="Overlays, bars and controls">
+            <p>
+              <code>GlassDialog</code>, <code>GlassPopover</code>, <code>GlassMenu</code>, <code>GlassTooltip</code> and <code>GlassToaster</code> render
+              where you put them and open in the browser’s top layer: <code>&lt;dialog&gt;</code> for dialogs, the Popover API for the rest. They sit
+              above everything with no portal and no z-index, keep your providers and context, and server-render as hidden markup. Each arrives and
+              leaves on the library’s springs, and hides as soon as its glass has faded. Under reduced motion they fade instead.
+            </p>
+            <CodeBlock code={CODE.kit} label="Overlays, bars and controls" />
+            <h3 id="dialog">Dialogs, sheets and drawers</h3>
+            <p>
+              A modal <code>GlassDialog</code> keeps focus inside, makes the page behind inert and stops it scrolling. Escape, a click on the
+              dimmed page, and dragging a sheet or drawer toward its edge call <code>onOpenChange(false)</code>. A controlled dialog stays open until
+              you close it. A <code>&lt;form method="dialog"&gt;</code> inside closes it and leaves the submitter’s value as its{' '}
+              <code>returnValue</code>. Focus returns to the trigger.
+            </p>
+            <PropsTable rows={DIALOG_PROPS} caption="GlassDialog props" />
+            <h3 id="popover">Popovers, menus and tooltips</h3>
+            <p>
+              These three anchor to their trigger with a small script that places them as they open and again on scroll and resize, flipping to
+              the other side where there is no room and shifting to stay on screen. The trigger keeps its
+              own handlers, ref and attributes. A menu follows the WAI-ARIA menu button pattern. A tooltip shows after a hover delay or at once on
+              keyboard focus, and the pointer can move onto it.
+            </p>
+            <PropsTable rows={POPOVER_PROPS} caption="GlassPopover props" />
+            <PropsTable rows={MENU_PROPS} caption="GlassMenu props" />
+            <PropsTable rows={TOOLTIP_PROPS} caption="GlassTooltip props" />
+            <h3 id="toasts">Toasts</h3>
+            <p>
+              Render one <code>GlassToaster</code> near the root and call <code>toast()</code> anywhere; calls before the toaster mounts wait for it.
+              Screen readers hear each new message politely. Hovering or focusing the toasts pauses their clocks, and a swipe dismisses one. While
+              a modal dialog is open, everything outside it is inert, a toast included: it still shows and is announced, but its buttons work only
+              after the dialog closes.
+            </p>
+            <PropsTable rows={TOASTER_PROPS} caption="toast and GlassToaster" />
+            <h3 id="bars">Navbar and sidebar</h3>
+            <p>
+              <code>GlassNavbar</code> sticks to the top of its scroll container and deepens as content passes under it; by default it follows the tone
+              of what is behind it. <code>GlassSidebar</code> is a sticky column on wide screens and a drawer below <code>collapseBelow</code>, with
+              the same children in the same landmark. The children remount when the layout switches.
+            </p>
+            <PropsTable rows={NAVBAR_PROPS} caption="GlassNavbar props" />
+            <PropsTable rows={SIDEBAR_PROPS} caption="GlassSidebar props" />
+            <h3 id="controls">Switch, slider and segmented control</h3>
+            <p>
+              Each wraps native inputs, so forms, validation, the keyboard and assistive technology work unchanged, and a ref reaches the input. The
+              switch’s knob and the slider’s thumb swell into clear lenses while held.
+            </p>
+            <PropsTable rows={CONTROL_PROPS} caption="GlassSwitch, GlassSlider and GlassSegmented props" />
+          </Section>
+
+          <Section id="tone" n={13} title="Tinted and adaptive glass">
+            <p>
+              A theme is a provider’s props: <code>variant</code> sets how frosted the glass is, <code>intensity</code> how strongly it bends,
+              <code>refraction</code> how thick it is. <code>variant="tinted"</code> is colored glass for primary actions: <code>tint</code>, or{' '}
+              <code>--meniscus-accent</code>, mixed in at 70%.
+            </p>
+            <p>
+              <code>appearance="adaptive"</code> reads what is behind the glass and turns it light or dark. Tinted glass reads the same way to keep its
+              text readable. It reads media under the glass on an 8×8 canvas, and otherwise the first solid background color behind five points of
+              it. Toned glass carries <code>data-meniscus-tone</code> and sets its text to <code>--meniscus-ink-on-light</code> or{' '}
+              <code>--meniscus-ink-on-dark</code>; your own <code>style.color</code> wins. It can’t read a gradient, a background image, a
+              cross-origin image without CORS, or anything with <code>pointer-events: none</code>, and there it keeps the page’s color scheme. It
+              samples at most ten times a second while the page scrolls, never during render, and changing tone swaps a color, never a map.
+            </p>
+            <CodeBlock code={CODE.tone} label="Tinted and adaptive glass" />
+          </Section>
+
+          <Section id="a11y" n={14} title="Accessibility">
             <ul className="manual__list">
               <li>
                 Glass is decoration on the element you choose. Semantics come from <code>as</code> and your markup; the filter, highlight and glow layers are
@@ -429,7 +517,7 @@ export function Docs() {
             </ul>
           </Section>
 
-          <Section id="performance" n={13} title="Performance">
+          <Section id="performance" n={15} title="Performance">
             <ul className="manual__list">
               <li>Each refracting glass is one SVG filter. Its maps are built once per corner shape and cached, so resizing costs nothing.</li>
               <li>
@@ -448,9 +536,35 @@ export function Docs() {
                 Firefox repaint the copied element into the glass every frame it changes; keep backdrops to the region behind the glass where you can.
               </li>
             </ul>
+            <div className="manual__table-wrap">
+              <table className="manual__table">
+                <caption className="visually-hidden">What each component adds to Glass</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Component</th>
+                    <th scope="col">Gzipped</th>
+                    <th scope="col">Over Glass</th>
+                    <th scope="col">What runs</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {KIT_COSTS.map(([name, runs]) => (
+                    <tr key={name}>
+                      <th scope="row">
+                        <code>{name}</code>
+                      </th>
+                      <td className="num">{sizes[name].kB.toFixed(1)} kB</td>
+                      <td className="num">{name === 'Glass' ? '—' : `+${(sizes[name].kB - sizes.Glass.kB).toFixed(1)} kB`}</td>
+                      <td>{runs}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="caption">Measured by <code>packages/meniscus/scripts/size.mjs</code>: each export bundled alone, minified, React external, gzip level 9. CI fails when one grows past its budget.</p>
           </Section>
 
-          <Section id="core" n={14} title="meniscus/core">
+          <Section id="core" n={16} title="meniscus/core">
             <p>
               The optics without React: resolve options, build and encode the maps, write the filter markup, or trace single rays. It has no directives and
               runs on the server, in workers, or in any framework.
@@ -459,7 +573,7 @@ export function Docs() {
             <CodeBlock code={CODE.trace} label="Tracing rays" />
           </Section>
 
-          <Section id="support" n={15} title="Browser support">
+          <Section id="support" n={17} title="Browser support">
             <div className="manual__table-wrap">
               <table className="manual__table manual__table--support">
                 <caption className="visually-hidden">What each browser draws</caption>
@@ -494,10 +608,10 @@ export function Docs() {
                 </tbody>
               </table>
             </div>
-            <p className="caption">As of September 2026. The detection follows what each engine draws, not a version list, so a browser that gains SVG backdrop filters gains refraction.</p>
+            <p className="caption">As of September 2026. The detection follows what each engine draws, not a version list, so a browser that gains SVG backdrop filters gains refraction. Overlays use the Popover API (Chrome 114, Safari 17, Firefox 125); older browsers show them in place with fixed positioning, where a parent’s overflow can clip them.</p>
           </Section>
 
-          <Section id="limits" n={16} title="Limits">
+          <Section id="limits" n={18} title="Limits">
             <ul className="manual__list">
               <li>Only rounded rectangles and capsules. Other outlines would need their own distance fields.</li>
               <li>
@@ -513,10 +627,17 @@ export function Docs() {
                 <code>as</code> must be an element that can hold children. Void elements such as <code>input</code> render frosted, without refraction
                 or highlights; wrap them in a <code>Glass</code> instead.
               </li>
+              <li>
+                A toast shown while a modal dialog is open is inert until the dialog closes: the browser makes everything outside a modal inert.
+              </li>
+              <li>
+                Adaptive tint can’t read gradients, background images, cross-origin images without CORS, or elements with{' '}
+                <code>pointer-events: none</code>. There it follows the page’s color scheme.
+              </li>
             </ul>
           </Section>
 
-          <Section id="releases" n={17} title="Versions and releases">
+          <Section id="releases" n={19} title="Versions and releases">
             <p>
               The package version is <code>{packageJson.version}</code>. Meniscus follows Semantic Versioning; before 1.0, a minor release may change
               the public API. Git tags use the matching <code>v</code> prefix.
