@@ -337,7 +337,13 @@ function GlassPaneImpl(props: GlassPaneProps<ElementType>, forwardedRef: Forward
   const register = stage?.register;
   useIsomorphicLayoutEffect(() => {
     if (!register || !el) return;
-    return register(el, () => optionsRef.current);
+    // An adaptive pane draws with the tone its glass has read, which the element carries.
+    return register(el, () => {
+      const o = optionsRef.current;
+      if (o.appearance !== 'adaptive') return o;
+      const tone = el.getAttribute('data-meniscus-tone');
+      return { ...o, appearance: tone === 'light' || tone === 'dark' ? tone : 'auto' };
+    });
   }, [register, el]);
 
   const webgl = stage?.status === 'ready' && !!el && stage.drawn(el);

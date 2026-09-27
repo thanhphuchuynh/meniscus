@@ -38,6 +38,7 @@ import { useGlassGroup } from './group';
 import { useMergedRef } from './refs';
 import { DEV } from './dev';
 import { nearViewport, whenNearOrIdle } from './defer';
+import { useBackdropTone } from './tone';
 
 export { useMergedRef };
 
@@ -157,6 +158,10 @@ const LIGHT: CSSProperties = {
  * The outline under increased contrast. Forced colors repaint its border in
  * the system's own color, so the glass keeps an edge in Windows High Contrast.
  */
+/** Ink on adaptive and tinted glass, by tone. Apps restyle both through the custom properties. */
+const INK_ON_LIGHT = 'var(--meniscus-ink-on-light, #15181d)';
+const INK_ON_DARK = 'var(--meniscus-ink-on-dark, #f7f8fa)';
+
 const EDGE: CSSProperties = {
   position: 'absolute',
   inset: 0,
@@ -248,6 +253,14 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   const handlers = useLiquidInteraction(ref, interactive && !disabled, reducedMotion);
 
   const bare = mode === 'none';
+  // Adaptive and tinted glass read what's behind them: adaptive for its tint, both for their ink.
+  const toned = options.appearance === 'adaptive' || options.variant === 'tinted';
+  const tone = useBackdropTone(node, {
+    enabled: toned && !group && !childless && !reducedTransparency,
+    backdrop: childless ? undefined : backdrop,
+    tint: options.variant === 'tinted' ? glassTint(options) : null,
+  });
+  if (options.appearance === 'adaptive') options.appearance = tone ?? 'auto';
   const g = size && size.width > 0 && size.height > 0 ? resolveGlass(options, size.width, size.height) : null;
   const radiusRef = useRef(0);
   radiusRef.current = g ? g.radius : 0;
@@ -304,6 +317,28 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
   const tiles = refracts && built ? glassTiles(g!) : null;
   const highlight = lit && built ? glassHighlight(g!, pixelRatio) : null;
   useOptics(node, optics, tiles);
+  // A change of tone fades tint and ink over 240 ms. The Web Animations API
+  // leaves the app's own `transition` alone.
+  const painted = useRef<{ background: string; color: string } | null>(null);
+  useIsomorphicLayoutEffect(() => {
+    if (!node || !toned) {
+      painted.current = null;
+      return;
+    }
+    const cs = getComputedStyle(node);
+    const now = { background: cs.backgroundColor, color: cs.color };
+    const before = painted.current;
+    painted.current = now;
+    if (!before || reducedMotion || typeof node.animate !== 'function') return;
+    if (before.background === now.background && before.color === now.color) return;
+    node.animate(
+      [
+        { backgroundColor: before.background, color: before.color },
+        { backgroundColor: now.background, color: now.color },
+      ],
+      { duration: 240, easing: 'ease' },
+    );
+  }, [node, toned, tone]);
   // Refraction off (or unmeasured yet) leaves nothing to copy: plain frost.
   const copyActive = copying && !!tiles;
   const copy = useRef<HTMLSpanElement>(null);
@@ -384,6 +419,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     // Glass with a backdrop filter is already a stacking context; bare glass
     // needs one so the pointer glow (z-index -1) stays above what's behind.
     ...(bare && interactive ? { isolation: 'isolate' as const } : null),
+    ...(tone ? { color: tone === 'dark' ? INK_ON_DARK : INK_ON_LIGHT } : null),
     ...style,
     ...(optics ? { ...opticVars(optics.state), opacity: opticOpacity(style?.opacity) as unknown as number } : null),
     ...(hidden ? { opacity: 0 } : null),
@@ -436,7 +472,7 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     }, 1000);
     return () => clearTimeout(id);
   }, [node, path]);
-  const elementProps = { ...rest, ...events, ref: setRef, style: rootStyle, 'data-meniscus': path };
+  const elementProps = { ...rest, ...events, ref: setRef, style: rootStyle, 'data-meniscus': path, 'data-meniscus-tone': tone ?? undefined };
   if (childless) return createElement(tag, elementProps);
 
   return createElement(
