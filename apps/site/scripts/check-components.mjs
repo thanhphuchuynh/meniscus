@@ -74,8 +74,10 @@ for (const name of names) {
       await page.keyboard.press('Escape');
       await closed();
       assert.equal(await focusedText(), 'Order a print', `focus returns to the dialog's trigger (${where})`);
-      // Clear the toast, so it can't cover the controls the next steps press.
+      // Clear the toast, so it can't cover the controls the next steps press. It fades out where it was before it leaves.
       await region.getByRole('button', { name: 'Dismiss notification' }).click();
+      await page.waitForTimeout(40);
+      assert.equal(await region.getByText('Proof requested').count(), 1, `a dismissed toast fades out before it leaves (${where})`);
       await region.getByText('Proof requested').waitFor({ state: 'detached' });
 
       // The dimmed page closes it too.
@@ -133,6 +135,29 @@ for (const name of names) {
       await page.keyboard.press('Enter');
       await menu.waitFor({ state: 'hidden' });
       assert.equal(await page.getByRole('status').filter({ hasText: 'Opened.' }).count(), 1, `Enter chooses (${where})`);
+      await actions.focus();
+      await page.keyboard.press('ArrowDown');
+      await page.waitForFunction(() => document.activeElement?.textContent?.trim() === 'Open' && document.activeElement.tabIndex === 0);
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Space');
+      await menu.waitFor({ state: 'hidden' });
+      assert.equal(await page.getByRole('status').filter({ hasText: 'Duplicated.' }).count(), 1, `Space chooses (${where})`);
+      assert.equal(await focusedText(), 'Plate actions', `choosing gives focus back to the trigger (${where})`);
+
+      // Too short for the menu on either side: it overlaps its trigger, stays inside the viewport and scrolls.
+      await page.setViewportSize({ width, height: 150 });
+      await actions.scrollIntoViewIfNeeded();
+      await actions.focus();
+      await page.keyboard.press('ArrowDown');
+      await page.waitForFunction(() => document.activeElement?.textContent?.trim() === 'Open' && document.activeElement.tabIndex === 0);
+      const short = await settledBox(menu);
+      assert.ok(short.y >= -0.5 && short.y + short.height <= 150.5, `the menu stays inside a short viewport (${where}): ${JSON.stringify(short)}`);
+      await page.keyboard.press('End');
+      const details = await settledBox(menu.getByRole('menuitem', { name: 'Details' }));
+      assert.ok(details.y >= short.y - 0.5 && details.y + details.height <= short.y + short.height + 0.5, `End brings the last item into view (${where}): ${JSON.stringify(details)}`);
+      await page.keyboard.press('Escape');
+      await menu.waitFor({ state: 'hidden' });
+      await page.setViewportSize({ width, height: HEIGHT });
 
       // Tooltip: hover shows it; Escape hides it.
       const save = page.getByRole('button', { name: 'Save', exact: true });
@@ -154,6 +179,20 @@ for (const name of names) {
       await closed();
       assert.ok(Date.now() - started < 600, `a reduced-motion close is quick (${where}): ${Date.now() - started} ms`);
       await page.emulateMedia({ reducedMotion: 'no-preference' });
+
+      if (name === 'chromium') {
+        // Forced colors drop the switch's and the slider's fills: their tracks keep an edge.
+        await page.emulateMedia({ forcedColors: 'active' });
+        for (const control of [page.getByRole('switch', { name: 'Glass sound' }), page.getByRole('slider', { name: 'Refractive index' })]) {
+          const edge = await control.evaluate((input) => {
+            const track = input.getAttribute('role') === 'switch' ? input.parentElement : input.parentElement.querySelector('span');
+            const cs = getComputedStyle(track);
+            return `${cs.outlineStyle} ${cs.outlineWidth} ${cs.outlineColor}`;
+          });
+          assert.ok(/^solid 1px /.test(edge) && !edge.endsWith('rgba(0, 0, 0, 0)'), `a track keeps its edge in forced colors (${where}): ${edge}`);
+        }
+        await page.emulateMedia({ forcedColors: 'none' });
+      }
 
       assert.deepEqual(errors, [], `no errors (${where})`);
       await page.close();
