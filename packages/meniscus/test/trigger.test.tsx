@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render } from '@testing-library/react';
-import { useState, type ReactElement } from 'react';
+import { useState, version, type ReactElement } from 'react';
 import { useTrigger } from '../src/react/trigger';
 
 afterEach(() => {
@@ -30,6 +30,23 @@ it('keeps the trigger’s own handler, label, ref and description, and adds its 
   expect(button.getAttribute('aria-expanded')).toBe('false');
   expect(button.getAttribute('aria-describedby')).toBe('hint tip');
   expect(getByText('BUTTON')).not.toBeNull();
+});
+
+it.skipIf(version.startsWith('18'))('passes a callback ref’s cleanup through, and attaches a ref that changes', () => {
+  const calls: string[] = [];
+  const first = (node: HTMLButtonElement | null) => {
+    calls.push(node ? 'attach' : 'null');
+    return () => {
+      calls.push('cleanup');
+    };
+  };
+  const second = { current: null as HTMLButtonElement | null };
+  const { rerender, unmount, getByRole } = render(<Host element={<button type="button" ref={first}>Share</button>} onOpen={() => {}} />);
+  rerender(<Host element={<button type="button" ref={second}>Share</button>} onOpen={() => {}} />);
+  expect(calls).toEqual(['attach', 'cleanup']);
+  expect(second.current).toBe(getByRole('button', { name: 'Share' }));
+  unmount();
+  expect(second.current).toBeNull();
 });
 
 it('warns once when the trigger never gets a node', () => {

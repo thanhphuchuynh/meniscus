@@ -1,5 +1,6 @@
-import { cloneElement, isValidElement, useEffect, useRef, version, type ReactElement, type Ref, type SyntheticEvent } from 'react';
+import { cloneElement, isValidElement, useEffect, useRef, version, type ForwardedRef, type ReactElement, type Ref, type SyntheticEvent } from 'react';
 import { DEV } from './dev';
+import { useMergedRef } from './refs';
 
 type Handler = (e: SyntheticEvent) => void;
 
@@ -9,11 +10,6 @@ let warned = false;
 
 function ownRef(element: ReactElement): Ref<unknown> | undefined {
   return REF_ON_ELEMENT ? (element as unknown as { ref?: Ref<unknown> }).ref : (element.props as { ref?: Ref<unknown> }).ref;
-}
-
-function assign(ref: Ref<unknown> | undefined, value: unknown): void {
-  if (typeof ref === 'function') ref(value);
-  else if (ref && typeof ref === 'object') (ref as { current: unknown }).current = value;
 }
 
 /**
@@ -26,14 +22,14 @@ function assign(ref: Ref<unknown> | undefined, value: unknown): void {
 export function useTrigger(element: ReactElement | undefined, props: Record<string, unknown>, onNode: (node: HTMLElement | null) => void): ReactElement | null {
   const valid = isValidElement(element);
   const node = useRef<HTMLElement | null>(null);
-  const latest = useRef({ theirs: valid ? ownRef(element) : undefined, onNode });
-  latest.current = { theirs: valid ? ownRef(element) : undefined, onNode };
-  // One callback for the component's life, so React doesn't detach and reattach it every render.
-  const setRef = useRef((value: unknown) => {
+  const latest = useRef(onNode);
+  latest.current = onNode;
+  // Stable, so the merged ref changes only when the element's own ref does.
+  const report = useRef((value: HTMLElement | null) => {
     node.current = value instanceof HTMLElement ? value : null;
-    assign(latest.current.theirs, value);
-    latest.current.onNode(node.current);
+    latest.current(node.current);
   }).current;
+  const setRef = useMergedRef(((valid && ownRef(element)) || null) as ForwardedRef<HTMLElement>, report);
 
   useEffect(() => {
     if (!DEV || !valid || node.current || warned) return;

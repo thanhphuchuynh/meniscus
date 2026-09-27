@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
-import { useState } from 'react';
+import { useState, version } from 'react';
 import { Glass, GlassProvider, useGlassDefaults } from '../src';
 import { glassHighlight, overrideRefractionSupport, resolveGlass } from '../src/core';
 
@@ -91,7 +91,7 @@ describe('regressions found in review', () => {
     expect(container.querySelector('input')?.getAttribute('placeholder')).toBe('Search');
   });
 
-  it('passes through the cleanup a React 19 callback ref returns', () => {
+  it.skipIf(version.startsWith('18'))('passes through the cleanup a React 19 callback ref returns', () => {
     mockSize(100, 40);
     const cleanupFn = vi.fn();
     const refFn = vi.fn(() => cleanupFn);
