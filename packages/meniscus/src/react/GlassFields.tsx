@@ -12,6 +12,7 @@ import {
 import { Glass } from "./Glass";
 import { useMergedRef } from "./refs";
 import { GlassGlyph } from "./GlassGlyph";
+import { focusVisible } from "./focus";
 
 const FIELD: CSSProperties = {
   display: "grid",
@@ -40,14 +41,6 @@ const RING: CSSProperties = {
   outlineOffset: 2,
 };
 
-function visible(el: Element): boolean {
-  try {
-    return el.matches(":focus-visible");
-  } catch {
-    return true;
-  }
-}
-
 /** Focus inside a field, for drawing the ring on the field itself. */
 function useFieldFocus(disabled: boolean | undefined) {
   const [ring, setRing] = useState(false);
@@ -58,7 +51,7 @@ function useFieldFocus(disabled: boolean | undefined) {
   };
   return {
     style,
-    onFocus: (e: FocusEvent<HTMLElement>) => setRing(visible(e.target)),
+    onFocus: (e: FocusEvent<HTMLElement>) => setRing(focusVisible(e.target)),
     onBlur: () => setRing(false),
   };
 }
@@ -225,7 +218,7 @@ export const GlassCheckbox = forwardRef<HTMLInputElement, GlassCheckboxProps>(
               onChange?.(e);
             }}
             onFocus={(e) => {
-              setRing(visible(e.target));
+              setRing(focusVisible(e.target));
               onFocus?.(e);
             }}
             onBlur={(e) => {
