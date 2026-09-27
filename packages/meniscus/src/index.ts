@@ -10,6 +10,7 @@ export { GlassDialog, type GlassDialogProps, type GlassDialogPlacement } from '.
 export { GlassPopover, type GlassPopoverProps } from './react/GlassPopover';
 export type { GlassPlacement } from './core/place';
 export { GlassTooltip, type GlassTooltipProps } from './react/GlassTooltip';
+export { GlassMenu, type GlassMenuProps, type GlassMenuItem } from './react/GlassMenu';
 export { GlassPanel, type GlassPanelProps } from './react/GlassPanel';
 export { GlassGlyph, type GlassGlyphProps } from './react/GlassGlyph';
 export { GlassLoader, type GlassLoaderProps } from './react/GlassLoader';
