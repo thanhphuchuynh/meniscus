@@ -104,6 +104,16 @@ const CHILDLESS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'i
 let warnedChildless = false;
 let warnedConfined = false;
 
+/** An open modal dialog or a shown popover: the top layer, where no ancestor confines a backdrop. */
+function inTopLayer(el: Element): boolean {
+  try {
+    return el.matches(':modal, :popover-open');
+  } catch {
+    // Engines without these pseudo-classes have no top layer to be in.
+    return false;
+  }
+}
+
 /**
  * The nearest ancestor that confines a backdrop filter to its own content,
  * described for a warning, or null. The walk stops at glass: glass in glass
@@ -111,7 +121,9 @@ let warnedConfined = false;
  */
 function backdropRoot(node: HTMLElement): string | null {
   const set = (value: string | undefined, rest: string) => !!value && value !== rest;
+  if (inTopLayer(node)) return null;
   for (let el = node.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+    if (inTopLayer(el)) return null;
     const s = getComputedStyle(el);
     if (el.hasAttribute('data-meniscus') || set(s.backdropFilter, 'none')) return null;
     const why =
