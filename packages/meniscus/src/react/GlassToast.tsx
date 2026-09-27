@@ -216,6 +216,27 @@ function ToastItem({ record, leaving, paused, onLeft, physics, glass, className,
   );
 }
 
+/** A toast on screen, and whether it is on its way out. */
+interface Shown {
+  record: ToastRecord;
+  leaving: boolean;
+}
+
+/**
+ * The toasts on screen, in order: the visible ones, and dismissed ones still
+ * fading out where they were. One pushed out by newer toasts waits its turn, unseen.
+ */
+function arrange(prev: readonly Shown[], visible: readonly ToastRecord[], queued: readonly ToastRecord[]): Shown[] {
+  const next: Shown[] = visible.map((record) => ({ record, leaving: false }));
+  const has = (id: string) => next.some((n) => n.record.id === id);
+  prev.forEach((item, i) => {
+    if (has(item.record.id) || queued.some((t) => t.id === item.record.id)) return;
+    const after = prev.slice(i + 1).find((p) => has(p.record.id));
+    next.splice(after ? next.findIndex((n) => n.record.id === after.record.id) : next.length, 0, { record: item.record, leaving: true });
+  });
+  return next;
+}
+
 /**
  * Where `toast()` messages appear: render one near the root. Toasts arrive
  * on a spring, stack three at a time, pause while read, and swipe away.
@@ -228,12 +249,14 @@ export function GlassToaster({ placement = 'bottom', label = 'Notifications', ma
   const [region, setRegion] = useState<HTMLElement | null>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [leaving, setLeaving] = useState<readonly ToastRecord[]>(EMPTY);
-  const [announced, setAnnounced] = useState<ToastRecord | null>(null);
-  const previous = useRef<readonly ToastRecord[]>(EMPTY);
-  const seen = useRef(new Set<string>());
+  // What's on screen and what to announce, worked out while rendering, so a dismissed toast never unmounts before its exit.
+  const [screen, setScreen] = useState({ toasts: EMPTY, max, items: [] as readonly Shown[], news: EMPTY, turn: 0 });
   const shown = useRef(false);
-  const visible = toasts.slice(-Math.max(1, max));
+  if (screen.toasts !== toasts || screen.max !== max) {
+    // New and replaced toasts are announced, together when they came together.
+    const news = toasts.filter((t) => !screen.toasts.includes(t));
+    setScreen({ toasts, max, items: arrange(screen.items, toasts.slice(-Math.max(1, max)), toasts), news: news.length ? news : screen.news, turn: screen.turn + (news.length ? 1 : 0) });
+  }
 
   useEffect(() => {
     mounted++;
@@ -246,19 +269,9 @@ export function GlassToaster({ placement = 'bottom', label = 'Notifications', ma
     };
   }, []);
 
-  // A shown toast that was dismissed stays until its exit fades; new ones are announced.
-  useIsomorphicLayoutEffect(() => {
-    const ids = new Set(toasts.map((t) => t.id));
-    const gone = previous.current.filter((t) => !ids.has(t.id));
-    previous.current = visible;
-    if (gone.length) setLeaving((l) => [...l, ...gone.filter((g) => !l.some((x) => x.id === g.id))]);
-    const fresh = [...toasts].reverse().find((t) => !seen.current.has(t.id));
-    seen.current = ids;
-    if (fresh) setAnnounced(fresh);
-  }, [toasts]);
-  const onLeft = useCallback((id: string) => setLeaving((l) => l.filter((t) => t.id !== id)), []);
+  const onLeft = useCallback((id: string) => setScreen((current) => ({ ...current, items: current.items.filter((i) => i.record.id !== id) })), []);
 
-  const any = visible.length + leaving.length > 0;
+  const any = screen.items.length > 0;
   const newest = toasts[toasts.length - 1]?.id;
   // Shown while there are toasts. Each change shows it again, which lifts it above any modal opened since.
   useIsomorphicLayoutEffect(() => {
@@ -277,16 +290,16 @@ export function GlassToaster({ placement = 'bottom', label = 'Notifications', ma
   }, [region, supported, any, newest]);
 
   const top = placement.startsWith('top');
-  const rendered = [...leaving.filter((l) => !visible.some((v) => v.id === l.id)), ...visible];
   return (
     <>
       <div role="status" aria-live="polite" aria-atomic="true" style={HIDDEN}>
-        {announced ? (
-          <>
-            {announced.message}
-            {announced.description ? <> {announced.description}</> : null}
-          </>
-        ) : null}
+        {screen.news.map((t) => (
+          // Keyed by turn, so the same message twice is read twice.
+          <div key={`${screen.turn}-${t.id}`}>
+            {t.message}
+            {t.description ? <> {t.description}</> : null}
+          </div>
+        ))}
       </div>
       <section
         ref={setRegion}
@@ -302,11 +315,11 @@ export function GlassToaster({ placement = 'bottom', label = 'Notifications', ma
         style={{ ...REGION_BASE, ...REGION[placement], ...fallbackStyle(supported, any) }}
       >
         <ol style={{ ...LIST, flexDirection: top ? 'column-reverse' : 'column' }}>
-          {rendered.map((t) => (
+          {screen.items.map(({ record, leaving }) => (
             <ToastItem
-              key={t.id}
-              record={t}
-              leaving={leaving.some((l) => l.id === t.id)}
+              key={record.id}
+              record={record}
+              leaving={leaving}
               paused={hovered || focused}
               onLeft={onLeft}
               physics={physics}

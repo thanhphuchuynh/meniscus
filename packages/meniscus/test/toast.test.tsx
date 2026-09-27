@@ -106,3 +106,42 @@ it('keeps toasts made before any toaster mounts, and starts their clocks on moun
   settle();
   expect(texts(region)).toEqual([]);
 });
+
+it('lets a dismissed toast fade out where it was before it leaves', () => {
+  const view = render(<GlassToaster />);
+  let second = '';
+  act(() => {
+    toast('First');
+    second = toast('Second');
+  });
+  settle();
+  const region = regionOf(view);
+  const item = within(region).getAllByRole('listitem')[1]!;
+  act(() => toast.dismiss(second));
+  for (let i = 0; i < 3; i++) act(() => { vi.advanceTimersByTime(16); });
+  expect(item.isConnected).toBe(true);
+  expect(texts(region)).toEqual(['First', 'Second']);
+  expect(Number(item.style.getPropertyValue('--meniscus-presence'))).toBeLessThan(1);
+  settle();
+  expect(item.isConnected).toBe(false);
+  expect(texts(region)).toEqual(['First']);
+});
+
+it('announces a toast replaced in place, and every toast made at once', () => {
+  const view = render(<GlassToaster />);
+  const status = view.getByRole('status');
+  act(() => {
+    toast('Uploading…', { id: 'upload' });
+  });
+  expect(status.textContent).toBe('Uploading…');
+  act(() => {
+    toast('Uploaded', { id: 'upload' });
+  });
+  expect(status.textContent).toBe('Uploaded');
+  act(() => {
+    toast('Saved');
+    toast('Copied');
+  });
+  expect(status.textContent).toContain('Saved');
+  expect(status.textContent).toContain('Copied');
+});
