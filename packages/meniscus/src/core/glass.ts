@@ -4,13 +4,15 @@ import { computeRefractionProfile, type RefractionProfile } from './optics';
 import { profileKey, type Profile } from './profiles';
 import { resolveRadius, type Radius } from './shape';
 
-export type GlassVariant = 'regular' | 'clear';
-export type GlassAppearance = 'auto' | 'light' | 'dark';
+/** `regular` frosts and tints for legibility; `clear` stays transparent over media; `tinted` is colored glass for primary actions. */
+export type GlassVariant = 'regular' | 'clear' | 'tinted';
+/** Light glass, dark glass, the page's color scheme (`auto`), or what is actually behind it (`adaptive`). */
+export type GlassAppearance = 'auto' | 'light' | 'dark' | 'adaptive';
 /** Semantic strength: a named step, or a number from 0 (subtle) through 0.5 (regular) to 1 (strong). */
 export type GlassIntensity = 'subtle' | 'regular' | 'strong' | number;
 
 export interface GlassOptions {
-  /** `regular` frosts and tints for legibility; `clear` stays transparent over media. */
+  /** `regular` frosts and tints for legibility; `clear` stays transparent over media; `tinted` colors the glass with `tint` or `--meniscus-accent`. */
   variant?: GlassVariant;
   /**
    * How strongly the glass bends and lights: `'subtle'`, `'regular'` (the
@@ -21,7 +23,9 @@ export interface GlassOptions {
   /**
    * Light glass (a pale wash) or dark glass (a smoky one). `auto` follows the
    * page's color scheme, including a site's own theme switch, through CSS
-   * `light-dark()`. Only sets the default tint; an explicit `tint` wins.
+   * `light-dark()`. `adaptive` reads what is behind the glass and turns light
+   * or dark with it, setting a readable text color. Only sets the default
+   * tint; an explicit `tint` wins.
    */
   appearance?: GlassAppearance;
   /** Corner radius in px, or `'capsule'` for fully rounded ends. */
@@ -68,17 +72,34 @@ interface VariantDefaults {
   shade: number;
 }
 
+/** The color tinted glass takes without a `tint`: set `--meniscus-accent` once for the whole app. */
+export const ACCENT = 'var(--meniscus-accent, #2563eb)';
+/** How much of its color tinted glass mixes in, percent. */
+export const TINTED_MIX = 70;
+const tinted = (color: string) => `color-mix(in srgb, ${color} ${TINTED_MIX}%, transparent)`;
+
 export const VARIANTS: Readonly<Record<GlassVariant, VariantDefaults>> = {
   regular: { blur: 5, saturation: 1.6, tint: 'rgba(255, 255, 255, 0.12)', darkTint: 'rgba(22, 26, 32, 0.34)', specular: 0.8, rim: 0.7, shade: 0.35 },
   clear: { blur: 0.5, saturation: 1.15, tint: 'rgba(255, 255, 255, 0.03)', darkTint: 'rgba(8, 10, 14, 0.1)', specular: 0.9, rim: 0.8, shade: 0.3 },
+  tinted: { blur: 4, saturation: 1.8, tint: tinted(ACCENT), darkTint: tinted(ACCENT), specular: 0.9, rim: 0.8, shade: 0.25 },
 };
 
-/** The default tint of a variant in an appearance. */
+/** The default tint of a variant in an appearance. `adaptive` starts as `auto` until the glass has read its backdrop. */
 export function defaultTint(variant: GlassVariant | undefined, appearance: GlassAppearance = 'auto'): string {
   const v = VARIANTS[variant ?? 'regular'] ?? VARIANTS.regular;
-  if (appearance === 'light') return v.tint;
+  if (appearance === 'light' || v.tint === v.darkTint) return v.tint;
   if (appearance === 'dark') return v.darkTint;
   return `light-dark(${v.tint}, ${v.darkTint})`;
+}
+
+/**
+ * The tint a glass lays over its backdrop. Tinted glass mixes its `tint` (or
+ * the accent) in at `TINTED_MIX`%; any other variant lays `tint` over as
+ * given, or its appearance's default.
+ */
+export function glassTint(options: GlassOptions): string {
+  if (options.variant === 'tinted') return tinted(options.tint ?? ACCENT);
+  return options.tint ?? defaultTint(options.variant, options.appearance);
 }
 
 export const DEFAULTS = {
@@ -148,7 +169,7 @@ export function resolveGlass(options: GlassOptions, width: number, height: numbe
     caustics: options.caustics ?? DEFAULTS.caustics,
     blur: Math.max(0, options.blur ?? variant.blur),
     saturation: Math.max(0, options.saturation ?? variant.saturation),
-    tint: options.tint ?? defaultTint(options.variant, options.appearance),
+    tint: glassTint(options),
     aberration: Math.max(0, Math.min(1, options.aberration ?? tone.aberration)),
     specular: q(Math.max(0, Math.min(1, options.specular ?? tone.specular)), 0.01),
     rim: q(Math.max(0, Math.min(1, options.rim ?? variant.rim)), 0.01),
