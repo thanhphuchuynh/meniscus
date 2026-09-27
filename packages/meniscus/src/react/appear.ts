@@ -9,7 +9,7 @@ const FROM_SCALE = 0.9;
 let springCurve: string | null = null;
 
 /** A CSS `linear()` easing traced from an underdamped spring, or a close cubic where `linear()` is unsupported. */
-function springEasing(): string {
+export function springEasing(): string {
   if (springCurve) return springCurve;
   const supported = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('transition-timing-function', 'linear(0, 1)');
   if (!supported) return (springCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1.18)');
