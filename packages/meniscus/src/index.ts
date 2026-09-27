@@ -12,6 +12,7 @@ export type { GlassPlacement } from './core/place';
 export { GlassTooltip, type GlassTooltipProps } from './react/GlassTooltip';
 export { GlassMenu, type GlassMenuProps, type GlassMenuItem } from './react/GlassMenu';
 export { GlassToaster, toast, type GlassToasterProps, type ToastOptions, type ToastAction } from './react/GlassToast';
+export { GlassNavbar, type GlassNavbarProps } from './react/GlassNavbar';
 export { GlassPanel, type GlassPanelProps } from './react/GlassPanel';
 export { GlassGlyph, type GlassGlyphProps } from './react/GlassGlyph';
 export { GlassLoader, type GlassLoaderProps } from './react/GlassLoader';
