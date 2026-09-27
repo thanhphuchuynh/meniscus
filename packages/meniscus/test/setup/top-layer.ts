@@ -1,10 +1,8 @@
 /**
- * jsdom 30 has no dialog methods, no Popover API and no anchor positioning.
+ * jsdom 30 has no dialog methods and no Popover API.
  * These stand-ins keep the state browsers keep (the open attribute, the close
  * event, the return value), without a top layer, focus moves or light dismiss.
  */
-import { overrideAnchorPositioning } from '../../src/core/support';
-
 if (typeof HTMLDialogElement !== 'undefined' && typeof HTMLDialogElement.prototype.showModal !== 'function') {
   Object.defineProperties(HTMLDialogElement.prototype, {
     showModal: {
@@ -59,6 +57,3 @@ if (typeof document !== 'undefined') {
   style.textContent = '[popover][data-test-popover-open] { display: block !important; }';
   document.head.appendChild(style);
 }
-
-// jsdom's CSS.supports says yes to everything. Tests opt in to the CSS path themselves.
-overrideAnchorPositioning(false);

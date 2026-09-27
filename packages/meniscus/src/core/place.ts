@@ -26,22 +26,6 @@ type Align = 'start' | 'center' | 'end';
 
 const OPPOSITE: Readonly<Record<Side, Side>> = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
 
-/** The CSS `position-area` for each placement, for engines with anchor positioning. */
-export const POSITION_AREA: Readonly<Record<GlassPlacement, string>> = {
-  top: 'top',
-  bottom: 'bottom',
-  left: 'left',
-  right: 'right',
-  'top-start': 'top span-right',
-  'top-end': 'top span-left',
-  'bottom-start': 'bottom span-right',
-  'bottom-end': 'bottom span-left',
-  'left-start': 'left span-bottom',
-  'left-end': 'left span-top',
-  'right-start': 'right span-bottom',
-  'right-end': 'right span-top',
-};
-
 /** The side of the anchor a placement puts the box on. */
 export function placementSide(p: GlassPlacement): Side {
   return p.split('-')[0] as Side;

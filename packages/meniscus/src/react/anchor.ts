@@ -1,12 +1,6 @@
-import { useId, useSyncExternalStore, type CSSProperties } from 'react';
-import { place, placementSide, POSITION_AREA, type GlassPlacement } from '../core/place';
-import { supportsAnchorPositioning } from '../core/support';
+import type { CSSProperties } from 'react';
+import { place, type GlassPlacement } from '../core/place';
 import { useIsomorphicLayoutEffect } from './hooks';
-
-const noSubscribe = () => () => {};
-
-/** The margin on the side facing the anchor: CSS flips it with the box. */
-const FACING = { top: 'marginBottom', bottom: 'marginTop', left: 'marginRight', right: 'marginLeft' } as const;
 
 export interface AnchorOptions {
   /** Which side of the anchor, and how aligned. */
@@ -15,27 +9,21 @@ export interface AnchorOptions {
   offset: number;
 }
 
+const BASE: CSSProperties = { position: 'fixed', inset: 'auto', margin: 0 };
+
 /**
- * Keeps `box` beside `anchor` while `active`. With CSS anchor positioning the
- * browser does it, and flips the box at the viewport's edge. Elsewhere
- * `place()` runs when it opens, then on scroll and resize, at most once a
- * frame, writing `left`, `top` and `data-placement` to the box. Returns the
- * box's style.
+ * Keeps `box` beside `anchor` while `active`: `place()` runs when it opens,
+ * then on scroll and resize, at most once a frame, writing `left`, `top` and
+ * `data-placement` to the box. Returns the box's style.
+ *
+ * CSS anchor positioning would track scrolling without a frame of lag, but
+ * Chromium lays a just-opened popover out against a stale scroll position,
+ * takes the right side for overflow, and keeps the flipped fallback it
+ * picked, so menus opened upward with room below. Checked in Chromium 153.
  */
 export function useAnchor(anchor: HTMLElement | null, box: HTMLElement | null, active: boolean, { placement, offset }: AnchorOptions): CSSProperties {
-  const css = useSyncExternalStore(noSubscribe, supportsAnchorPositioning, () => false);
-  const name = `--meniscus-anchor-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-
   useIsomorphicLayoutEffect(() => {
-    if (!css || !anchor) return;
-    anchor.style.setProperty('anchor-name', name);
-    return () => {
-      anchor.style.removeProperty('anchor-name');
-    };
-  }, [css, anchor, name]);
-
-  useIsomorphicLayoutEffect(() => {
-    if (css || !active || !anchor || !box) return;
+    if (!active || !anchor || !box) return;
     let frame = 0;
     const update = () => {
       frame = 0;
@@ -64,15 +52,6 @@ export function useAnchor(anchor: HTMLElement | null, box: HTMLElement | null, a
       window.removeEventListener('resize', schedule);
       ro?.disconnect();
     };
-  }, [css, active, anchor, box, placement, offset]);
-
-  const base: CSSProperties = { position: 'fixed', inset: 'auto', margin: 0 };
-  if (!css) return base;
-  return {
-    ...base,
-    positionAnchor: name,
-    positionArea: POSITION_AREA[placement],
-    positionTryFallbacks: 'flip-block, flip-inline',
-    [FACING[placementSide(placement)]]: offset,
-  } as CSSProperties;
+  }, [active, anchor, box, placement, offset]);
+  return BASE;
 }

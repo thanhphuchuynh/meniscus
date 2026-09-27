@@ -132,18 +132,3 @@ export function supportsPopover(): boolean {
 export function overridePopoverSupport(value: boolean | undefined): void {
   popoverSupport = value;
 }
-
-let anchorSupport: boolean | undefined;
-
-/** Whether the browser positions an element against an anchor in CSS (`anchor-name` and `position-area`). */
-export function supportsAnchorPositioning(): boolean {
-  if (anchorSupport !== undefined) return anchorSupport;
-  if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function') return false;
-  anchorSupport = CSS.supports('position-area', 'bottom') && CSS.supports('anchor-name', '--a');
-  return anchorSupport;
-}
-
-/** For tests and hosts: force CSS anchor positioning on or off, or undefined to detect again. */
-export function overrideAnchorPositioning(value: boolean | undefined): void {
-  anchorSupport = value;
-}

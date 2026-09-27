@@ -1,4 +1,4 @@
-import { place, placementSide, POSITION_AREA, type GlassPlacement } from '../src/core/place';
+import { place, placementSide, type GlassPlacement } from '../src/core/place';
 
 const viewport = { x: 0, y: 0, width: 400, height: 300 };
 const anchor = { x: 150, y: 120, width: 100, height: 40 };
@@ -37,9 +37,7 @@ it('pins a box wider than the viewport to its start', () => {
   expect(place(anchor, { width: 500, height: 20 }, 'bottom', { offset: 8, viewport }).x).toBe(8);
 });
 
-it('maps every placement to a CSS position-area and a side', () => {
-  expect(Object.keys(POSITION_AREA)).toHaveLength(12);
-  expect(POSITION_AREA['bottom-start']).toBe('bottom span-right');
-  expect(POSITION_AREA['left-end']).toBe('left span-top');
+it('names the side of each placement', () => {
   expect(placementSide('right-start')).toBe('right');
+  expect(placementSide('top')).toBe('top');
 });

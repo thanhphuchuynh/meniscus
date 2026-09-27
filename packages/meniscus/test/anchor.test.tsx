@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, renderHook } from '@testing-library/react';
+import { act, cleanup, render } from '@testing-library/react';
 import { useCallback, useState } from 'react';
-import { overrideAnchorPositioning } from '../src/core';
 import { useAnchor } from '../src/react/anchor';
 
 function rect(r: { left: number; top: number; width: number; height: number }) {
@@ -10,7 +9,6 @@ function rect(r: { left: number; top: number; width: number; height: number }) {
 
 afterEach(() => {
   cleanup();
-  overrideAnchorPositioning(false);
   vi.useRealTimers();
 });
 
@@ -53,16 +51,4 @@ it('places the box with place() while active, and again on scroll', () => {
     vi.advanceTimersByTime(16);
   });
   expect(box.style.top).toBe('58px');
-});
-
-it('hands positioning to CSS where anchor positioning exists', () => {
-  overrideAnchorPositioning(true);
-  const anchor = document.createElement('button');
-  const { result } = renderHook(() => useAnchor(anchor, null, true, { placement: 'bottom-start', offset: 6 }));
-  const style = result.current as Record<string, unknown>;
-  expect(style.positionArea).toBe('bottom span-right');
-  expect(style.positionTryFallbacks).toBe('flip-block, flip-inline');
-  expect(style.marginTop).toBe(6);
-  expect(String(style.positionAnchor)).toMatch(/^--meniscus-anchor-/);
-  expect(anchor.style.getPropertyValue('anchor-name')).toBe(style.positionAnchor);
 });

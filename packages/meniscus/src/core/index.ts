@@ -61,8 +61,6 @@ export {
   overrideElementImage,
   supportsPopover,
   overridePopoverSupport,
-  supportsAnchorPositioning,
-  overrideAnchorPositioning,
   elementImage,
   matchesMedia,
   REDUCED_MOTION,
