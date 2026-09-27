@@ -162,13 +162,17 @@ try {
   await catalog.mouse.move(stageBox.x + stageBox.width * 0.6, handleBox.y + 26); await catalog.mouse.up();
   assert.ok(Number(await handle.getAttribute('aria-valuenow')) >= 59);
   if (process.env.MENISCUS_CAPTURE) await catalog.locator('.pattern-gallery').screenshot({ path: join(tmpdir(), 'meniscus-comparison.png') });
+  // The gallery's modal is a GlassDialog and its confirmation a toast() in the page's GlassToaster.
   await catalog.getByRole('button', { name: 'Try the modal' }).click();
-  assert.equal(await catalog.locator('dialog').evaluate(el => el.open), true);
-  await catalog.getByRole('dialog').getByRole('button', { name: 'Save plate' }).click();
-  assert.equal(await catalog.locator('dialog').evaluate(el => el.open), false);
-  assert.match(await catalog.locator('.pattern-feedback').innerText(), /Plate saved/);
-  await catalog.locator('.pattern-feedback').getByRole('button', { name: 'Dismiss', exact: true }).click();
-  assert.equal(await catalog.locator('.pattern-feedback').innerText(), '');
+  const modal = catalog.getByRole('dialog', { name: 'Keep a little light.' });
+  await modal.waitFor();
+  assert.equal(await modal.evaluate(el => el.open), true);
+  await modal.getByRole('button', { name: 'Save plate' }).click();
+  await catalog.waitForFunction(() => ![...document.querySelectorAll('dialog')].some(d => d.open));
+  const toasts = catalog.getByRole('region', { name: 'Notifications' });
+  await toasts.getByText('Plate saved for this demo.').waitFor();
+  await toasts.getByRole('button', { name: 'Dismiss notification' }).click();
+  await toasts.getByText('Plate saved for this demo.').waitFor({ state: 'detached' });
   assert.equal(await page.locator('form[action="https://stackblitz.com/run"] input[name="project[files][src/App.jsx]"]').count(), 1);
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
