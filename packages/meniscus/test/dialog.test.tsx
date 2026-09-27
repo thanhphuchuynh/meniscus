@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
-import { GlassButton, GlassDialog, GlassProvider } from '../src';
+import { GlassButton, GlassDialog, GlassProvider, GlassSlider, GlassSwitch } from '../src';
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'Date'] });
@@ -104,6 +104,18 @@ it('reports a close the browser made by itself, and opens again normally', () =>
   expect(dialog.open).toBe(true);
 });
 
+it('shows a controlled dialog again when the browser closes it and the parent keeps it open', () => {
+  const onOpenChange = vi.fn();
+  const { container } = render(<GlassDialog label="Terms" open onOpenChange={onOpenChange}>Body</GlassDialog>);
+  settle();
+  const dialog = container.querySelector('dialog')!;
+  // Chrome's close watcher closes a dialog on a second Escape without a cancelable cancel event.
+  act(() => dialog.close());
+  expect(onOpenChange).toHaveBeenCalledWith(false);
+  settle();
+  expect(dialog.open).toBe(true);
+});
+
 it('lets the page scroll again when unmounted mid-exit', () => {
   const root = document.documentElement;
   const { rerender, unmount } = render(<GlassDialog label="A" open>Body</GlassDialog>);
@@ -141,6 +153,27 @@ it('slides a drawer in from its side, keeps vertical scrolling, and holds still 
     </GlassProvider>,
   );
   expect(panelOf(reduced.container).style.translate).toBe('');
+});
+
+it('leaves drags that start on a control inside a drawer to the control', () => {
+  const onOpenChange = vi.fn();
+  const { container, getByRole } = render(
+    <GlassDialog label="Library" placement="left" open onOpenChange={onOpenChange}>
+      <input aria-label="Search" defaultValue="plates" />
+      <GlassSlider label="Opacity" />
+      <GlassSwitch label="Sound" />
+    </GlassDialog>,
+  );
+  settle();
+  const panel = panelOf(container);
+  const track = getByRole('switch', { name: 'Sound' }).parentElement!;
+  for (const target of [getByRole('textbox', { name: 'Search' }), getByRole('slider', { name: 'Opacity' }), track]) {
+    fireEvent.pointerDown(target, { pointerId: 1, button: 0, clientX: 200, clientY: 100 });
+    fireEvent.pointerMove(target, { pointerId: 1, clientX: 120, clientY: 100 });
+    fireEvent.pointerUp(target, { pointerId: 1, clientX: 20, clientY: 100 });
+  }
+  expect(panel.style.getPropertyValue('--meniscus-drag')).toBe('');
+  expect(onOpenChange).not.toHaveBeenCalled();
 });
 
 it('warns in development when it has no accessible name', () => {

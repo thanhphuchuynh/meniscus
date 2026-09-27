@@ -7,6 +7,8 @@ export const THROW = 600;
 const SLOP = 6;
 /** How much a drag the wrong way follows the pointer. */
 const RESIST = 0.2;
+/** Presses starting inside these never move the element. */
+const OWN_DRAG = 'input, textarea, select, label, [contenteditable]';
 
 /** Whether a drag released `offset` px toward the edge at `velocity` px/s dismisses an element `size` px long. */
 export function dragDismisses(offset: number, velocity: number, size: number, fraction: number): boolean {
@@ -99,6 +101,8 @@ export function useDragDismiss(target: HTMLElement | null, options: DragDismissO
   return {
     onPointerDown(e) {
       if (!latest.current.enabled || e.button !== 0 || press.current) return;
+      // Controls keep their own drags: a slider's thumb, a switch's knob, selecting text in a field.
+      if ((e.target as Element).closest?.(OWN_DRAG)) return;
       cancelAnimationFrame(settle.current);
       const c = coord(e);
       press.current = { id: e.pointerId, start: c, last: c, time: performance.now(), velocity: 0, dragging: false };

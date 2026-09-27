@@ -163,6 +163,7 @@ export function useOverlay(element: HTMLElement | null, options: OverlayOptions)
   const opener = useRef<HTMLElement | null>(null);
   const { open, kind } = options;
 
+  // It runs again when `shown` changes too, so a modal the browser closed while `open` stays true shows again.
   useIsomorphicLayoutEffect(() => {
     if (!element) return;
     if (open) {
@@ -192,7 +193,7 @@ export function useOverlay(element: HTMLElement | null, options: OverlayOptions)
       done = true;
       off();
     };
-  }, [element, open, kind, optics]);
+  }, [element, open, kind, optics, shown]);
 
   // A modal's Escape, and a modal the browser closed by itself (its close watcher, or a stray close()).
   // Unmounting while shown hides the element, after these listeners are gone, so the hide isn't taken for one.
