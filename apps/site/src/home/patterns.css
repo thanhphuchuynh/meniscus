@@ -19,11 +19,6 @@
 .pattern-toast { padding: 18px 22px; color: var(--ink); font-size: var(--fs-ui); }
 .pattern-toast b { font-family: var(--font-display); }
 .pattern-toast p { margin-top: 8px; }
-.pattern-dialog { border: 0; padding: 0; overflow: visible; width: min(440px, calc(100% - 40px)); background: transparent; color: var(--ink); }
-.pattern-dialog .pattern-panel { width: 100%; }
-.pattern-dialog::backdrop { background: rgba(5, 12, 18, 0.52); }
-.pattern-feedback { position: fixed; z-index: 20; right: 24px; bottom: 24px; max-width: calc(100% - 48px); }
-.pattern-feedback .pattern-toast { display: flex; align-items: center; gap: 12px; background: var(--stock-raised); }
 .pattern-gallery .ui-button { font: 650 var(--fs-ui) var(--font-display); color: var(--ink); }
 @media (max-width: 720px) {
   .pattern-gallery__grid { grid-template-columns: minmax(0, 1fr); }

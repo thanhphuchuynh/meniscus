@@ -467,3 +467,121 @@
   font-size: var(--fs-body);
   font-family: var(--font-display);
 }
+
+/* The kit's switch and slider fill with the page's spot ink: active state, per DESIGN.md.
+   Their demos keep plain stock: their labels are text, not glass, and must read. */
+.catalog {
+  --meniscus-accent: var(--spot);
+}
+.catalog__demo--dialog,
+.catalog__demo--popover,
+.catalog__demo--menu,
+.catalog__demo--tooltip,
+.catalog__demo--toast {
+  background-image: url('/plates/opticks-plate-2.webp');
+  background-position: center 36%;
+  background-size: cover;
+}
+:root[data-theme='lantern'] .catalog__demo--dialog,
+:root[data-theme='lantern'] .catalog__demo--popover,
+:root[data-theme='lantern'] .catalog__demo--menu,
+:root[data-theme='lantern'] .catalog__demo--tooltip,
+:root[data-theme='lantern'] .catalog__demo--toast {
+  background-image: url('/plates/opticks-plate-2-lantern.webp');
+}
+.catalog__demo--dialog,
+.catalog__demo--tooltip {
+  flex-wrap: wrap;
+}
+.catalog__demo--navbar,
+.catalog__demo--sidebar,
+.catalog__demo--tone {
+  align-items: stretch;
+  padding: 0;
+}
+.catalog__scrollbox {
+  width: 100%;
+  height: 320px;
+  overflow: auto;
+  padding-top: 12px;
+}
+.catalog__scrollbox-plate {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 12px;
+}
+.catalog__sidebar-frame {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+}
+/* In the demo frame, the column sits in place instead of sticking to the viewport. */
+.catalog__sidebar-frame [data-meniscus-sidebar] {
+  position: relative !important;
+  top: 0 !important;
+  height: auto !important;
+}
+.catalog__sidebar-toggle {
+  display: none;
+}
+@media (max-width: 899.98px) {
+  .catalog__sidebar-toggle {
+    display: inline-flex;
+  }
+}
+.catalog__links {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.catalog__stack {
+  display: grid;
+  gap: 16px;
+}
+.catalog__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.catalog__dialog-title {
+  margin: 0 0 1rem;
+}
+.catalog__dialog-form {
+  display: grid;
+  gap: 16px;
+}
+.catalog__popover-text {
+  margin: 0 0 0.75rem;
+}
+.catalog__tone {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+.catalog__tone-half {
+  display: grid;
+  place-items: center;
+  min-height: 250px;
+}
+.catalog__tone-half--light {
+  background: var(--stock);
+}
+.catalog__tone-half--dark {
+  background: var(--ink);
+}
+.catalog__tone-sample {
+  padding: 1.25rem 1.5rem;
+}
+.catalog__tone-button {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  translate: -50% 0;
+}

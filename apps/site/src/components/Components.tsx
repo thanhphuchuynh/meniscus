@@ -1,4 +1,27 @@
-import { Glass, GlassButton, GlassCheckbox, GlassGroup, GlassIndicator, GlassLoader, GlassPanel, GlassProvider, GlassSelect, GlassTabs, GlassTextField } from 'meniscus';
+import {
+  Glass,
+  GlassButton,
+  GlassCheckbox,
+  GlassDialog,
+  GlassGroup,
+  GlassIndicator,
+  GlassLoader,
+  GlassMenu,
+  GlassNavbar,
+  GlassPanel,
+  GlassPopover,
+  GlassProvider,
+  GlassSegmented,
+  GlassSelect,
+  GlassSidebar,
+  GlassSlider,
+  GlassSwitch,
+  GlassTabs,
+  GlassTextField,
+  GlassToaster,
+  GlassTooltip,
+  toast,
+} from 'meniscus';
 import { GlassPane, GlassStage } from 'meniscus/webgl';
 import { useEffect, useState, type ReactNode } from 'react';
 import { CodeBlock, Colophon, Install, Masthead } from '../shared/chrome';
@@ -13,6 +36,17 @@ const ITEMS = [
   { id: 'text-field', name: 'GlassTextField', role: 'A labelled native input' },
   { id: 'select', name: 'GlassSelect', role: 'A labelled native select' },
   { id: 'checkbox', name: 'GlassCheckbox', role: 'A native choice on glass' },
+  { id: 'dialog', name: 'GlassDialog', role: 'Modal, sheet and drawer' },
+  { id: 'popover', name: 'GlassPopover', role: 'Glass anchored to a button' },
+  { id: 'menu', name: 'GlassMenu', role: 'Actions from a button' },
+  { id: 'tooltip', name: 'GlassTooltip', role: 'A hint on hover or focus' },
+  { id: 'toast', name: 'GlassToaster', role: 'Messages that come and go' },
+  { id: 'navbar', name: 'GlassNavbar', role: 'A bar that deepens on scroll' },
+  { id: 'sidebar', name: 'GlassSidebar', role: 'A column that becomes a drawer' },
+  { id: 'switch', name: 'GlassSwitch', role: 'On or off, with a lens for a knob' },
+  { id: 'slider', name: 'GlassSlider', role: 'A value on a scale' },
+  { id: 'segmented', name: 'GlassSegmented', role: 'One of a few options' },
+  { id: 'tone', name: 'Tinted & adaptive', role: 'Colored glass, and glass that reads its backdrop' },
   { id: 'loader', name: 'GlassLoader', role: 'Loading, in liquid glass' },
   { id: 'glass', name: 'Glass', role: 'A glass surface for any element' },
   { id: 'indicator', name: 'GlassIndicator', role: 'A selection that flows' },
@@ -119,6 +153,86 @@ const PROPS: Record<string, PropRow[]> = {
     { name: '…glass options', type: 'GlassOptions', body: 'Defaults for every glass below: lightAngle, variant, tint…' },
     { name: 'mode', type: "'auto' | 'refract' | 'frost' | 'none'", body: 'Force a rendering path for the subtree.' },
     { name: 'children', type: 'ReactNode', body: 'Nested providers merge; a glass’s own props win.' },
+  ],
+  dialog: [
+    { name: 'label', type: 'string', body: 'Accessible name. Or pass aria-labelledby naming your heading.' },
+    { name: 'placement', type: "'center' | 'bottom' | 'left' | 'right'", default: "'center'", body: 'A modal card, a sheet, or a drawer. Sheets and drawers can be dragged away.' },
+    { name: 'trigger', type: 'ReactElement', body: 'The element that opens it. Focus returns there when it closes.' },
+    { name: 'open, defaultOpen', type: 'boolean', body: 'Controlled or uncontrolled. A controlled dialog stays open until you close it.' },
+    { name: 'onOpenChange', type: '(open) => void', body: 'true from the trigger; false from Escape, the dimmed page, a drag away, or a form with method="dialog".' },
+    { name: 'physics', type: 'SpringInput', default: "'snappy'", body: 'The spring it arrives and leaves on.' },
+    GLASS_OPTIONS,
+  ],
+  popover: [
+    { name: 'label', type: 'string', default: 'required', body: 'Accessible name of the popover.' },
+    { name: 'trigger', type: 'ReactElement', default: 'required', body: 'Opens and closes it. It must pass its ref through.' },
+    { name: 'placement', type: 'GlassPlacement', default: "'bottom'", body: 'top, bottom, left or right, each with -start or -end. It flips where there is no room.' },
+    { name: 'offset', type: 'number', default: '8', body: 'Gap from the trigger, px.' },
+    { name: 'open, defaultOpen, onOpenChange', type: 'boolean, (open) => void', body: 'As on GlassDialog. Escape, a press outside or focus leaving closes it.' },
+    GLASS_OPTIONS,
+  ],
+  menu: [
+    { name: 'label', type: 'string', default: 'required', body: 'Accessible name of the menu.' },
+    { name: 'trigger', type: 'ReactElement', default: 'required', body: 'The menu button.' },
+    { name: 'items', type: 'GlassMenuItem[]', default: 'required', body: "{ label, onSelect, disabled?, icon?, shortcut?, textValue? }, or 'separator'." },
+    { name: 'placement', type: 'GlassPlacement', default: "'bottom-start'", body: 'Where it opens.' },
+    { name: 'open, defaultOpen, onOpenChange', type: 'boolean, (open) => void', body: 'As on GlassDialog.' },
+    GLASS_OPTIONS,
+  ],
+  tooltip: [
+    { name: 'content', type: 'ReactNode', default: 'required', body: 'The hint. Touch screens never show it, so nothing should depend on it.' },
+    { name: 'children', type: 'ReactElement', default: 'required', body: 'The element it describes, through aria-describedby.' },
+    { name: 'placement', type: 'GlassPlacement', default: "'top'", body: 'Where it shows.' },
+    { name: 'delay', type: 'number', default: '500', body: 'Hover time before it shows, ms. Keyboard focus shows it at once.' },
+    GLASS_OPTIONS,
+  ],
+  toast: [
+    { name: 'toast(message, options?)', type: '=> id', body: 'Shows a toast. Options: description, action { label, onClick }, duration (ms; Infinity stays), and id to replace one.' },
+    { name: 'toast.dismiss(id?)', type: '() => void', body: 'Removes one toast, or all of them.' },
+    { name: 'placement', type: "'top' | 'bottom', with -start or -end", default: "'bottom'", body: 'Where toasts gather.' },
+    { name: 'max', type: 'number', default: '3', body: 'How many show at once. Older ones wait.' },
+    { name: 'className, style', type: 'string, CSSProperties', body: 'On every toast.' },
+    GLASS_OPTIONS,
+  ],
+  navbar: [
+    { name: 'label', type: 'string', default: 'required', body: 'Accessible name of the nav landmark.' },
+    { name: 'inset', type: 'number', default: '12', body: 'Gap from the top of its scroll container, and from each side, px.' },
+    { name: 'scrollEdge', type: 'boolean', default: 'true', body: 'Clear at the top; deeper tint and shadow once content scrolls under it.' },
+    { name: 'appearance', type: 'GlassAppearance', default: "'adaptive'", body: 'Follows what is behind it, unless a provider or this prop says otherwise.' },
+    GLASS_OPTIONS,
+  ],
+  sidebar: [
+    { name: 'label', type: 'string', default: 'required', body: 'Accessible name of the landmark, and of the drawer.' },
+    { name: 'as', type: "'aside' | 'nav'", default: "'aside'", body: 'The landmark it renders.' },
+    { name: 'collapseBelow', type: 'number', default: '768', body: 'Below this viewport width, px, it becomes a drawer. 0 never collapses.' },
+    { name: 'side', type: "'left' | 'right'", default: "'left'", body: 'The side the drawer opens from.' },
+    { name: 'open, defaultOpen, onOpenChange', type: 'boolean, (open) => void', body: "The drawer's state. Ignored while it is a column." },
+    GLASS_OPTIONS,
+  ],
+  switch: [
+    { name: 'label', type: 'string', default: 'required', body: 'Visible label. It names the switch.' },
+    { name: 'checked, defaultChecked', type: 'boolean', body: 'As on a native checkbox.' },
+    { name: '…input props', type: 'InputHTMLAttributes', body: 'name, value, onChange, disabled and the rest reach the native input, which has role="switch". So does a ref.' },
+    { name: '…glass options', type: 'GlassOptions', body: 'For the knob. The track fills with --meniscus-accent.' },
+  ],
+  slider: [
+    { name: 'label', type: 'string', default: 'required', body: 'Visible label. It names the slider.' },
+    { name: 'format', type: '(value) => string', body: 'Shows the value beside the label, and reads it out as aria-valuetext.' },
+    { name: 'min, max, step, value, defaultValue', type: 'number', body: 'As on a native range input.' },
+    { name: '…input props', type: 'InputHTMLAttributes', body: 'onChange, name, disabled and the rest reach the native range. So does a ref.' },
+    { name: '…glass options', type: 'GlassOptions', body: 'For the thumb. The fill uses --meniscus-accent.' },
+  ],
+  segmented: [
+    { name: 'label', type: 'string', default: 'required', body: 'The legend of the group.' },
+    { name: 'options', type: '{ value, label, disabled? }[]', default: 'required', body: 'The choices, in order.' },
+    { name: 'value, defaultValue, onValueChange', type: 'string', body: 'Controlled or uncontrolled, as on GlassTabs.' },
+    { name: 'name', type: 'string', default: 'generated', body: 'The radio group’s name, for forms.' },
+    { name: '…glass options', type: 'GlassOptions', body: 'For the selection.' },
+  ],
+  tone: [
+    { name: "variant='tinted'", type: 'GlassVariant', body: 'Colored glass: tint, or --meniscus-accent, mixed in at 70%. The text turns light or dark to stay readable.' },
+    { name: "appearance='adaptive'", type: 'GlassAppearance', body: 'Reads what is behind the glass and turns light or dark with it, setting data-meniscus-tone and the ink.' },
+    { name: '--meniscus-ink-on-light, --meniscus-ink-on-dark', type: 'CSS color', body: 'The text colors toned glass sets. Your own style.color wins.' },
   ],
 };
 
@@ -335,6 +449,86 @@ export function SharedLight() {
     </>
   );
 }`,
+  dialog: `import { GlassButton, GlassDialog } from 'meniscus';
+
+export function OrderPrint() {
+  return (
+    <GlassDialog label="Order a print" trigger={<GlassButton>Order a print</GlassButton>}>
+      <form method="dialog">
+        <GlassButton type="submit" value="order">Order</GlassButton>
+        <GlassButton type="submit" value="cancel">Cancel</GlassButton>
+      </form>
+    </GlassDialog>
+  );
+}
+
+// A sheet or a drawer: placement="bottom", "left" or "right".`,
+  popover: `import { GlassButton, GlassPopover } from 'meniscus';
+
+<GlassPopover label="Share" trigger={<GlassButton>Share</GlassButton>} placement="bottom-start">
+  <GlassButton onClick={copyLink}>Copy link</GlassButton>
+</GlassPopover>`,
+  menu: `import { GlassButton, GlassMenu } from 'meniscus';
+
+<GlassMenu label="Plate actions" trigger={<GlassButton>Plate actions</GlassButton>} items={[
+  { label: 'Open', onSelect: open },
+  { label: 'Duplicate', shortcut: '⌘D', onSelect: duplicate },
+  'separator',
+  { label: 'Delete', onSelect: remove, disabled: locked },
+]} />`,
+  tooltip: `import { GlassButton, GlassTooltip } from 'meniscus';
+
+<GlassTooltip content="Save to collection">
+  <GlassButton aria-label="Save"><SaveIcon /></GlassButton>
+</GlassTooltip>`,
+  toast: `import { GlassButton, GlassToaster, toast } from 'meniscus';
+
+// Once, near the root:
+<GlassToaster />
+
+<GlassButton onClick={() => toast('Plate saved', { action: { label: 'Undo', onClick: undo } })}>
+  Save a plate
+</GlassButton>`,
+  navbar: `import { GlassNavbar } from 'meniscus';
+
+<GlassNavbar label="Main">
+  <strong>Opticks</strong>
+  <a href="/plates">Plates</a>
+  <a href="/notes">Notes</a>
+</GlassNavbar>`,
+  sidebar: `import { useState } from 'react';
+import { GlassButton, GlassSidebar } from 'meniscus';
+
+export function Layout({ children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="layout">
+      <GlassSidebar label="Plates" as="nav" open={open} onOpenChange={setOpen}>{/* links */}</GlassSidebar>
+      <main>
+        <GlassButton className="menu-button" onClick={() => setOpen(true)}>Plates</GlassButton>
+        {children}
+      </main>
+    </div>
+  );
+}`,
+  switch: `import { GlassSwitch } from 'meniscus';
+
+<GlassSwitch label="Glass sound" checked={on} onChange={(e) => setOn(e.target.checked)} />`,
+  slider: `import { GlassSlider } from 'meniscus';
+
+<GlassSlider label="Refractive index" min={1} max={2.42} step={0.01}
+  value={n} onChange={(e) => setN(Number(e.target.value))} format={(v) => v.toFixed(2)} />`,
+  segmented: `import { GlassSegmented } from 'meniscus';
+
+<GlassSegmented label="Medium" value={medium} onValueChange={setMedium} options={[
+  { value: 'water', label: 'Water' },
+  { value: 'crown', label: 'Crown' },
+  { value: 'flint', label: 'Flint' },
+]} />`,
+  tone: `import { Glass, GlassButton } from 'meniscus';
+
+<GlassButton variant="tinted" tint="#1269d3">Order a print</GlassButton>
+<Glass appearance="adaptive" radius={24}>Reads what is behind it</Glass>`,
 } as const;
 
 function PropsTable({ title, rows }: { title: string; rows: PropRow[] }) {
@@ -369,6 +563,8 @@ function PropsTable({ title, rows }: { title: string; rows: PropRow[] }) {
   );
 }
 
+const KIT_IDS: readonly string[] = ['dialog', 'popover', 'menu', 'tooltip', 'toast', 'navbar', 'sidebar', 'switch', 'slider', 'segmented'];
+
 function Entry({
   id,
   title,
@@ -391,7 +587,7 @@ function Entry({
           <h2 id={`${id}-title`}>{title}</h2>
           <p>{description}</p>
         </div>
-        <a href={sitePath(`/docs/#${['button', 'tabs', 'panel', 'text-field', 'select', 'checkbox', 'loader'].includes(id) ? 'components' : id}`)}>
+        <a href={sitePath(`/docs/#${['button', 'tabs', 'panel', 'text-field', 'select', 'checkbox', 'loader'].includes(id) ? 'components' : id === 'tone' ? 'tone' : KIT_IDS.includes(id) ? 'kit' : id}`)}>
           API &amp; guidance <span aria-hidden="true">↗</span>
         </a>
       </div>
@@ -510,6 +706,164 @@ function GroupDemo() {
   );
 }
 
+const MEDIA = [
+  { value: 'water', label: 'Water' },
+  { value: 'crown', label: 'Crown' },
+  { value: 'flint', label: 'Flint' },
+];
+
+const LINKS = (
+  <ul className="catalog__links">
+    <li><a href="#sidebar">Book I</a></li>
+    <li><a href="#sidebar">Book II</a></li>
+    <li><a href="#sidebar">Book III</a></li>
+  </ul>
+);
+
+function DialogDemo() {
+  return (
+    <>
+      <GlassDialog label="Order a print" trigger={<GlassButton>Order a print</GlassButton>}>
+        <h3 className="catalog__dialog-title">Order a print</h3>
+        <form method="dialog" className="catalog__dialog-form">
+          <GlassTextField label="Email" name="email" type="email" />
+          <div className="catalog__row">
+            <GlassButton type="submit" value="order">Order</GlassButton>
+            <GlassButton type="submit" value="cancel">Cancel</GlassButton>
+          </div>
+          <GlassButton onClick={() => toast('Proof requested', { description: 'This toast shows above the open dialog.' })}>Toast from the dialog</GlassButton>
+        </form>
+      </GlassDialog>
+      <GlassDialog label="Filters" placement="bottom" trigger={<GlassButton>Filters sheet</GlassButton>}>
+        <h3 className="catalog__dialog-title">Filters</h3>
+        <GlassSegmented label="Medium" options={MEDIA} tint="var(--glass-select)" />
+      </GlassDialog>
+      <GlassDialog label="Library" placement="left" trigger={<GlassButton>Library drawer</GlassButton>}>
+        <h3 className="catalog__dialog-title">Library</h3>
+        {LINKS}
+      </GlassDialog>
+    </>
+  );
+}
+
+function PopoverDemo() {
+  const [copied, setCopied] = useState(false);
+  return (
+    <GlassPopover label="Share" trigger={<GlassButton>Share</GlassButton>} placement="bottom-start">
+      <p className="catalog__popover-text">Share this plate with a link.</p>
+      <GlassButton onClick={() => setCopied(true)}>{copied ? 'Copied' : 'Copy link'}</GlassButton>
+    </GlassPopover>
+  );
+}
+
+function MenuDemo() {
+  const [last, setLast] = useState('Nothing chosen yet.');
+  return (
+    <>
+      <GlassMenu
+        label="Plate actions"
+        trigger={<GlassButton>Plate actions</GlassButton>}
+        items={[
+          { label: 'Open', onSelect: () => setLast('Opened.') },
+          { label: 'Duplicate', shortcut: '⌘D', onSelect: () => setLast('Duplicated.') },
+          'separator',
+          { label: 'Delete', disabled: true, onSelect: () => setLast('Deleted.') },
+          { label: 'Details', onSelect: () => setLast('Details shown.') },
+        ]}
+      />
+      <p role="status" className="catalog__status">{last}</p>
+    </>
+  );
+}
+
+function TooltipDemo() {
+  return (
+    <>
+      <GlassTooltip content="Save to collection">
+        <GlassButton>Save</GlassButton>
+      </GlassTooltip>
+      <GlassTooltip content="Print a proof" placement="bottom">
+        <GlassButton>Print</GlassButton>
+      </GlassTooltip>
+    </>
+  );
+}
+
+function ToastDemo() {
+  return (
+    <GlassButton onClick={() => toast('Plate saved', { description: 'In your collection.', action: { label: 'Undo', onClick: () => toast('Plate removed') } })}>
+      Save a plate
+    </GlassButton>
+  );
+}
+
+function NavbarDemo() {
+  const theme = useTheme();
+  return (
+    <div className="catalog__scrollbox" tabIndex={0} role="region" aria-label="A page to scroll under the navbar">
+      <GlassNavbar label="Example">
+        <strong>Opticks</strong>
+        <a href="#navbar">Plates</a>
+        <a href="#navbar">Notes</a>
+      </GlassNavbar>
+      <img className="catalog__scrollbox-plate" src={plateSrc('opticks-plate-2', theme)} alt="Newton’s Opticks, Plate II, to scroll under the bar." width="1200" height="2191" />
+    </div>
+  );
+}
+
+function SidebarDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="catalog__sidebar-frame">
+      <GlassSidebar label="Plates" as="nav" collapseBelow={900} open={open} onOpenChange={setOpen}>
+        {LINKS}
+      </GlassSidebar>
+      <div className="catalog__sidebar-body">
+        <GlassButton className="catalog__sidebar-toggle" onClick={() => setOpen(true)}>Show plates</GlassButton>
+        <p>A column on wide screens. Below 900 px it becomes a drawer, opened with the button.</p>
+      </div>
+    </div>
+  );
+}
+
+function SwitchDemo() {
+  const [on, setOn] = useState(true);
+  return (
+    <div className="catalog__stack">
+      <GlassSwitch label="Glass sound" checked={on} onChange={(e) => setOn(e.target.checked)} />
+      <GlassSwitch label="Weekly digest" disabled />
+    </div>
+  );
+}
+
+function SliderDemo() {
+  const [n, setN] = useState(1.5);
+  return (
+    <div className="catalog__form-sample">
+      <GlassSlider label="Refractive index" min={1} max={2.42} step={0.01} value={n} onChange={(e) => setN(Number(e.target.value))} format={(v) => v.toFixed(2)} />
+    </div>
+  );
+}
+
+function SegmentedDemo() {
+  const [medium, setMedium] = useState('crown');
+  return <GlassSegmented label="Medium" options={MEDIA} value={medium} onValueChange={setMedium} tint="var(--glass-select)" />;
+}
+
+function ToneDemo() {
+  return (
+    <div className="catalog__tone">
+      <div className="catalog__tone-half catalog__tone-half--light">
+        <Glass appearance="adaptive" radius={24} className="catalog__tone-sample">Adaptive over stock</Glass>
+      </div>
+      <div className="catalog__tone-half catalog__tone-half--dark">
+        <Glass appearance="adaptive" radius={24} className="catalog__tone-sample">Adaptive over ink</Glass>
+      </div>
+      <GlassButton variant="tinted" tint="var(--glass-fill)" className="catalog__tone-button">Tinted glass</GlassButton>
+    </div>
+  );
+}
+
 export function Components() {
   const theme = useTheme();
   const [opened, setOpened] = useState(false);
@@ -600,6 +954,50 @@ export function Components() {
               <GlassCheckbox label="Weekly digest" name="digest" disabled />
             </Entry>
 
+            <Entry id="dialog" title="GlassDialog" description="A modal dialog of glass: a centered card, a sheet from the bottom, or a drawer from a side. It opens in the browser’s top layer, keeps focus inside, and gives focus back when it closes." note="Escape, the dimmed page and a drag away ask it to close. A form with method=&quot;dialog&quot; inside closes it with the submitter’s value.">
+              <DialogDemo />
+            </Entry>
+
+            <Entry id="popover" title="GlassPopover" description="Glass content anchored to a trigger. It flips at the edge of the screen, takes focus when it opens, and closes on Escape, a press outside, or focus leaving." note="It is a non-modal dialog: give it a label that says what it holds.">
+              <PopoverDemo />
+            </Entry>
+
+            <Entry id="menu" title="GlassMenu" description="Actions from a button. Arrow keys, Home, End and the first letter of an item move through it; a glass highlight flows between the items." note="Shortcuts are shown only. Bind the keys yourself.">
+              <MenuDemo />
+            </Entry>
+
+            <Entry id="tooltip" title="GlassTooltip" description="A short hint for the element it wraps. It shows after a hover delay, or at once on keyboard focus, and the pointer can move onto it." note="Touch screens never show tooltips. Nothing should depend on one.">
+              <TooltipDemo />
+            </Entry>
+
+            <Entry id="toast" title="GlassToaster & toast()" description="Messages that arrive on a spring and leave on their own. Hovering or focusing them pauses the clock, and a swipe dismisses one." note="Render one GlassToaster near the root. While a modal dialog is open, a toast still shows and is announced, but its buttons work only after the dialog closes.">
+              <ToastDemo />
+            </Entry>
+
+            <Entry id="navbar" title="GlassNavbar" description="A sticky bar of glass. It stays clear over the top of the page and deepens as content scrolls under it, following the tone of what passes behind." note="Scroll the frame to see the edge. The bar follows its nearest scrolling ancestor, or the page.">
+              <NavbarDemo />
+            </Entry>
+
+            <Entry id="sidebar" title="GlassSidebar" description="A glass column on wide screens that becomes a drawer on narrow ones. A media query hides the column before JavaScript runs, so phones never see it flash." note="Give the drawer an open control of your own, shown only below the breakpoint.">
+              <SidebarDemo />
+            </Entry>
+
+            <Entry id="switch" title="GlassSwitch" description="A native switch whose knob swells into a clear lens while you press or drag it." note="It is a checkbox with role=switch, so forms and assistive technology treat it as one.">
+              <SwitchDemo />
+            </Entry>
+
+            <Entry id="slider" title="GlassSlider" description="A native range on a glass track. While you drag, the thumb becomes a lens and bends the fill beneath it." note="format sets both the visible value and aria-valuetext.">
+              <SliderDemo />
+            </Entry>
+
+            <Entry id="segmented" title="GlassSegmented" description="One of a few options: native radios in a fieldset, with a glass selection that flows to the chosen one." note="Arrow keys move the choice, as in any radio group.">
+              <SegmentedDemo />
+            </Entry>
+
+            <Entry id="tone" title="Tinted & adaptive glass" description="Tinted glass is colored glass for primary actions. Adaptive glass reads what is behind it and turns light or dark, with text to match." note="Adaptive glass reads solid backgrounds and media. Over a gradient or a cross-origin image it keeps the page’s color scheme.">
+              <ToneDemo />
+            </Entry>
+
             <Entry
               id="loader"
               title="GlassLoader"
@@ -658,6 +1056,7 @@ export function Components() {
         </div>
       </main>
       <Colophon />
+      <GlassToaster />
     </GlassProvider>
   );
 }
