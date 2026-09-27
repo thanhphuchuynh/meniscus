@@ -431,8 +431,9 @@ function GlassImpl(props: GlassProps<ElementType>, forwardedRef: ForwardedRef<HT
     // Glass with a backdrop filter is already a stacking context; bare glass
     // needs one so the pointer glow (z-index -1) stays above what's behind.
     ...(bare && interactive ? { isolation: 'isolate' as const } : null),
-    ...(tone ? { color: tone === 'dark' ? INK_ON_DARK : INK_ON_LIGHT } : null),
     ...style,
+    // The kit's controls pass `color: inherit` as a default: on toned glass the ink takes its place.
+    ...(tone && (style?.color === undefined || style.color === 'inherit') ? { color: tone === 'dark' ? INK_ON_DARK : INK_ON_LIGHT } : null),
     ...(optics ? { ...opticVars(optics.state), opacity: opticOpacity(style?.opacity) as unknown as number } : null),
     ...(hidden ? { opacity: 0 } : null),
   };

@@ -4,10 +4,12 @@ let colorCtx: CanvasRenderingContext2D | null | undefined;
 /**
  * Parses a CSS color into 0..1 rgba, or returns null when the canvas can't
  * read it (custom properties, currentColor, color-mix in older engines).
+ * Syntaxes a canvas keeps as written, such as `oklch()`, `lab()` or
+ * `color(display-p3 …)`, are painted on one pixel and read back in sRGB.
  */
 export function parseColor(css: string): [number, number, number, number] | null {
   if (colorCache.has(css)) return colorCache.get(css)!;
-  if (colorCtx === undefined) colorCtx = typeof document !== 'undefined' ? document.createElement('canvas').getContext('2d') : null;
+  if (colorCtx === undefined) colorCtx = typeof document !== 'undefined' ? document.createElement('canvas').getContext('2d', { willReadFrequently: true }) : null;
   if (!colorCtx) return null;
   // An unparseable value leaves fillStyle unchanged, so try it over two different sentinels.
   colorCtx.fillStyle = '#000';
@@ -30,6 +32,12 @@ export function parseColor(css: string): [number, number, number, number] | null
   } else if (srgb) {
     const parts = srgb[1]!.split(/[\s/]+/).filter(Boolean).map(Number);
     rgba = [parts[0] ?? 1, parts[1] ?? 1, parts[2] ?? 1, parts[3] ?? 1];
+  } else {
+    colorCtx.clearRect(0, 0, 1, 1);
+    colorCtx.fillStyle = css;
+    colorCtx.fillRect(0, 0, 1, 1);
+    const [r = 0, g = 0, bl = 0, alpha = 0] = colorCtx.getImageData(0, 0, 1, 1).data;
+    rgba = [r / 255, g / 255, bl / 255, alpha / 255];
   }
   colorCache.set(css, rgba);
   return rgba;

@@ -18,6 +18,7 @@ All notable changes to meniscus are recorded here. Versions follow Semantic Vers
 ### Fixed
 
 - Glass in the top layer no longer warns that a faded parent confines it.
+- A tint written in `oklch()`, `lab()` or another syntax a canvas keeps as written, such as `color(display-p3 …)`, is no longer drawn as a white mist on the WebGL path.
 
 ## [0.5.0] - 2026-09-26
 

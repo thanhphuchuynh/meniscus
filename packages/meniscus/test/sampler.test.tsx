@@ -120,3 +120,23 @@ it('never samples while disabled', () => {
   expect(hit).not.toHaveBeenCalled();
   expect(container.querySelector('[data-tone]')!.getAttribute('data-tone')).toBe('none');
 });
+
+it('reads a background in a wider color syntax, such as oklch, from a painted pixel', () => {
+  // Chromium, WebKit and jsdom keep oklch() in computed styles. A canvas paints it in sRGB.
+  let fill = '#000000';
+  const ctx = {
+    get fillStyle() {
+      return fill;
+    },
+    set fillStyle(v: string) {
+      fill = v === '#000' ? '#000000' : v === '#fff' ? '#ffffff' : v;
+    },
+    clearRect: vi.fn(),
+    fillRect: vi.fn(),
+    getImageData: vi.fn(() => ({ data: new Uint8ClampedArray([21, 24, 29, 255]) })),
+  };
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(ctx as unknown as CanvasRenderingContext2D);
+  const glass = scene('<section id="hero" style="background-color: oklch(0.2 0.02 260)"><div id="glass" data-meniscus="frost"></div></section>');
+  stack = [glass, document.getElementById('hero')!, document.body, document.documentElement];
+  expect(sampleBackdrop(glass, null)).toBeCloseTo(luminance([21 / 255, 24 / 255, 29 / 255]), 6);
+});

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { composite, luminance, parseComputedColor, pickTone, type Tone } from '../core/tone';
-import { resolveTint } from '../webgl/color';
+import { parseColor, resolveTint } from '../webgl/color';
 import { isMediaElement, isVideo, mediaRect, sourceSize, type Media } from '../webgl/media';
 import { backdropElement, type Backdrop } from './backdrop';
 import { useIsomorphicLayoutEffect } from './hooks';
@@ -97,7 +97,7 @@ function sampleAt(x: number, y: number, glass: HTMLElement): Sample {
     }
     const cs = getComputedStyle(el);
     if (cs.backgroundImage && cs.backgroundImage !== 'none') return 'unreadable';
-    const bg = parseComputedColor(cs.backgroundColor);
+    const bg = parseComputedColor(cs.backgroundColor) ?? parseColor(cs.backgroundColor);
     if (bg && bg[3] >= 0.5) return luminance(bg);
   }
   return 'transparent';
