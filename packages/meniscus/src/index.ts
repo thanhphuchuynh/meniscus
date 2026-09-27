@@ -6,6 +6,7 @@ export const Glass = Object.assign(GlassBase, { Stack: GlassStack, Layer: GlassL
 export { DEFAULT_SHADOW, GLASS_OPTION_KEYS, type GlassProps, type GlassOwnProps, type GlassPath, type GlassPathReason } from './react/Glass';
 export { GlassStack, GlassLayer, type GlassStackProps, type GlassLayerProps, type StackRenderer } from './react/GlassStack';
 export { GlassButton, type GlassButtonProps } from './react/GlassButton';
+export { GlassDialog, type GlassDialogProps, type GlassDialogPlacement } from './react/GlassDialog';
 export { GlassPanel, type GlassPanelProps } from './react/GlassPanel';
 export { GlassGlyph, type GlassGlyphProps } from './react/GlassGlyph';
 export { GlassLoader, type GlassLoaderProps } from './react/GlassLoader';
