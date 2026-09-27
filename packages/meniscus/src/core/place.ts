@@ -37,6 +37,7 @@ function alignOf(p: GlassPlacement): Align {
 }
 
 const vertical = (side: Side) => side === 'top' || side === 'bottom';
+const clamp = (value: number, low: number, high: number) => Math.max(low, Math.min(value, high));
 
 /** Space between the anchor and the viewport's padded edge on one side. */
 function room(a: PlaceRect, v: PlaceRect, side: Side, padding: number): number {
@@ -56,7 +57,9 @@ function room(a: PlaceRect, v: PlaceRect, side: Side, padding: number): number {
  * Where a box goes beside an anchor: on the placement's side, `offset` px
  * away, centered or aligned to the anchor's start or end. If that side lacks
  * room and the opposite side has more, it flips. It then shifts along the
- * edge to stay `padding` px inside the viewport. Returns the side it used.
+ * edge to stay `padding` px inside the viewport. Where neither side has room,
+ * it overlaps the anchor to stay inside too, but never comes loose from the
+ * anchor, so it follows one scrolled away. Returns the side it used.
  */
 export function place(
   anchor: PlaceRect,
@@ -74,12 +77,14 @@ export function place(
   let y: number;
   if (vertical(side)) {
     y = side === 'top' ? anchor.y - offset - box.height : anchor.y + anchor.height + offset;
+    y = clamp(clamp(y, viewport.y + padding, viewport.y + viewport.height - padding - box.height), anchor.y - offset - box.height, anchor.y + anchor.height + offset);
     x = align === 'start' ? anchor.x : align === 'end' ? anchor.x + anchor.width - box.width : anchor.x + (anchor.width - box.width) / 2;
-    x = Math.max(viewport.x + padding, Math.min(x, viewport.x + viewport.width - padding - box.width));
+    x = clamp(x, viewport.x + padding, viewport.x + viewport.width - padding - box.width);
   } else {
     x = side === 'left' ? anchor.x - offset - box.width : anchor.x + anchor.width + offset;
+    x = clamp(clamp(x, viewport.x + padding, viewport.x + viewport.width - padding - box.width), anchor.x - offset - box.width, anchor.x + anchor.width + offset);
     y = align === 'start' ? anchor.y : align === 'end' ? anchor.y + anchor.height - box.height : anchor.y + (anchor.height - box.height) / 2;
-    y = Math.max(viewport.y + padding, Math.min(y, viewport.y + viewport.height - padding - box.height));
+    y = clamp(y, viewport.y + padding, viewport.y + viewport.height - padding - box.height);
   }
   return { x, y, placement: (align === 'center' ? side : `${side}-${align}`) as GlassPlacement };
 }

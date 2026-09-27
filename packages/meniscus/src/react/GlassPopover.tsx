@@ -26,7 +26,8 @@ export interface GlassPopoverProps extends Omit<GlassProps<'div'>, 'as' | 'appea
   physics?: SpringInput;
 }
 
-const SURFACE: CSSProperties = { border: 0, padding: '0.75rem 1rem', color: 'inherit', overflow: 'visible', boxSizing: 'border-box', maxWidth: 'min(22rem, calc(100vw - 16px))' };
+// Taller than the viewport, it scrolls inside itself.
+const SURFACE: CSSProperties = { border: 0, padding: '0.75rem 1rem', color: 'inherit', overflow: 'auto', boxSizing: 'border-box', maxWidth: 'min(22rem, calc(100vw - 16px))', maxHeight: 'calc(100dvh - 16px)' };
 const SWELL: CSSProperties = { scale: 'calc(0.96 + 0.04 * var(--meniscus-presence, 1))' };
 
 /**

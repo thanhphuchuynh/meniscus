@@ -47,7 +47,8 @@ export interface GlassMenuProps extends Omit<GlassProps<'div'>, 'as' | 'children
 }
 
 // The popover element's own display stays the browser's: `display: none` is how a closed popover hides.
-const SURFACE: CSSProperties = { border: 0, padding: 6, minWidth: '12rem', color: 'inherit', boxSizing: 'border-box', overflow: 'visible' };
+// Taller than the viewport, it scrolls inside itself.
+const SURFACE: CSSProperties = { border: 0, padding: 6, minWidth: '12rem', color: 'inherit', boxSizing: 'border-box', overflow: 'auto', maxHeight: 'calc(100dvh - 16px)' };
 const LIST: CSSProperties = { display: 'grid', gap: 2 };
 const ITEM: CSSProperties = {
   position: 'relative',
@@ -78,7 +79,7 @@ const textOf = (item: Action) => (item.textValue ?? (typeof item.label === 'stri
 /**
  * A menu of actions from a button, in glass. It follows the WAI-ARIA menu
  * button pattern: the arrow keys, Home, End and the first letter of an item
- * move through it; Enter chooses; Escape closes and gives focus back. A glass
+ * move through it; Enter or Space chooses; Escape closes and gives focus back. A glass
  * highlight flows from item to item.
  */
 export function GlassMenu({ label, trigger, items, placement = 'bottom-start', offset = 6, open: openProp, defaultOpen, onOpenChange, physics = 'snappy', radius = 16, style, ...glass }: GlassMenuProps) {
@@ -103,10 +104,12 @@ export function GlassMenu({ label, trigger, items, placement = 'bottom-start', o
   const position = useAnchor(anchor, surface, overlay.shown, { placement, offset });
 
   const enabled = items.flatMap((item, i) => (item !== 'separator' && !item.disabled ? [i] : []));
-  const focusItem = (i: number | undefined) => {
+  const focusItem = (i: number | undefined, reveal = true) => {
     if (i === undefined) return;
     setActive(i);
     buttons.current[i]?.focus({ preventScroll: true });
+    // In a menu that scrolls, keys bring the item into view; the pointer is already on it.
+    if (reveal) buttons.current[i]?.scrollIntoView?.({ block: 'nearest' });
   };
   const openAt = (where: 'first' | 'last') => {
     start.current = where;
@@ -133,6 +136,8 @@ export function GlassMenu({ label, trigger, items, placement = 'bottom-start', o
   const choose = (i: number) => {
     const item = items[i];
     if (!item || item === 'separator' || item.disabled) return;
+    // Focus goes back to the trigger first, so a dialog the item opens gives it back there.
+    anchor?.focus({ preventScroll: true });
     setOpen(false);
     item.onSelect();
   };
@@ -145,7 +150,7 @@ export function GlassMenu({ label, trigger, items, placement = 'bottom-start', o
     else if (e.key === 'Tab') {
       setOpen(false);
       return;
-    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    } else if (e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey) {
       const now = performance.now();
       const t = typed.current;
       t.text = now - t.at > 500 ? e.key.toLowerCase() : t.text + e.key.toLowerCase();
@@ -207,7 +212,7 @@ export function GlassMenu({ label, trigger, items, placement = 'bottom-start', o
                 aria-disabled={item.disabled || undefined}
                 onClick={() => choose(i)}
                 onPointerMove={() => {
-                  if (!item.disabled && active !== i) focusItem(i);
+                  if (!item.disabled && active !== i) focusItem(i, false);
                 }}
                 style={item.disabled ? DISABLED : ITEM}
               >

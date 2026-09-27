@@ -37,6 +37,20 @@ it('pins a box wider than the viewport to its start', () => {
   expect(place(anchor, { width: 500, height: 20 }, 'bottom', { offset: 8, viewport }).x).toBe(8);
 });
 
+it('overlaps its anchor rather than leave the viewport when neither side has room', () => {
+  const p = place({ x: 150, y: 130, width: 100, height: 40 }, { width: 80, height: 200 }, 'bottom', { offset: 8, viewport });
+  expect(p).toEqual({ x: 160, y: 300 - 8 - 200, placement: 'bottom' });
+});
+
+it('follows its anchor out of the viewport rather than come loose from it', () => {
+  // Scrolled above the top: the box keeps touching the anchor's edge.
+  expect(place({ x: 150, y: -100, width: 100, height: 40 }, box, 'bottom', { offset: 8, viewport }).y).toBe(-52);
+});
+
+it('pins a box taller than the viewport to its top', () => {
+  expect(place(anchor, { width: 80, height: 500 }, 'bottom', { offset: 8, viewport }).y).toBe(8);
+});
+
 it('names the side of each placement', () => {
   expect(placementSide('right-start')).toBe('right');
   expect(placementSide('top')).toBe('top');

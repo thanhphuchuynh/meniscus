@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
-import { GlassMenu, type GlassMenuItem } from '../src';
+import { useState } from 'react';
+import { GlassDialog, GlassMenu, type GlassMenuItem } from '../src';
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'Date'] });
@@ -114,4 +115,39 @@ it('leaves a closed menu to the browser’s hidden popover style, so it takes no
   fireEvent.click(trigger);
   settle();
   expect(getComputedStyle(menu).display).toBe('none');
+});
+
+it('leaves Space to the focused item, which a button chooses on', () => {
+  const { trigger, focused, key } = setup();
+  act(() => trigger.focus());
+  key('ArrowDown');
+  expect(focused()).toBe('Open');
+  // Not canceled: the button's own Space activation clicks it.
+  expect(fireEvent.keyDown(document.activeElement!, { key: ' ' })).toBe(true);
+});
+
+function RenameMenu() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <GlassMenu label="Plate actions" trigger={<button type="button">Plate</button>} items={[{ label: 'Rename…', onSelect: () => setOpen(true) }]} />
+      <GlassDialog label="Rename" open={open} onOpenChange={setOpen}>
+        <button type="button">Done</button>
+      </GlassDialog>
+    </>
+  );
+}
+
+it('gives focus back to its trigger when an item opens a dialog, so it returns there after', () => {
+  const view = render(<RenameMenu />);
+  const trigger = view.getByRole('button', { name: 'Plate' });
+  fireEvent.click(trigger);
+  settle();
+  fireEvent.click(view.getByRole('menuitem', { name: 'Rename…' }));
+  settle();
+  const dialog = view.container.querySelector('dialog')!;
+  expect(dialog.open).toBe(true);
+  fireEvent(dialog, new Event('cancel', { cancelable: true }));
+  settle();
+  expect(document.activeElement).toBe(trigger);
 });
