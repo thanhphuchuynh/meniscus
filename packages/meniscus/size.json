@@ -1,0 +1,46 @@
+{
+  "Glass": {
+    "kB": 23,
+    "budget": 25.3
+  },
+  "GlassDialog": {
+    "kB": 26.3,
+    "budget": 29
+  },
+  "GlassPopover": {
+    "kB": 26,
+    "budget": 28.6
+  },
+  "GlassTooltip": {
+    "kB": 25.9,
+    "budget": 28.5
+  },
+  "GlassMenu": {
+    "kB": 27.8,
+    "budget": 30.6
+  },
+  "GlassToaster": {
+    "kB": 25.7,
+    "budget": 28.3
+  },
+  "GlassNavbar": {
+    "kB": 23.5,
+    "budget": 25.9
+  },
+  "GlassSidebar": {
+    "kB": 26.6,
+    "budget": 29.3
+  },
+  "GlassSwitch": {
+    "kB": 24.2,
+    "budget": 26.7
+  },
+  "GlassSlider": {
+    "kB": 24.1,
+    "budget": 26.6
+  },
+  "GlassSegmented": {
+    "kB": 24.7,
+    "budget": 27.2
+  }
+}
