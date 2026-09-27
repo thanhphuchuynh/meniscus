@@ -7,6 +7,8 @@ export { DEFAULT_SHADOW, GLASS_OPTION_KEYS, type GlassProps, type GlassOwnProps,
 export { GlassStack, GlassLayer, type GlassStackProps, type GlassLayerProps, type StackRenderer } from './react/GlassStack';
 export { GlassButton, type GlassButtonProps } from './react/GlassButton';
 export { GlassDialog, type GlassDialogProps, type GlassDialogPlacement } from './react/GlassDialog';
+export { GlassPopover, type GlassPopoverProps } from './react/GlassPopover';
+export type { GlassPlacement } from './core/place';
 export { GlassPanel, type GlassPanelProps } from './react/GlassPanel';
 export { GlassGlyph, type GlassGlyphProps } from './react/GlassGlyph';
 export { GlassLoader, type GlassLoaderProps } from './react/GlassLoader';

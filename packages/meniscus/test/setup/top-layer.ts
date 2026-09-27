@@ -52,5 +52,13 @@ if (typeof HTMLElement !== 'undefined' && typeof (HTMLElement.prototype as { sho
   });
 }
 
+// jsdom's own stylesheet hides every [popover] (it never matches :popover-open).
+// Show the ones the stand-in opened, as a browser would, so they stay accessible.
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = '[popover][data-test-popover-open] { display: block !important; }';
+  document.head.appendChild(style);
+}
+
 // jsdom's CSS.supports says yes to everything. Tests opt in to the CSS path themselves.
 overrideAnchorPositioning(false);
