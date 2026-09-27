@@ -1,8 +1,10 @@
-import { Glass, GlassButton, GlassLayer, GlassProvider, GlassStack } from 'meniscus';
+import { Glass, GlassButton, GlassDialog, GlassLayer, GlassProvider, GlassStack, GlassToaster } from 'meniscus';
 import { PathReport } from './path-report';
+import { ToastButton } from './toast-button';
 
 // A Server Component. meniscus's React entries carry "use client", so they
-// render here as client components; every prop crosses as plain data.
+// render here as client components; every prop crosses as plain data, and
+// elements such as a dialog's trigger cross as elements.
 export default function Page() {
   return (
     <GlassProvider lightAngle={300}>
@@ -10,7 +12,13 @@ export default function Page() {
         <Glass as="header" radius="capsule" className="bar">
           <strong>meniscus</strong>
           <GlassButton>Plates</GlassButton>
-          <GlassButton>Search</GlassButton>
+          <GlassDialog label="Search the plates" trigger={<GlassButton>Search</GlassButton>}>
+            <p>A dialog rendered from a Server Component.</p>
+            <form method="dialog">
+              <GlassButton type="submit">Done</GlassButton>
+            </form>
+          </GlassDialog>
+          <ToastButton />
         </Glass>
         {/* Named exports on the server: <Glass.Stack> reads a property off a client component, which is undefined here. */}
         <GlassStack className="stack">
@@ -21,6 +29,7 @@ export default function Page() {
           </GlassLayer>
         </GlassStack>
       </main>
+      <GlassToaster />
     </GlassProvider>
   );
 }
