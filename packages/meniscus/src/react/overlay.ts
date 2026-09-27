@@ -134,6 +134,8 @@ export interface OverlayOptions {
   trigger?: HTMLElement | null;
   /** Elements that count as inside for outside presses and focus, besides the overlay itself. */
   inside?: () => ReadonlyArray<HTMLElement | null>;
+  /** Give focus back when it closes. Off for tooltips, which never take focus. Default true. */
+  returnFocus?: boolean;
 }
 
 export interface Overlay {
@@ -181,7 +183,9 @@ export function useOverlay(element: HTMLElement | null, options: OverlayOptions)
       const hadFocus = element.contains(document.activeElement);
       hide(element, kind);
       setShown(false);
-      if (hadFocus || document.activeElement === document.body) (latest.current.trigger ?? opener.current)?.focus({ preventScroll: true });
+      if (latest.current.returnFocus !== false && (hadFocus || document.activeElement === document.body)) {
+        (latest.current.trigger ?? opener.current)?.focus({ preventScroll: true });
+      }
     };
     const off = optics.subscribe(finish);
     return () => {

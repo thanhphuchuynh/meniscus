@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 /** Runs the springs for about 1.5 s: long enough for any entrance or exit to finish. */
-const settle = () => act(() => { for (let i = 0; i < 90; i++) vi.advanceTimersByTime(16); });
+const settle = () => { for (let i = 0; i < 90; i++) act(() => { vi.advanceTimersByTime(16); }); };
 
 function Share(props: { onOpenChange?: (open: boolean) => void }) {
   return (
