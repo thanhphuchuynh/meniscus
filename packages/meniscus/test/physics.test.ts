@@ -236,3 +236,24 @@ describe('staggerDelay', () => {
     expect(staggerDelay(1, 'snappy', -0.12)).toBe(staggerDelay(1, 'snappy', 0.12));
   });
 });
+
+describe('the frame loop', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('starts again after the last glass pauses, even if its scheduled frame never came', () => {
+    const dropped: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => dropped.push(cb));
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+    const physics = new GlassPhysics({ initial: { presence: 0 } });
+    physics.to({ presence: 1 });
+    expect(dropped).toHaveLength(1);
+    // The glass unmounts before its frame arrives, and that frame never runs.
+    physics.pause();
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb) + 100);
+    physics.resume();
+    expect(frames).toHaveLength(1);
+  });
+});

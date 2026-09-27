@@ -87,6 +87,19 @@ const moving = new Set<GlassPhysics>();
 let loopFrame = 0;
 let loopLast = 0;
 
+/**
+ * Takes an instance off the loop. With nothing left moving, the pending frame
+ * is canceled, so a frame that never arrives (a test's fake timers, say)
+ * can't keep the loop from starting again.
+ */
+function leave(p: GlassPhysics): void {
+  moving.delete(p);
+  if (moving.size || !loopFrame) return;
+  if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(loopFrame);
+  loopFrame = 0;
+  loopLast = 0;
+}
+
 /** Surfaces an error without letting it stop the loop. */
 function report(error: unknown): void {
   if (typeof reportError === 'function') reportError(error);
@@ -232,7 +245,7 @@ export class GlassPhysics {
 
   /** Stops stepping on the frame loop, keeping targets, pending changes and listeners. `resume()`, `to()` or `impulse()` continues. */
   pause(): void {
-    moving.delete(this);
+    leave(this);
   }
 
   /** Continues on the frame loop if anything is still moving or waiting. */
@@ -242,7 +255,7 @@ export class GlassPhysics {
 
   /** Stops motion and drops pending targets and listeners. A later `to()` starts it again. */
   dispose(): void {
-    moving.delete(this);
+    leave(this);
     this.pending = [];
     this.listeners.clear();
   }
